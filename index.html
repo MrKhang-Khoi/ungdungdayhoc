@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -1329,6 +1329,50 @@
             white-space: nowrap;
             margin-top: 2px;
         }
+
+        /* Anti-Cheat Warning Overlay */
+        .cheat-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(220, 38, 38, 0.97);
+            z-index: 999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(10px);
+            animation: cheatFlash 0.5s ease;
+        }
+        .cheat-overlay.show { display: flex; }
+        @keyframes cheatFlash {
+            0% { opacity: 0; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .cheat-overlay .cheat-icon {
+            width: 100px; height: 100px; border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 48px; animation: pulse 1.5s infinite;
+        }
+        .cheat-overlay h2 { color: #fff; font-size: 26px; margin: 0; }
+        .cheat-overlay p { color: rgba(255,255,255,0.85); font-size: 15px; max-width: 400px; text-align: center; line-height: 1.6; margin: 0; }
+        .cheat-overlay .cheat-count { color: #fca5a5; font-size: 13px; font-weight: 600; }
+
+        /* Session Kicked Overlay */
+        .session-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.97);
+            z-index: 9999999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(10px);
+        }
+        .session-overlay.show { display: flex; }
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1618,6 +1662,31 @@
                     <strong>KHÔNG ĐÓNG TRÌNH DUYỆT!</strong><br>Bài thi đang được gửi, vui lòng chờ hoàn tất.
                 </p>
             </div>
+        </div>
+    </div>
+
+    <!-- ==================== OVERLAY CHỐNG GIAN LẬN ==================== -->
+    <div class="cheat-overlay" id="cheatOverlay">
+        <div class="cheat-icon">⚠️</div>
+        <h2>CẢNH BÁO!</h2>
+        <p>Bạn đã rời khỏi trang thi!<br>Hành vi này đã được <strong>ghi nhận</strong> và gửi về giáo viên.</p>
+        <div class="cheat-count" id="cheatCountText">Vi phạm: 1 lần</div>
+        <button class="btn btn-primary" onclick="dismissCheatWarning()" style="width:auto;padding:12px 32px;font-size:15px;margin-top:8px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4)">
+            <i class="fas fa-arrow-left"></i> Quay lại làm bài
+        </button>
+    </div>
+
+    <!-- ==================== OVERLAY BỊ ĐÁ PHIÊN ==================== -->
+    <div class="session-overlay" id="sessionKickedOverlay">
+        <div style="text-align:center;max-width:420px;width:90%;animation:slideUp .4s ease">
+            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--danger),#dc2626);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(239,68,68,0.4)">
+                <i class="fas fa-user-slash" style="font-size:40px;color:#fff"></i>
+            </div>
+            <h2 style="color:var(--text);font-size:22px;margin-bottom:8px">Phiên đăng nhập đã hết!</h2>
+            <p style="color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:24px">Tài khoản của bạn đã được đăng nhập trên <strong>thiết bị khác</strong>.<br>Mỗi tài khoản chỉ cho phép đăng nhập trên 1 thiết bị.</p>
+            <button class="btn btn-primary" onclick="location.reload()" style="width:auto;padding:12px 28px;font-size:15px">
+                <i class="fas fa-home"></i> Về trang chủ
+            </button>
         </div>
     </div>
 
@@ -2252,6 +2321,8 @@
                 showScreen('examScreen');
                 startStudentNotifListener();
                 startStudentHeartbeat();
+                startAntiCheat();
+                startSessionManagement();
                 showExamGuide();
             } catch (e) {
                 console.error('Login error:', e);
@@ -2560,39 +2631,31 @@
                 if (resp.success) {
                     updateSubmitOverlay('Đã gửi đáp án thành công!', 'Đang xử lý kết quả...', 60);
 
-                    // 3. Upload file (chỉ khi thi thật và có file)
+                    // 3. Upload file (chỉ khi thi thật và có file) — dùng hàm xác nhận mới
                     if (!isPracticeMode && uploadedFile) {
                         updateSubmitOverlay('Đang tải file thực hành...', 'File: ' + uploadedFile.name, 65);
                         let fakeProgress = 65;
                         let progressInterval = setInterval(() => {
-                            fakeProgress = Math.min(fakeProgress + Math.random() * 5, 92);
+                            fakeProgress = Math.min(fakeProgress + Math.random() * 5, 88);
                             updateSubmitOverlay(null, null, fakeProgress);
                         }, 400);
                         try {
                             let fileData = await fileToBase64(uploadedFile);
-                            let fileBody = {
-                                maHS: currentStudent.maHS,
-                                hoTen: currentStudent.hoTen,
-                                lop: currentStudent.lop,
-                                fileData: fileData,
-                                fileName: uploadedFile.name,
-                                fileMimeType: uploadedFile.type
-                            };
-                            let fileUrl = new URL(API_URL);
-                            fileUrl.searchParams.set('action', 'saveFile');
-                            fetch(fileUrl.toString(), {
-                                method: 'POST',
-                                mode: 'no-cors',
-                                body: JSON.stringify(fileBody)
-                            }).catch(() => { });
-                            await new Promise(r => setTimeout(r, 2000));
+                            let uploadResult = await uploadFileWithVerification(fileData, uploadedFile.name, uploadedFile.type);
                             clearInterval(progressInterval);
-                            updateSubmitOverlay('Tải file hoàn tất!', 'Đang hoàn tất nộp bài...', 95);
-                            await new Promise(r => setTimeout(r, 500));
+                            if (uploadResult.success) {
+                                updateSubmitOverlay('✅ Tải file hoàn tất!', 'File đã được xác nhận thành công', 95);
+                            } else {
+                                updateSubmitOverlay('⚠️ Chưa xác nhận được file', 'Bài trắc nghiệm đã nộp OK. Liên hệ GV về file: ' + (uploadResult.error || ''), 95);
+                                // Log upload failure to Firebase
+                                try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: uploadResult.error }); } catch(e) {}
+                            }
+                            await new Promise(r => setTimeout(r, 800));
                         } catch (fe) {
                             clearInterval(progressInterval);
                             console.log('File upload error:', fe);
                             updateSubmitOverlay('⚠️ Lỗi tải file', 'Bài trắc nghiệm đã nộp thành công. Liên hệ GV về file thực hành.', 95);
+                            try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: fe.message }); } catch(e) {}
                             await new Promise(r => setTimeout(r, 2500));
                         }
                     }
@@ -2600,6 +2663,8 @@
                     updateSubmitOverlay('Hoàn tất!', 'Bài thi đã được ghi nhận thành công ✓', 100);
                     await new Promise(r => setTimeout(r, 800));
                     hideSubmitOverlay();
+                    stopAntiCheat();
+                    stopSessionManagement();
                     clearExamBackup(currentStudent.maHS);
 
                     if (isPracticeMode && resp.isPractice) {
@@ -3055,7 +3120,8 @@
                         thoiGianDN: s.thoiGianDN ? new Date(s.thoiGianDN).toLocaleTimeString('vi-VN') : '',
                         thoiGianNB: s.thoiGianNB ? new Date(s.thoiGianNB).toLocaleTimeString('vi-VN') : '',
                         lastSeen: lastSeen,
-                        isOnline: isOnline
+                        isOnline: isOnline,
+                        cheatingCount: s.cheatingCount || 0
                     };
                 });
 
@@ -3500,7 +3566,7 @@
                 <span style="color:var(--border)">|</span>
                 <span style="font-size:13px;color:var(--text2)">Offline: <strong>${students.filter(s => !s.isOnline && s.statusCode === 1).length}</strong></span>
             </div>`;
-            html += '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Kết nối</th><th>Trạng thái</th><th>Đăng nhập</th><th>Nộp bài</th></tr></thead><tbody>';
+            html += '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Kết nối</th><th>Trạng thái</th><th>Vi phạm</th><th>Đăng nhập</th><th>Nộp bài</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
                 let badge = s.statusCode === 2 ? 'badge-green' : s.statusCode === 1 ? 'badge-yellow' : 'badge-red';
                 let icon = s.statusCode === 2 ? '✅' : s.statusCode === 1 ? '✍️' : '⏳';
@@ -3524,6 +3590,8 @@
                 html += `<td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>`;
                 html += `<td>${onlineDot}</td>`;
                 html += `<td>${icon} <span class="badge ${badge}">${s.trangThai}</span></td>`;
+                let cheatBadge = s.cheatingCount > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;background:${s.cheatingCount >= 3 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)'};color:${s.cheatingCount >= 3 ? 'var(--danger)' : 'var(--warning)'};padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700"><i class="fas fa-exclamation-triangle"></i> ${s.cheatingCount}</span>` : '<span style="font-size:12px;color:var(--text2)">0</span>';
+                html += `<td style="text-align:center">${cheatBadge}</td>`;
                 html += `<td style="font-size:12px">${s.thoiGianDN}</td>`;
                 html += `<td style="font-size:12px">${s.thoiGianNB}</td></tr>`;
             });
@@ -3841,6 +3909,198 @@
             firebaseStopListen('results');
             firebaseStopListen('notifications');
             location.reload();
+        }
+
+        // ============== CHỐNG GIAN LẬN (TAB SWITCH DETECTION) ==============
+        let _cheatCount = 0;
+        let _cheatActive = false;
+        let _cheatWarningShown = false;
+
+        function startAntiCheat() {
+            _cheatCount = 0;
+            _cheatActive = true;
+            _cheatWarningShown = false;
+
+            // Visibility change (tab switch, minimize)
+            document.addEventListener('visibilitychange', _onVisibilityChange);
+            // Window blur (click outside browser)
+            window.addEventListener('blur', _onWindowBlur);
+        }
+
+        function stopAntiCheat() {
+            _cheatActive = false;
+            document.removeEventListener('visibilitychange', _onVisibilityChange);
+            window.removeEventListener('blur', _onWindowBlur);
+            let overlay = document.getElementById('cheatOverlay');
+            if (overlay) overlay.classList.remove('show');
+        }
+
+        function _onVisibilityChange() {
+            if (!_cheatActive || !currentStudent) return;
+            if (document.hidden) {
+                _triggerCheatWarning('tab_switch');
+            }
+        }
+
+        function _onWindowBlur() {
+            if (!_cheatActive || !currentStudent) return;
+            // Small delay to avoid false positives from modal dialogs
+            setTimeout(() => {
+                if (!_cheatActive || document.hasFocus()) return;
+                _triggerCheatWarning('window_blur');
+            }, 300);
+        }
+
+        function _triggerCheatWarning(type) {
+            if (_cheatWarningShown) return; // Avoid counting multiple times
+            _cheatWarningShown = true;
+            _cheatCount++;
+
+            // Show warning overlay
+            let overlay = document.getElementById('cheatOverlay');
+            let countText = document.getElementById('cheatCountText');
+            if (overlay) overlay.classList.add('show');
+            if (countText) countText.textContent = 'Vi phạm: ' + _cheatCount + ' lần' + (_cheatCount >= 3 ? ' ⚠️ Mức cảnh báo cao!' : '');
+
+            // Play warning sound
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 440; osc.type = 'square'; gain.gain.value = 0.3;
+                osc.start(); osc.stop(ctx.currentTime + 0.3);
+            } catch (e) { }
+
+            // Log to Firebase
+            if (currentStudent && currentStudent.maHS) {
+                try {
+                    firebasePush('students/' + currentStudent.maHS + '/cheatingLog', {
+                        type: type,
+                        timestamp: Date.now(),
+                        count: _cheatCount
+                    });
+                    firebaseUpdate('students/' + currentStudent.maHS, {
+                        cheatingCount: _cheatCount
+                    });
+                } catch (e) { /* silent */ }
+            }
+        }
+
+        function dismissCheatWarning() {
+            let overlay = document.getElementById('cheatOverlay');
+            if (overlay) overlay.classList.remove('show');
+            _cheatWarningShown = false;
+        }
+
+        // ============== SESSION MANAGEMENT ==============
+        let _currentSessionId = null;
+        let _sessionCheckInterval = null;
+
+        function generateSessionId() {
+            return 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        async function startSessionManagement() {
+            if (!currentStudent || !currentStudent.maHS) return;
+            _currentSessionId = generateSessionId();
+
+            // Write session ID to Firebase
+            await firebaseUpdate('students/' + currentStudent.maHS, {
+                sessionId: _currentSessionId
+            });
+
+            // Listen for session changes (real-time)
+            firebaseListen('students/' + currentStudent.maHS + '/sessionId', (newSessionId) => {
+                if (!_currentSessionId || !currentStudent) return;
+                if (newSessionId && newSessionId !== _currentSessionId) {
+                    // Another device logged in — kick this session
+                    _handleSessionKicked();
+                }
+            });
+        }
+
+        function stopSessionManagement() {
+            if (_sessionCheckInterval) {
+                clearInterval(_sessionCheckInterval);
+                _sessionCheckInterval = null;
+            }
+            if (currentStudent && currentStudent.maHS) {
+                firebaseStopListen('students/' + currentStudent.maHS + '/sessionId');
+            }
+            _currentSessionId = null;
+        }
+
+        function _handleSessionKicked() {
+            // Stop everything
+            stopAntiCheat();
+            stopStudentHeartbeat();
+            _currentSessionId = null; // Prevent further checks
+
+            // Show kicked overlay
+            let overlay = document.getElementById('sessionKickedOverlay');
+            if (overlay) overlay.classList.add('show');
+        }
+
+        // ============== XÁC NHẬN UPLOAD FILE (ENHANCED) ==============
+        async function uploadFileWithVerification(fileData, fileName, fileMimeType) {
+            let fileBody = {
+                maHS: currentStudent.maHS,
+                hoTen: currentStudent.hoTen,
+                lop: currentStudent.lop,
+                fileData: fileData,
+                fileName: fileName,
+                fileMimeType: fileMimeType
+            };
+            let fileUrl = new URL(API_URL);
+            fileUrl.searchParams.set('action', 'saveFile');
+
+            // Try 1: Normal POST (can read response)
+            try {
+                let resp = await fetch(fileUrl.toString(), {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify(fileBody)
+                });
+                if (resp.ok) {
+                    let result = await resp.json();
+                    if (result.success) return { success: true, method: 'direct' };
+                }
+            } catch (e) { /* CORS error — try fallback */ }
+
+            // Try 2: no-cors POST + verification
+            try {
+                await fetch(fileUrl.toString(), {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(fileBody)
+                });
+            } catch (e) {
+                return { success: false, error: 'Không thể gửi file: ' + e.message };
+            }
+
+            // Verify with retries
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                updateSubmitOverlay('Đang xác nhận file...', 'Lần kiểm tra ' + attempt + '/3', null);
+                await new Promise(r => setTimeout(r, 3000));
+                try {
+                    let verify = await apiCall('verifyFile', { maHS: currentStudent.maHS });
+                    if (verify.success && verify.hasFile) {
+                        return { success: true, method: 'verified_attempt_' + attempt };
+                    }
+                } catch (e) { /* retry */ }
+            }
+
+            // After 3 retries, check the student status as fallback
+            try {
+                let student = await firebaseRead('students/' + currentStudent.maHS);
+                if (student && student.trangThai === 'X') {
+                    return { success: true, method: 'status_check' };
+                }
+            } catch (e) { /* fallback failed too */ }
+
+            return { success: false, error: 'Không thể xác nhận file sau 3 lần thử' };
         }
     </script>
 </body>
