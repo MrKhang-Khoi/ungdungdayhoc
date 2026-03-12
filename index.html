@@ -1441,6 +1441,10 @@
             await db.ref(path).update(data);
         }
 
+        async function firebaseDelete(path) {
+            await db.ref(path).remove();
+        }
+
         async function firebasePush(path, data) {
             const ref = await db.ref(path).push(data);
             return ref.key;
@@ -1805,6 +1809,7 @@
                     báo</button>
                 <button class="main-tab" onclick="switchMainTab('settings', event)"><i class="fas fa-cog"></i> Cài
                     đặt</button>
+                <button class="main-tab" onclick="switchMainTab('studymaterials', event)"><i class="fas fa-book-open"></i> Tài liệu</button>
             </div>
 
             <!-- ===== TAB: Quản lý HS ===== -->
@@ -2008,6 +2013,36 @@
                                 class="fas fa-bell-slash"
                                 style="font-size:24px;margin-bottom:8px;display:block;opacity:0.5"></i>Chưa có thông báo
                             nào</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: Tài liệu ôn tập ===== -->
+            <div id="tabStudymaterials" style="display:none">
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:800px;margin:0 auto">
+                    <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-book-open" style="color:var(--primary)"></i> Quản lý tài liệu ôn tập</h3>
+                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">📚 Tài liệu sẽ hiển thị cho học sinh khi ở chế độ <strong>Thi Thử</strong>. Khi thi thật, tài liệu bị ẩn hoàn toàn.</p>
+
+                    <!-- Add new material -->
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+                        <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i class="fas fa-plus-circle"></i> Thêm tài liệu mới</h4>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu đề</label>
+                            <input type="text" id="smTitle" placeholder="VD: Bộ nhớ máy tính" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Danh mục</label>
+                            <input type="text" id="smCategory" placeholder="VD: Phần cứng" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                        </div>
+                        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nội dung kiến thức</label>
+                        <textarea id="smContent" rows="4" placeholder="Nhập nội dung kiến thức ôn tập cho học sinh..." style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+                        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+                            <button class="btn btn-primary" id="btnAddSM" onclick="addStudyMaterial()" style="width:auto;padding:8px 20px;font-size:13px"><i class="fas fa-plus"></i> Thêm tài liệu</button>
+                        </div>
+                        <div id="smMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
+                    </div>
+
+                    <!-- Materials list -->
+                    <div id="smListContainer">
+                        <div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
                     </div>
                 </div>
             </div>
@@ -2254,6 +2289,11 @@
                     <p style="color:#fcd34d;font-size:13px;margin:0">🎯 <strong>Chế độ thi thử</strong>: Bạn chỉ cần làm
                         trắc nghiệm, không cần tải file. Được thi tối đa 5 lần và xem kết quả ngay!</p>
                 </div>
+                <div id="examGuideStudyBtn" style="display:none;margin-top:4px">
+                    <button class="btn" onclick="closeExamGuide();openStudyMaterials()" style="width:100%;padding:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:15px;font-weight:600;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px">
+                        <i class="fas fa-book-reader" style="font-size:18px"></i> 📚 Ôn tập kiến thức trước khi thi
+                    </button>
+                </div>
             </div>
             <div
                 style="display:flex;gap:8px;align-items:center;padding:12px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:12px;margin-bottom:20px">
@@ -2263,6 +2303,22 @@
             </div>
             <button class="btn btn-primary" onclick="closeExamGuide()" style="font-size:16px;padding:14px">
                 <i class="fas fa-play-circle"></i> Bắt đầu làm bài!
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Tài liệu ôn tập cho HS -->
+    <div id="studyMaterialsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10002;align-items:center;justify-content:center;padding:20px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:28px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,0.5)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+                <h2 style="margin:0;font-size:20px;display:flex;align-items:center;gap:10px"><span style="font-size:28px">📚</span> Tài liệu ôn tập</h2>
+                <button onclick="closeStudyMaterials()" style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="studyMaterialsContent" style="margin-bottom:20px">
+                <div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải tài liệu...</p></div>
+            </div>
+            <button class="btn btn-primary" onclick="closeStudyMaterials()" style="font-size:15px;padding:14px">
+                <i class="fas fa-play-circle"></i> Đóng & Bắt đầu làm bài
             </button>
         </div>
     </div>
@@ -3101,9 +3157,13 @@
             if (isPracticeMode) {
                 if (step2) step2.style.display = 'none';
                 if (practiceNote) practiceNote.style.display = 'block';
+                let studyBtn = document.getElementById('examGuideStudyBtn');
+                if (studyBtn) studyBtn.style.display = 'block';
             } else {
                 if (step2) step2.style.display = 'flex';
                 if (practiceNote) practiceNote.style.display = 'none';
+                let studyBtn = document.getElementById('examGuideStudyBtn');
+                if (studyBtn) studyBtn.style.display = 'none';
             }
         }
         function closeExamGuide() {
@@ -3578,11 +3638,11 @@
                 let btn = e.target.closest('.main-tab');
                 if (btn) btn.classList.add('active');
             }
-            ['tabManage', 'tabMonitor', 'tabResults', 'tabQuestions', 'tabNotify', 'tabSettings'].forEach(id => {
+            ['tabManage', 'tabMonitor', 'tabResults', 'tabQuestions', 'tabNotify', 'tabSettings', 'tabStudymaterials'].forEach(id => {
                 let el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
-            let targetMap = { manage: 'tabManage', monitor: 'tabMonitor', results: 'tabResults', questions: 'tabQuestions', notify: 'tabNotify', settings: 'tabSettings' };
+            let targetMap = { manage: 'tabManage', monitor: 'tabMonitor', results: 'tabResults', questions: 'tabQuestions', notify: 'tabNotify', settings: 'tabSettings', studymaterials: 'tabStudymaterials' };
             let target = document.getElementById(targetMap[tab]);
             if (target) target.style.display = 'block';
             if (tab === 'manage') renderManageTable();
@@ -3591,6 +3651,7 @@
             if (tab === 'questions') loadAllQuestions();
             if (tab === 'notify') loadNotifyHistory();
             if (tab === 'settings') loadSettings();
+            if (tab === 'studymaterials') loadStudyMaterials();
         }
 
         let allQuestionsData = [];
@@ -4620,6 +4681,173 @@
         function hideStudentNotif() {
             let bar = document.getElementById('studentNotifBar');
             if (bar) bar.classList.remove('show');
+        }
+
+        // ===== TÀI LIỆU ÔN TẬP =====
+        let _studyMaterials = [];
+
+        async function loadStudyMaterials() {
+            let container = document.getElementById('smListContainer');
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+            try {
+                let data = await firebaseRead('studyMaterials') || {};
+                _studyMaterials = Object.entries(data).map(([key, val]) => ({ ...val, _key: key }));
+                renderStudyMaterialsList();
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi: ' + e.message + '</div>';
+            }
+        }
+
+        function renderStudyMaterialsList() {
+            let container = document.getElementById('smListContainer');
+            if (!_studyMaterials.length) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-book" style="font-size:30px;margin-bottom:8px;display:block;opacity:0.4"></i>Chưa có tài liệu nào.<br><span style="font-size:12px">Hãy thêm tài liệu ôn tập ở form bên trên.</span></div>';
+                return;
+            }
+            // Group by category
+            let groups = {};
+            _studyMaterials.forEach(m => {
+                let cat = m.category || 'Chưa phân loại';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(m);
+            });
+            let html = '';
+            Object.keys(groups).sort().forEach(cat => {
+                html += `<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700">🔖 ${cat}</span><span style="font-size:11px;color:var(--text2)">${groups[cat].length} tài liệu</span></div>`;
+                groups[cat].forEach(m => {
+                    html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px">`;
+                    html += `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">`;
+                    html += `<div style="flex:1"><h4 style="margin:0 0 6px;font-size:14px;color:var(--text)">${m.title}</h4>`;
+                    html += `<p style="margin:0;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${m.content}</p></div>`;
+                    html += `<div style="display:flex;gap:4px;flex-shrink:0">`;
+                    html += `<button onclick="editStudyMaterial('${m._key}')" style="background:var(--bg3);border:none;color:var(--accent);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Sửa"><i class="fas fa-edit"></i></button>`;
+                    html += `<button onclick="deleteStudyMaterial('${m._key}')" style="background:rgba(239,68,68,0.1);border:none;color:var(--danger);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Xóa"><i class="fas fa-trash"></i></button>`;
+                    html += `</div></div></div>`;
+                });
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        async function addStudyMaterial() {
+            let title = document.getElementById('smTitle').value.trim();
+            let category = document.getElementById('smCategory').value.trim();
+            let content = document.getElementById('smContent').value.trim();
+            let msgEl = document.getElementById('smMsg');
+            if (!title || !content) {
+                msgEl.innerHTML = '⚠️ Vui lòng nhập tiêu đề và nội dung!';
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(245,158,11,0.15)'; msgEl.style.color = 'var(--warning)';
+                setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+                return;
+            }
+            let btn = document.getElementById('btnAddSM');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+            try {
+                await firebasePush('studyMaterials', {
+                    title: title,
+                    category: category || 'Chung',
+                    content: content,
+                    createdAt: Date.now()
+                });
+                document.getElementById('smTitle').value = '';
+                document.getElementById('smCategory').value = '';
+                document.getElementById('smContent').value = '';
+                msgEl.innerHTML = '✅ Đã thêm tài liệu thành công!';
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
+                loadStudyMaterials();
+            } catch (e) {
+                msgEl.innerHTML = '❌ Lỗi: ' + e.message;
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm tài liệu';
+            setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+        }
+
+        async function deleteStudyMaterial(key) {
+            if (!confirm('Bạn có chắc muốn xóa tài liệu này?')) return;
+            try {
+                await firebaseDelete('studyMaterials/' + key);
+                loadStudyMaterials();
+            } catch (e) { alert('Lỗi xóa: ' + e.message); }
+        }
+
+        function editStudyMaterial(key) {
+            let m = _studyMaterials.find(x => x._key === key);
+            if (!m) return;
+            let modal = document.getElementById('editStudentModal');
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:600px;width:95%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease">
+                <h3 style="margin:0 0 16px;font-size:16px"><i class="fas fa-edit" style="color:var(--primary)"></i> Sửa tài liệu</h3>
+                <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Tiêu đề:</label>
+                <input id="editSMTitle" value="${m.title}" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">
+                <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Danh mục:</label>
+                <input id="editSMCategory" value="${m.category || ''}" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">
+                <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Nội dung:</label>
+                <textarea id="editSMContent" rows="6" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box">${m.content}</textarea>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+                    <button class="btn" onclick="document.getElementById('editStudentModal').style.display='none'" style="width:auto;background:var(--bg3);color:var(--text);padding:10px 20px">Hủy</button>
+                    <button class="btn btn-primary" onclick="saveEditStudyMaterial('${key}')" style="width:auto;padding:10px 20px"><i class="fas fa-save"></i> Lưu</button>
+                </div>
+            </div>`;
+            modal.style.display = 'flex';
+        }
+
+        async function saveEditStudyMaterial(key) {
+            let title = document.getElementById('editSMTitle').value.trim();
+            let category = document.getElementById('editSMCategory').value.trim();
+            let content = document.getElementById('editSMContent').value.trim();
+            if (!title || !content) { alert('Vui lòng nhập tiêu đề và nội dung!'); return; }
+            try {
+                await firebaseUpdate('studyMaterials/' + key, { title, category: category || 'Chung', content });
+                document.getElementById('editStudentModal').style.display = 'none';
+                loadStudyMaterials();
+            } catch (e) { alert('Lỗi: ' + e.message); }
+        }
+
+        // ===== STUDENT: TÀI LIỆU ÔN TẬP =====
+        function openStudyMaterials() {
+            if (!isPracticeMode) return; // Extra safety
+            let modal = document.getElementById('studyMaterialsModal');
+            modal.style.display = 'flex';
+            loadStudyMaterialsForStudent();
+        }
+
+        function closeStudyMaterials() {
+            document.getElementById('studyMaterialsModal').style.display = 'none';
+        }
+
+        async function loadStudyMaterialsForStudent() {
+            let container = document.getElementById('studyMaterialsContent');
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải tài liệu...</p></div>';
+            try {
+                let data = await firebaseRead('studyMaterials') || {};
+                let materials = Object.values(data);
+                if (!materials.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-book-open" style="font-size:40px;margin-bottom:12px;display:block;opacity:0.4"></i><h3 style="margin:0 0 8px;color:var(--text)">Chưa có tài liệu</h3><p style="font-size:13px;margin:0">Giáo viên chưa thêm tài liệu ôn tập.</p></div>';
+                    return;
+                }
+                // Group by category
+                let groups = {};
+                materials.forEach(m => {
+                    let cat = m.category || 'Chung';
+                    if (!groups[cat]) groups[cat] = [];
+                    groups[cat].push(m);
+                });
+                let html = '';
+                Object.keys(groups).sort().forEach(cat => {
+                    html += `<div style="margin-bottom:16px">`;
+                    html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)"><span style="font-size:18px">📂</span><h3 style="margin:0;font-size:16px;color:var(--accent)">${cat}</h3><span style="background:var(--bg3);padding:2px 10px;border-radius:12px;font-size:11px;color:var(--text2)">${groups[cat].length}</span></div>`;
+                    groups[cat].forEach(m => {
+                        html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px">`;
+                        html += `<h4 style="margin:0 0 8px;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px"><i class="fas fa-bookmark" style="color:var(--primary);font-size:12px"></i> ${m.title}</h4>`;
+                        html += `<div style="font-size:14px;color:var(--text2);line-height:1.8;white-space:pre-wrap;padding-left:20px;border-left:3px solid var(--primary)">${m.content}</div>`;
+                        html += `</div>`;
+                    });
+                    html += `</div>`;
+                });
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi tải tài liệu: ' + e.message + '</div>';
+            }
         }
 
         function logoutTeacher() {
