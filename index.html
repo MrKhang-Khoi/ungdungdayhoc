@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -3265,6 +3265,10 @@
             });
             // Real-time listener on results
             firebaseListen('results', (data) => {
+                buildResultsFromFirebase();
+            });
+            // Real-time listener on practice results
+            firebaseListen('practiceResults', (data) => {
                 buildResultsFromFirebase();
             });
         }
