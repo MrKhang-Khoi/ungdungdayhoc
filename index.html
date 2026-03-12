@@ -2647,7 +2647,6 @@
                         if (isPracticeMode) setupPracticeUI();
                         else setupNormalUI();
 
-                        await _origLoadQuestions();
                         hideLoginLoading();
                         showScreen('examScreen');
                         startStudentNotifListener();
@@ -2656,8 +2655,9 @@
                         try { await startSessionManagement(); } catch(e) {}
                         initExamTimer();
                         showExamGuide();
-                        // Check backup AFTER screen is visible
-                        setTimeout(() => checkAndOfferRestore(), 300);
+                        // Load questions AFTER screen is shown (same as practice mode)
+                        // checkAndOfferRestore runs after questions load
+                        await loadQuestions();
                     } catch (e) {
                         console.error('Post-confirm error:', e);
                         hideLoginLoading();
@@ -3699,8 +3699,13 @@
             );
         }
 
-        // loadQuestions: always load fresh (backup check happens after screen shows)
+        // Override loadQuestions: load fresh questions, then offer backup restore
         let _origLoadQuestions = loadQuestions;
+        loadQuestions = async function () {
+            await _origLoadQuestions();
+            // After fresh questions loaded, check if there's a backup to restore
+            await checkAndOfferRestore();
+        };
 
         // ============== DASHBOARD ==============
         let currentMainTab = 'manage';
