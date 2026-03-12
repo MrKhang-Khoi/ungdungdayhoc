@@ -1803,52 +1803,67 @@
 
     <!-- ==================== OVERLAY CHỜ XUNG ĐỘT ĐĂNG NHẬP (Student B) ==================== -->
     <div class="session-overlay" id="loginConflictWaitOverlay">
-        <div style="text-align:center;max-width:440px;width:90%;animation:slideUp .4s ease">
-            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--warning),#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(245,158,11,0.4)">
-                <i class="fas fa-user-lock" style="font-size:40px;color:#fff"></i>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:420px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+            <!-- Icon -->
+            <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(245,158,11,0.35)">
+                <i class="fas fa-user-lock" style="font-size:36px;color:#fff"></i>
             </div>
-            <h2 style="color:var(--text);font-size:22px;margin-bottom:8px">Tài khoản đang được sử dụng</h2>
-            <p style="color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:20px">
-                Tài khoản này <strong>đang đăng nhập trên thiết bị khác</strong>.<br>
+            <!-- Title -->
+            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">Tài khoản đang được sử dụng</h2>
+            <p style="color:var(--text2);font-size:13px;line-height:1.7;margin:0 0 24px">
+                Tài khoản này <strong style="color:var(--text)">đang đăng nhập trên thiết bị khác</strong>.<br>
                 Hệ thống đang gửi xác nhận đến thiết bị đó...
             </p>
-            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px">
-                <div style="width:12px;height:12px;border-radius:50%;background:var(--warning);animation:livePulse 1.5s ease-in-out infinite"></div>
-                <span id="loginConflictWaitStatus" style="color:var(--warning);font-size:14px;font-weight:600">Đang chờ phản hồi...</span>
+            <!-- Status card -->
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:20px;margin:0 0 24px">
+                <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px">
+                    <div style="width:10px;height:10px;border-radius:50%;background:var(--warning);animation:livePulse 1.5s ease-in-out infinite;flex-shrink:0"></div>
+                    <span id="loginConflictWaitStatus" style="color:var(--warning);font-size:13px;font-weight:700">Đang chờ phản hồi...</span>
+                </div>
+                <div id="loginConflictTimer" style="font-size:40px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;line-height:1">01:00</div>
             </div>
-            <div id="loginConflictTimer" style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:16px;font-variant-numeric:tabular-nums">01:00</div>
-            <p style="color:var(--text2);font-size:12px;margin-bottom:20px;line-height:1.6">
-                Nếu đây là tài khoản của em, hãy <strong>liên hệ thầy/cô giáo</strong> để được hỗ trợ.<br>
-                Hệ thống sẽ tự động xử lý nếu không có phản hồi.
-            </p>
-            <button class="btn" onclick="cancelLoginConflict()" style="width:auto;padding:10px 24px;font-size:13px;background:var(--bg3);color:var(--text)">
-                <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
+            <!-- Help text -->
+            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px 16px;margin:0 0 24px">
+                <p style="color:var(--text2);font-size:12px;margin:0;line-height:1.7">
+                    Nếu đây là tài khoản của em, hãy <strong style="color:var(--warning)">liên hệ thầy/cô giáo</strong> để được hỗ trợ.<br>
+                    Hệ thống sẽ tự động xử lý nếu không có phản hồi.
+                </p>
+            </div>
+            <!-- Button -->
+            <button class="btn" onclick="cancelLoginConflict()" style="width:100%;padding:13px;font-size:14px;font-weight:600;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:12px">
+                <i class="fas fa-arrow-left" style="margin-right:6px"></i> Quay lại đăng nhập
             </button>
         </div>
     </div>
 
     <!-- ==================== OVERLAY CẢNH BÁO ĐĂNG NHẬP (Student A đang thi) ==================== -->
     <div class="session-overlay" id="loginConflictAlertOverlay">
-        <div style="text-align:center;max-width:460px;width:90%;animation:slideUp .4s ease">
-            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(239,68,68,0.4);animation:livePulse 1.5s ease-in-out infinite">
-                <i class="fas fa-exclamation-triangle" style="font-size:40px;color:#fff"></i>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:440px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+            <!-- Icon với pulse -->
+            <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(239,68,68,0.35);animation:livePulse 1.5s ease-in-out infinite">
+                <i class="fas fa-exclamation-triangle" style="font-size:36px;color:#fff"></i>
             </div>
-            <h2 style="color:var(--text);font-size:22px;margin-bottom:8px">⚠️ Phát hiện đăng nhập!</h2>
-            <p style="color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:8px">
-                Có người đang cố đăng nhập vào tài khoản này từ <strong>thiết bị khác</strong>.
+            <!-- Title -->
+            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">⚠️ Phát hiện đăng nhập!</h2>
+            <p style="color:var(--text2);font-size:13px;line-height:1.7;margin:0 0 20px">
+                Có người đang cố đăng nhập vào tài khoản này từ <strong style="color:var(--text)">thiết bị khác</strong>.
             </p>
-            <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;margin-bottom:20px">
-                <p style="color:var(--danger);font-size:13px;margin:0;font-weight:600;line-height:1.6">
-                    Nếu tài khoản <strong>KHÔNG PHẢI</strong> của em, đề nghị <strong>Đăng xuất ngay</strong>!
+            <!-- Warning card -->
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px;margin:0 0 20px">
+                <p style="color:var(--danger);font-size:13px;margin:0;font-weight:700;line-height:1.7">
+                    <i class="fas fa-shield-alt" style="margin-right:4px"></i>
+                    Nếu tài khoản <u>KHÔNG PHẢI</u> của em,<br>đề nghị <strong>Đăng xuất ngay</strong>!
                 </p>
             </div>
-            <div id="loginConflictAlertTimer" style="font-size:24px;font-weight:800;color:var(--warning);margin-bottom:16px;font-variant-numeric:tabular-nums"></div>
-            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-                <button class="btn" onclick="confirmMyAccount()" style="width:auto;padding:12px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--success),#059669);color:#fff;border:none">
-                    <i class="fas fa-check-circle"></i> Đúng, tài khoản của tôi
+            <!-- Countdown -->
+            <div id="loginConflictAlertTimer" style="font-size:15px;font-weight:700;color:var(--warning);margin:0 0 24px;padding:10px;background:rgba(245,158,11,0.08);border-radius:10px"></div>
+            <!-- Buttons -->
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="btn" onclick="confirmMyAccount()" style="width:100%;padding:14px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:12px;box-shadow:0 4px 15px rgba(16,185,129,0.3)">
+                    <i class="fas fa-check-circle" style="margin-right:6px"></i> Đúng, tài khoản của tôi
                 </button>
-                <button class="btn" onclick="denyMyAccount()" style="width:auto;padding:12px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;border:none">
-                    <i class="fas fa-sign-out-alt"></i> Không phải, đăng xuất
+                <button class="btn" onclick="denyMyAccount()" style="width:100%;padding:14px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:12px;box-shadow:0 4px 15px rgba(239,68,68,0.3)">
+                    <i class="fas fa-sign-out-alt" style="margin-right:6px"></i> Không phải, đăng xuất
                 </button>
             </div>
         </div>
