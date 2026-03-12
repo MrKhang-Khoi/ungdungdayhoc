@@ -1373,6 +1373,39 @@
             backdrop-filter: blur(10px);
         }
         .session-overlay.show { display: flex; }
+
+        /* Countdown Timer */
+        .exam-timer {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .exam-timer.active { display: flex; }
+        .exam-timer.normal { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+        .exam-timer.warning { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid rgba(245,158,11,0.4); animation: pulse 1s infinite; }
+        .exam-timer.danger { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid rgba(239,68,68,0.4); animation: pulse 0.5s infinite; }
+
+        /* Time Up Overlay */
+        .timeup-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(220, 38, 38, 0.97);
+            z-index: 999998;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(10px);
+        }
+        .timeup-overlay.show { display: flex; }
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1444,6 +1477,15 @@
         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:16px">
         <div class="spinner"></div>
         <p style="color:#fff;font-size:16px;font-weight:600">Vui lòng chờ, đang đăng nhập...</p>
+    </div>
+
+    <!-- ==================== OVERLAY HET GIO ==================== -->
+    <div class="timeup-overlay" id="timeUpOverlay">
+        <div style="text-align:center;animation:slideUp .4s ease">
+            <div style="font-size:80px;margin-bottom:16px">&#9200;</div>
+            <h2 style="color:#fff;font-size:28px;margin-bottom:8px">H&#7871;t th&#7901;i gian!</h2>
+            <p style="color:rgba(255,255,255,0.85);font-size:16px;line-height:1.6">B&#224;i thi s&#7869; &#273;&#432;&#7907;c <strong>t&#7921; &#273;&#7897;ng n&#7897;p</strong> trong gi&#226;y l&#225;t...</p>
+        </div>
     </div>
 
     <!-- ==================== MÀN HÌNH ĐĂNG NHẬP ==================== -->
@@ -1526,6 +1568,11 @@
                     <button class="btn btn-danger btn-sm" onclick="confirmLogout()"
                         style="width:auto;padding:6px 14px;font-size:12px"><i class="fas fa-sign-out-alt"></i>
                         Thoát</button>
+                </div>
+                <!-- Countdown Timer -->
+                <div class="exam-timer normal" id="examTimer">
+                    <i class="fas fa-clock"></i>
+                    <span id="timerDisplay">--:--</span>
                 </div>
                 <div class="stepper">
                     <div class="step-item active" id="step1"><span class="step-num">1</span><span>Trắc nghiệm</span>
@@ -1971,6 +2018,34 @@
                                 style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
                         </label>
                     </div>
+
+                    <!-- Cài đặt thời gian thi -->
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-top:12px">
+                        <div style="flex:1">
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-clock"
+                                    style="color:var(--primary);margin-right:6px"></i> Giới hạn thời gian</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Bật để giới hạn thời gian làm bài. Khi hết giờ, hệ thống tự động nộp bài.</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
+                            <input type="checkbox" id="toggleTimerMode" onchange="toggleTimerMode()"
+                                style="opacity:0;width:0;height:0">
+                            <span
+                                style="position:absolute;inset:0;border-radius:13px;background:var(--bg3);transition:.3s"></span>
+                            <span id="toggleTimerSlider"
+                                style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
+                        </label>
+                    </div>
+                    <div id="timerInputArea" style="display:none;margin-top:8px;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
+                        <label style="font-size:12px;color:var(--text2);margin-bottom:6px;display:block">Thời gian làm bài (phút):</label>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <input type="number" id="timerMinutesInput" value="45" min="1" max="180" step="1"
+                                style="width:100px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-weight:700;text-align:center;font-family:inherit">
+                            <span style="color:var(--text2);font-size:13px">phút</span>
+                            <button class="btn btn-primary btn-sm" onclick="saveTimerSettings()" style="width:auto;padding:8px 16px;font-size:12px;margin-left:auto"><i class="fas fa-save"></i> Lưu</button>
+                        </div>
+                    </div>
+
                     <div id="settingsMsg"
                         style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:12px"></div>
 
@@ -2323,6 +2398,7 @@
                 startStudentHeartbeat();
                 startAntiCheat();
                 startSessionManagement();
+                initExamTimer();
                 showExamGuide();
             } catch (e) {
                 console.error('Login error:', e);
@@ -2693,6 +2769,7 @@
                     hideSubmitOverlay();
                     stopAntiCheat();
                     stopSessionManagement();
+                    stopExamTimer();
                     clearExamBackup(currentStudent.maHS);
 
                     if (isPracticeMode && resp.isPractice) {
@@ -3073,7 +3150,10 @@
 
         // Hook into answer selection to auto-save
         document.addEventListener('change', e => {
-            if (e.target.name && e.target.name.startsWith('q') && e.target.type === 'radio') saveExamBackup();
+            if (e.target.name && e.target.name.startsWith('q') && e.target.type === 'radio') {
+                saveExamBackup();
+                saveAnswersToFirebase();
+            }
         });
 
         // Override loadQuestions to check backup first
@@ -3149,7 +3229,9 @@
                         thoiGianNB: s.thoiGianNB ? new Date(s.thoiGianNB).toLocaleTimeString('vi-VN') : '',
                         lastSeen: lastSeen,
                         isOnline: isOnline,
-                        cheatingCount: s.cheatingCount || 0
+                        cheatingCount: s.cheatingCount || 0,
+                        uploadFailed: s.uploadFailed || false,
+                        uploadError: s.uploadError || ''
                     };
                 });
 
@@ -3594,7 +3676,7 @@
                 <span style="color:var(--border)">|</span>
                 <span style="font-size:13px;color:var(--text2)">Offline: <strong>${students.filter(s => !s.isOnline && s.statusCode === 1).length}</strong></span>
             </div>`;
-            html += '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Kết nối</th><th>Trạng thái</th><th>Vi phạm</th><th>Đăng nhập</th><th>Nộp bài</th></tr></thead><tbody>';
+            html += '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Kết nối</th><th>Trạng thái</th><th>Vi phạm</th><th>File TH</th><th>Đăng nhập</th><th>Nộp bài</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
                 let badge = s.statusCode === 2 ? 'badge-green' : s.statusCode === 1 ? 'badge-yellow' : 'badge-red';
                 let icon = s.statusCode === 2 ? '✅' : s.statusCode === 1 ? '✍️' : '⏳';
@@ -3620,6 +3702,15 @@
                 html += `<td>${icon} <span class="badge ${badge}">${s.trangThai}</span></td>`;
                 let cheatBadge = s.cheatingCount > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;background:${s.cheatingCount >= 3 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)'};color:${s.cheatingCount >= 3 ? 'var(--danger)' : 'var(--warning)'};padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700"><i class="fas fa-exclamation-triangle"></i> ${s.cheatingCount}</span>` : '<span style="font-size:12px;color:var(--text2)">0</span>';
                 html += `<td style="text-align:center">${cheatBadge}</td>`;
+                let fileBadge = '';
+                if (s.statusCode === 2) {
+                    fileBadge = s.uploadFailed
+                        ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(239,68,68,0.15);color:var(--danger);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600" title="${s.uploadError}"><i class="fas fa-times-circle"></i> Lỗi</span>`
+                        : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check-circle"></i> OK</span>';
+                } else {
+                    fileBadge = '<span style="font-size:12px;color:var(--text2)">--</span>';
+                }
+                html += `<td style="text-align:center">${fileBadge}</td>`;
                 html += `<td style="font-size:12px">${s.thoiGianDN}</td>`;
                 html += `<td style="font-size:12px">${s.thoiGianNB}</td></tr>`;
             });
@@ -3715,6 +3806,17 @@
                     toggle.checked = isOn;
                     updateToggleVisual(isOn);
                 }
+                // Timer settings
+                let timerToggle = document.getElementById('toggleTimerMode');
+                let timerOn = settings.timerEnabled === true;
+                if (timerToggle) {
+                    timerToggle.checked = timerOn;
+                    updateTimerToggleVisual(timerOn);
+                }
+                let timerInput = document.getElementById('timerMinutesInput');
+                if (timerInput && settings.timerMinutes) {
+                    timerInput.value = settings.timerMinutes;
+                }
             } catch (e) { console.log('Settings load error:', e); }
         }
 
@@ -3730,6 +3832,208 @@
                 bg.style.background = 'var(--bg3)';
                 slider.style.left = '3px';
             }
+        }
+
+        function updateTimerToggleVisual(isOn) {
+            let slider = document.getElementById('toggleTimerSlider');
+            let bg = document.getElementById('toggleTimerMode')?.parentElement?.querySelector('span');
+            if (isOn) {
+                if (bg) bg.style.background = 'var(--primary)';
+                if (slider) slider.style.left = '27px';
+                document.getElementById('timerInputArea').style.display = 'block';
+            } else {
+                if (bg) bg.style.background = 'var(--bg3)';
+                if (slider) slider.style.left = '3px';
+                document.getElementById('timerInputArea').style.display = 'none';
+            }
+        }
+
+        async function toggleTimerMode() {
+            let isOn = document.getElementById('toggleTimerMode').checked;
+            updateTimerToggleVisual(isOn);
+            let msgEl = document.getElementById('settingsMsg');
+            try {
+                await firebaseUpdate('settings', { timerEnabled: isOn });
+                msgEl.innerHTML = isOn ? '⏱ Đã bật giới hạn thời gian' : '✅ Đã tắt giới hạn thời gian — HS làm bài không giới hạn';
+                msgEl.style.display = 'block';
+                msgEl.style.background = isOn ? 'rgba(99,102,241,0.15)' : 'rgba(16,185,129,0.15)';
+                msgEl.style.color = isOn ? 'var(--primary)' : 'var(--success)';
+            } catch (e) {
+                msgEl.innerHTML = '❌ Lỗi: ' + e.message; msgEl.style.display = 'block';
+                msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+            }
+            setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+        }
+
+        async function saveTimerSettings() {
+            let minutes = parseInt(document.getElementById('timerMinutesInput').value) || 45;
+            if (minutes < 1) minutes = 1;
+            if (minutes > 180) minutes = 180;
+            let msgEl = document.getElementById('settingsMsg');
+            try {
+                await firebaseUpdate('settings', { timerMinutes: minutes });
+                msgEl.innerHTML = '✅ Đã lưu thời gian: <strong>' + minutes + ' phút</strong>';
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
+            } catch (e) {
+                msgEl.innerHTML = '❌ Lỗi: ' + e.message; msgEl.style.display = 'block';
+                msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+            }
+            setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+        }
+
+        // ============== COUNTDOWN TIMER ==============
+        let _timerInterval = null;
+        let _timerSeconds = 0;
+        let _timerEnabled = false;
+
+        async function initExamTimer() {
+            try {
+                let settings = await firebaseRead('settings') || {};
+                _timerEnabled = settings.timerEnabled === true;
+                if (!_timerEnabled) {
+                    document.getElementById('examTimer').classList.remove('active');
+                    return;
+                }
+                let minutes = parseInt(settings.timerMinutes) || 45;
+                // Check if timer was already started (saved in localStorage)
+                let savedEnd = localStorage.getItem('exam_timer_end_' + currentStudent.maHS);
+                if (savedEnd) {
+                    let remaining = Math.floor((parseInt(savedEnd) - Date.now()) / 1000);
+                    _timerSeconds = remaining > 0 ? remaining : 0;
+                } else {
+                    _timerSeconds = minutes * 60;
+                    localStorage.setItem('exam_timer_end_' + currentStudent.maHS, (Date.now() + _timerSeconds * 1000).toString());
+                }
+                document.getElementById('examTimer').classList.add('active');
+                updateTimerDisplay();
+                _timerInterval = setInterval(timerTick, 1000);
+            } catch (e) { console.log('Timer init error:', e); }
+        }
+
+        function timerTick() {
+            if (_timerSeconds <= 0) {
+                clearInterval(_timerInterval);
+                handleTimeUp();
+                return;
+            }
+            _timerSeconds--;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(_timerSeconds / 60);
+            let s = _timerSeconds % 60;
+            let display = document.getElementById('timerDisplay');
+            let timer = document.getElementById('examTimer');
+            if (display) display.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            // Change color based on time remaining
+            if (timer) {
+                timer.classList.remove('normal', 'warning', 'danger');
+                if (_timerSeconds <= 60) timer.classList.add('danger');
+                else if (_timerSeconds <= 300) timer.classList.add('warning');
+                else timer.classList.add('normal');
+            }
+        }
+
+        function stopExamTimer() {
+            if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+            if (currentStudent) localStorage.removeItem('exam_timer_end_' + currentStudent.maHS);
+        }
+
+        function handleTimeUp() {
+            // Show time-up overlay briefly, then auto-submit
+            let overlay = document.getElementById('timeUpOverlay');
+            if (overlay) overlay.classList.add('show');
+            // Play alarm sound
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [0, 200, 400].forEach(delay => {
+                    setTimeout(() => {
+                        let osc = ctx.createOscillator();
+                        let gain = ctx.createGain();
+                        osc.connect(gain); gain.connect(ctx.destination);
+                        osc.frequency.value = 800; osc.type = 'square'; gain.gain.value = 0.3;
+                        osc.start(); osc.stop(ctx.currentTime + 0.15);
+                    }, delay);
+                });
+            } catch (e) { }
+            // Auto-submit after 3 seconds
+            setTimeout(() => {
+                if (overlay) overlay.classList.remove('show');
+                autoSubmitExam();
+            }, 3000);
+        }
+
+        async function autoSubmitExam() {
+            // Force submit even if not all questions answered
+            stopAntiCheat();
+            stopExamTimer();
+            let btnSubmit = document.getElementById('btnSubmit');
+            if (btnSubmit) { btnSubmit.disabled = true; }
+            showSubmitOverlay();
+            updateSubmitOverlay('⏰ Hết giờ — Đang tự động nộp bài...', 'Hệ thống đang gửi bài thi của bạn', 10);
+            try {
+                let answers = [];
+                examQuestions.forEach((q, i) => {
+                    let sel = document.querySelector(`input[name="q${i}"]:checked`);
+                    answers.push({ questionSTT: q.stt, selected: sel ? sel.value : '', noiDung: q.noiDung });
+                });
+                let examData = {
+                    maHS: currentStudent.maHS,
+                    hoTen: currentStudent.hoTen,
+                    lop: currentStudent.lop,
+                    answers: answers,
+                    isPractice: isPracticeMode,
+                    autoSubmitted: true,
+                    fileData: '', fileName: '', fileMimeType: ''
+                };
+                updateSubmitOverlay('Đang gửi đáp án...', 'Bài thi hết giờ, đang nộp tự động', 40);
+                let resp = await apiCall('submitExam', { examData: encodeURIComponent(JSON.stringify(examData)) });
+                if (resp.success) {
+                    // Upload file if exists
+                    if (!isPracticeMode && uploadedFile) {
+                        updateSubmitOverlay('Đang tải file...', uploadedFile.name, 60);
+                        try {
+                            let fileData = await fileToBase64(uploadedFile);
+                            await uploadFileWithVerification(fileData, uploadedFile.name, uploadedFile.type);
+                        } catch (e) { /* best effort */ }
+                    }
+                    updateSubmitOverlay('Hoàn tất!', 'Bài thi đã được nộp tự động ✓', 100);
+                    await new Promise(r => setTimeout(r, 1000));
+                    hideSubmitOverlay();
+                    stopSessionManagement();
+                    clearExamBackup(currentStudent.maHS);
+                    if (isPracticeMode && resp.isPractice) {
+                        showPracticeResults(resp);
+                    } else {
+                        showScreen('successScreen');
+                    }
+                } else {
+                    throw new Error(resp.message || 'Server lỗi');
+                }
+            } catch (e) {
+                hideSubmitOverlay();
+                alert('⏰ Hết giờ nhưng nộp bài thất bại: ' + e.message + '\n\nVui lòng liên hệ giáo viên!');
+            }
+        }
+
+        // ============== FIREBASE ANSWER BACKUP (OFFLINE RECOVERY) ==============
+        let _firebaseBackupDebounce = null;
+        function saveAnswersToFirebase() {
+            if (!currentStudent || !currentStudent.maHS) return;
+            clearTimeout(_firebaseBackupDebounce);
+            _firebaseBackupDebounce = setTimeout(async () => {
+                try {
+                    let answers = {};
+                    document.querySelectorAll('#questionsContainer input[type=radio]:checked').forEach(r => {
+                        answers[r.name] = r.value;
+                    });
+                    await firebaseUpdate('students/' + currentStudent.maHS, {
+                        savedAnswers: answers,
+                        savedAnswersTime: Date.now()
+                    });
+                } catch (e) { /* silent — localStorage backup is primary */ }
+            }, 5000); // Debounce 5s to avoid spam
         }
 
         async function togglePracticeMode() {
