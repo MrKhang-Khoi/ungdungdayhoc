@@ -44,7 +44,9 @@
     },
     "settings": {
       ".read": true,
-      ".write": true
+      ".write": true,
+      "teacherPassword": { ".read": false },
+      "teacherPasswordHash": { ".read": false }
     },
     "notifications": {
       ".read": true,
