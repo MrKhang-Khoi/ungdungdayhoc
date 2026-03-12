@@ -3343,55 +3343,93 @@
                     count++;
                     let score = parseFloat(r.score) || 0;
                     totalScore += score;
-                    scores.push(score);
-                    results.push({
-                        maHS: r.maHS,
-                        hoTen: r.hoTen,
-                        lop: r.lop,
-                        answers: r.answers || [],
-                        score: score,
-                        thoiGian: r.thoiGian ? new Date(r.thoiGian).toLocaleString('vi-VN') : ''
+        let _resultsSubTab = 'real';
+        function switchResultsSubTab(tab) {
+            _resultsSubTab = tab;
+            document.querySelectorAll('.results-sub-tab').forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'transparent';
+                b.style.color = 'var(--text2)';
+            });
+            let activeBtn = document.getElementById(tab === 'real' ? 'subTabReal' : 'subTabPractice');
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.style.background = tab === 'real' ? 'var(--primary)' : 'var(--warning)';
+                activeBtn.style.color = '#fff';
+            }
+            renderResultsTable();
+        }
+
+        function _computeStats(resultsList) {
+            let scores = resultsList.map(r => r.score);
+            let count = scores.length;
+            let totalScore = scores.reduce((a,b) => a+b, 0);
+            let dist = { '0-1': 0, '1-2': 0, '2-3': 0, '3-4': 0 };
+            scores.forEach(s => {
+                if (s <= 1) dist['0-1']++;
+                else if (s <= 2) dist['1-2']++;
+                else if (s <= 3) dist['2-3']++;
+                else dist['3-4']++;
+            });
+            return {
+                count: count,
+                avgScore: count > 0 ? (totalScore / count).toFixed(2) : 0,
+                maxScore: count > 0 ? Math.max(...scores) : 0,
+                minScore: count > 0 ? Math.min(...scores) : 0,
+                distribution: dist
+            };
+        }
+
+        async function buildResultsFromFirebase() {
+            try {
+                let resultsObj = await firebaseRead('results') || {};
+                let practiceObj = await firebaseRead('practiceResults') || {};
+                let lop = document.getElementById('manageClassFilter')?.value || '';
+
+                // Real exam results
+                let realResults = [];
+                Object.values(resultsObj).forEach(r => {
+                    if (lop && r.lop !== lop) return;
+                    realResults.push({
+                        maHS: r.maHS, hoTen: r.hoTen, lop: r.lop,
+                        answers: r.answers || [], score: parseFloat(r.score) || 0,
+                        thoiGian: r.thoiGian ? new Date(r.thoiGian).toLocaleString('vi-VN') : '',
+                        isPractice: false
                     });
                 });
 
-                let scoreDistribution = { '0-1': 0, '1-2': 0, '2-3': 0, '3-4': 0 };
-                scores.forEach(s => {
-                    if (s <= 1) scoreDistribution['0-1']++;
-                    else if (s <= 2) scoreDistribution['1-2']++;
-                    else if (s <= 3) scoreDistribution['2-3']++;
-                    else scoreDistribution['3-4']++;
+                // Practice results
+                let practiceResults = [];
+                Object.values(practiceObj).forEach(r => {
+                    if (lop && r.lop !== lop) return;
+                    practiceResults.push({
+                        maHS: r.maHS, hoTen: r.hoTen, lop: r.lop,
+                        answers: r.answers || [], score: parseFloat(r.score) || 0,
+                        thoiGian: r.thoiGian ? new Date(r.thoiGian).toLocaleString('vi-VN') : '',
+                        isPractice: true, luot: r.luot || ''
+                    });
                 });
 
                 if (!dashboardData) dashboardData = { success: true };
                 dashboardData.results = {
                     success: true,
-                    results: results,
-                    stats: {
-                        count: count,
-                        avgScore: count > 0 ? (totalScore / count).toFixed(2) : 0,
-                        maxScore: count > 0 ? Math.max(...scores) : 0,
-                        minScore: count > 0 ? Math.min(...scores) : 0,
-                        distribution: scoreDistribution
-                    }
+                    realResults: realResults,
+                    practiceResults: practiceResults,
+                    realStats: _computeStats(realResults),
+                    practiceStats: _computeStats(practiceResults)
                 };
+
+                // Update sub-tab badges
+                let realBadge = realResults.length;
+                let practiceBadge = practiceResults.length;
+                let subR = document.getElementById('subTabReal');
+                let subP = document.getElementById('subTabPractice');
+                if (subR) subR.innerHTML = '<i class="fas fa-file-alt"></i> Thi Th\u1eadt <span style="background:rgba(255,255,255,0.2);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">' + realBadge + '</span>';
+                if (subP) subP.innerHTML = '<i class="fas fa-flask"></i> Thi Th\u1eed <span style="background:rgba(255,255,255,0.2);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">' + practiceBadge + '</span>';
 
                 if (currentMainTab === 'results') renderResultsTable();
             } catch (e) { console.log('Build results error:', e); }
         }
-
-        function switchMainTab(tab, e) {
-            currentMainTab = tab;
-            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
-            if (e && e.target) {
-                let btn = e.target.closest('.main-tab');
-                if (btn) btn.classList.add('active');
-            }
-            ['tabManage', 'tabMonitor', 'tabResults', 'tabQuestions', 'tabNotify', 'tabSettings'].forEach(id => {
-                let el = document.getElementById(id);
-                if (el) el.style.display = 'none';
-            });
-            let targetMap = { manage: 'tabManage', monitor: 'tabMonitor', results: 'tabResults', questions: 'tabQuestions', notify: 'tabNotify', settings: 'tabSettings' };
-            let target = document.getElementById(targetMap[tab]);
             if (target) target.style.display = 'block';
             if (tab === 'manage') renderManageTable();
             if (tab === 'monitor') renderMonitorTable();
@@ -3794,31 +3832,65 @@
             let distKeys = ['0-1', '1-2', '2-3', '3-4'];
             let chartHtml = '';
             distKeys.forEach((k, i) => {
-                let val = dist[k] || 0;
-                let h = Math.max(val / maxDist * 100, 8);
-                chartHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:10px;font-weight:700;color:${colors[i]}">${val}</span><div style="width:100%;height:${h}%;min-height:4px;background:${colors[i]};border-radius:3px;transition:height .5s"></div></div>`;
-            });
-            document.getElementById('scoreDistChart').innerHTML = chartHtml;
-            document.getElementById('scoreStatNumbers').innerHTML = `
-                <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--primary)">${rs.stats.avgScore}</div><div style="font-size:10px;color:var(--text2)">Điểm TB</div></div>
-                <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--success)">${rs.stats.maxScore}</div><div style="font-size:10px;color:var(--text2)">Cao nhất</div></div>
-                <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--danger)">${rs.stats.minScore}</div><div style="font-size:10px;color:var(--text2)">Thấp nhất</div></div>
-                <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--text)">${rs.stats.count}</div><div style="font-size:10px;color:var(--text2)">Số bài</div></div>`;
-            document.getElementById('scoreStatsBar').style.display = 'block';
-            // Dynamic columns based on actual answer count
+        function renderResultsTable() {
+            let container = document.getElementById('resultsTableContainer');
+            if (!dashboardData || !dashboardData.results) {
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-chart-bar" style="font-size:36px;color:var(--text2);margin-bottom:10px"></i><p style="color:var(--text2)">Ch\u01b0a c\u00f3 k\u1ebft qu\u1ea3 thi</p></div>';
+                return;
+            }
+            let rs = dashboardData.results;
+            let isPracticeTab = _resultsSubTab === 'practice';
+            let allResults = isPracticeTab ? (rs.practiceResults || []) : (rs.realResults || []);
+            let stats = isPracticeTab ? rs.practiceStats : rs.realStats;
+
+            if (!allResults.length) {
+                container.innerHTML = '<div class="empty-state"><i class="fas ' + (isPracticeTab ? 'fa-flask' : 'fa-file-alt') + '" style="font-size:36px;color:var(--text2);margin-bottom:10px"></i><p style="color:var(--text2)">Ch\u01b0a c\u00f3 k\u1ebft qu\u1ea3 ' + (isPracticeTab ? 'thi th\u1eed' : 'thi th\u1eadt') + '</p></div>';
+                document.getElementById('scoreStatsBar').style.display = 'none';
+                return;
+            }
+
+            let search = (document.getElementById('resultsSearch').value || '').toLowerCase();
+            let results = allResults.filter(r => !search || r.hoTen.toLowerCase().includes(search) || r.maHS.toLowerCase().includes(search));
+
+            // Stats bar
+            if (stats) {
+                let dist = stats.distribution || {};
+                let maxDist = Math.max(dist['0-1'] || 0, dist['1-2'] || 0, dist['2-3'] || 0, dist['3-4'] || 0, 1);
+                let colors = ['#ef4444', '#f59e0b', '#06b6d4', '#10b981'];
+                let distKeys = ['0-1', '1-2', '2-3', '3-4'];
+                let chartHtml = '';
+                distKeys.forEach((k, i) => {
+                    let val = dist[k] || 0;
+                    let h = Math.max(val / maxDist * 100, 8);
+                    chartHtml += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px"><span style="font-size:10px;font-weight:700;color:${colors[i]}">${val}</span><div style="width:100%;height:${h}%;min-height:4px;background:${colors[i]};border-radius:3px;transition:height .5s"></div></div>`;
+                });
+                document.getElementById('scoreDistChart').innerHTML = chartHtml;
+                document.getElementById('scoreStatNumbers').innerHTML = `
+                    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--primary)">${stats.avgScore}</div><div style="font-size:10px;color:var(--text2)">\u0110i\u1ec3m TB</div></div>
+                    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--success)">${stats.maxScore}</div><div style="font-size:10px;color:var(--text2)">Cao nh\u1ea5t</div></div>
+                    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--danger)">${stats.minScore}</div><div style="font-size:10px;color:var(--text2)">Th\u1ea5p nh\u1ea5t</div></div>
+                    <div style="text-align:center"><div style="font-size:22px;font-weight:800;color:var(--text)">${stats.count}</div><div style="font-size:10px;color:var(--text2)">S\u1ed1 b\u00e0i</div></div>`;
+                document.getElementById('scoreStatsBar').style.display = 'block';
+            }
+
+            // Dynamic columns
             let maxAnswers = 0;
             results.forEach(r => { if (r.answers && r.answers.length > maxAnswers) maxAnswers = r.answers.length; });
-            if (maxAnswers === 0) maxAnswers = 8; // default fallback
-            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th>';
+            if (maxAnswers === 0) maxAnswers = isPracticeTab ? 16 : 8;
+
+            let html = '<table><thead><tr><th style="width:36px">#</th><th>M\u00e3 HS</th><th>H\u1ecd t\u00ean</th><th>L\u1edbp</th>';
+            if (isPracticeTab) html += '<th>L\u01b0\u1ee3t</th>';
             for (let i = 1; i <= maxAnswers; i++) html += `<th>C${i}</th>`;
-            html += '<th>Đúng</th><th>Sai</th><th>Điểm</th><th>T.gian</th></tr></thead><tbody>';
+            html += '<th>\u0110\u00fang</th><th>Sai</th><th>\u0110i\u1ec3m</th><th>T.gian</th></tr></thead><tbody>';
+
             results.forEach((r, idx) => {
                 let correctCount = 0, wrongCount = 0;
-                if (r.answers) r.answers.forEach(a => { if (a && a.includes('✓')) correctCount++; else if (a && a.length > 0) wrongCount++; });
+                if (r.answers) r.answers.forEach(a => { if (a && a.includes('\u2713')) correctCount++; else if (a && a.length > 0) wrongCount++; });
                 html += `<tr><td style="font-size:12px;color:var(--text2)">${idx + 1}</td><td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">${r.maHS}</code></td><td><strong style="font-size:13px">${r.hoTen}</strong></td><td>${r.lop}</td>`;
+                if (isPracticeTab) html += `<td style="text-align:center"><span style="background:rgba(245,158,11,0.15);color:var(--warning);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">${r.luot || '-'}</span></td>`;
                 for (let ci = 0; ci < maxAnswers; ci++) {
                     let a = r.answers && r.answers[ci] ? r.answers[ci] : '-';
-                    let isCorrect = a.includes('✓');
+                    let isCorrect = a.includes('\u2713');
                     html += `<td style="text-align:center"><span style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;font-size:10px;font-weight:700;background:${isCorrect ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'};color:${isCorrect ? 'var(--success)' : 'var(--danger)'}">${a.charAt(0)}</span></td>`;
                 }
                 html += `<td style="text-align:center"><span style="background:rgba(16,185,129,0.15);color:var(--success);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700">${correctCount}</span></td>`;
@@ -3830,20 +3902,6 @@
             html += '</tbody></table>';
             container.innerHTML = html;
         }
-
-        // ===== XUẤT EXCEL =====
-        async function exportExcel() {
-            let btn = document.getElementById('btnExportExcel');
-            let originalHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xuất...';
-            try {
-                let lop = document.getElementById('manageClassFilter')?.value || '';
-                let resp = await apiCall('exportResults', { lop });
-                if (resp.success && resp.downloadUrl) {
-                    window.open(resp.downloadUrl, '_blank');
-                    btn.innerHTML = '<i class="fas fa-check"></i> Đã xuất!';
-                    setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
                 } else {
                     alert(resp.message || 'Không thể xuất kết quả!');
                     btn.innerHTML = originalHtml;
