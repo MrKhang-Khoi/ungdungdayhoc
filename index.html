@@ -1135,6 +1135,44 @@
             }
         }
 
+        /* Mobile small (<=480px) */
+        @media (max-width: 480px) {
+            .exam-header { flex-direction: column; gap: 8px; align-items: flex-start; }
+            .exam-header > div:last-child { width: 100%; display: flex; justify-content: flex-end; }
+            .exam-timer { font-size: 14px; padding: 8px 12px; }
+            .stepper { gap: 2px; }
+            .step-item { font-size: 10px; padding: 6px 8px; }
+            .step-item span:last-child { display: none; }
+            .question-nav { padding: 12px; }
+            .qnav-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+            .upload-zone { padding: 24px 16px; }
+            .upload-zone h3 { font-size: 14px; }
+            .nav-buttons { flex-direction: column; gap: 8px; }
+            .nav-buttons .btn { width: 100%; }
+            .success-container h2 { font-size: 20px; }
+            .success-icon { font-size: 56px; }
+            .dashboard .dash-tabs { gap: 2px; flex-wrap: wrap; }
+            .dashboard .tab-btn { font-size: 11px; padding: 6px 10px; }
+            .stat-cards { grid-template-columns: 1fr; gap: 8px; }
+            table { font-size: 11px; }
+            th, td { padding: 6px 8px; }
+            .exam-card { padding: 14px; }
+            .login-card { padding: 16px; margin: 10px; }
+        }
+
+        /* Tablet (481-768px) additional */
+        @media (min-width: 481px) and (max-width: 768px) {
+            .qnav-grid { grid-template-columns: repeat(8, 1fr); }
+            .stat-cards { grid-template-columns: repeat(2, 1fr); }
+            .nav-buttons .btn { min-width: 140px; }
+        }
+
+        /* Table responsive */
+        @media (max-width: 768px) {
+            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            table { min-width: 600px; }
+        }
+
         /* Notification Toast - Bottom Right */
         .notif-toast {
             position: fixed;
@@ -2339,6 +2377,60 @@
         let dashboardData = null;
         let isPracticeMode = false;
         let practiceAttempts = 0;
+
+        // ============== POPUP UTILITIES ==============
+        // Global handler for unhandled promise rejections (prevents console errors)
+        window.addEventListener('unhandledrejection', function(event) {
+            event.preventDefault();
+            console.warn('Promise warning:', event.reason);
+        });
+        function showPopup(title, message, type = 'warning') {
+            let existing = document.getElementById('globalPopupModal');
+            if (existing) existing.remove();
+            let icons = {
+                warning: { bg: 'rgba(245,158,11,0.15)', icon: '⚠️' },
+                error: { bg: 'rgba(239,68,68,0.15)', icon: '❌' },
+                success: { bg: 'rgba(16,185,129,0.15)', icon: '✅' },
+                info: { bg: 'rgba(99,102,241,0.15)', icon: 'ℹ️' }
+            };
+            let cfg = icons[type] || icons.warning;
+            let modal = document.createElement('div');
+            modal.id = 'globalPopupModal';
+            modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10005;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease';
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:420px;width:100%;text-align:center;animation:slideUp .3s ease">
+                <div style="width:56px;height:56px;border-radius:50%;background:${cfg.bg};display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px">${cfg.icon}</div>
+                <h3 style="margin:0 0 8px;font-size:17px;color:var(--text)">${title}</h3>
+                <p style="color:var(--text2);font-size:14px;margin:0 0 20px;line-height:1.6">${message}</p>
+                <button onclick="this.closest('#globalPopupModal').remove()" class="btn btn-primary" style="padding:11px 32px;font-size:14px;min-width:120px">Đã hiểu</button>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+
+        function showConfirmPopup(title, message, onConfirm, confirmText = 'Xác nhận', cancelText = 'Hủy', type = 'warning') {
+            let existing = document.getElementById('globalPopupModal');
+            if (existing) existing.remove();
+            let icons = {
+                warning: { bg: 'rgba(245,158,11,0.15)', icon: '⚠️' },
+                danger: { bg: 'rgba(239,68,68,0.15)', icon: '🗑️' },
+                info: { bg: 'rgba(99,102,241,0.15)', icon: '❓' }
+            };
+            let cfg = icons[type] || icons.warning;
+            let modal = document.createElement('div');
+            modal.id = 'globalPopupModal';
+            modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10005;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease';
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:420px;width:100%;text-align:center;animation:slideUp .3s ease">
+                <div style="width:56px;height:56px;border-radius:50%;background:${cfg.bg};display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px">${cfg.icon}</div>
+                <h3 style="margin:0 0 8px;font-size:17px;color:var(--text)">${title}</h3>
+                <p style="color:var(--text2);font-size:14px;margin:0 0 20px;line-height:1.6">${message}</p>
+                <div style="display:flex;gap:10px;justify-content:center">
+                    <button id="popupCancelBtn" class="btn" style="width:auto;background:var(--bg3);color:var(--text);padding:10px 24px;font-size:14px;min-width:100px">${cancelText}</button>
+                    <button id="popupConfirmBtn" class="btn btn-primary" style="width:auto;padding:10px 24px;font-size:14px;min-width:100px">${confirmText}</button>
+                </div>
+            </div>`;
+            document.body.appendChild(modal);
+            document.getElementById('popupCancelBtn').onclick = () => modal.remove();
+            document.getElementById('popupConfirmBtn').onclick = () => { modal.remove(); if (onConfirm) onConfirm(); };
+        }
         let practiceMaxAttempts = 5;
 
         function isApiConfigured() {
@@ -2603,7 +2695,9 @@
 
         function showAlert(id, msg) { let el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
 
-        function confirmLogout() { if (confirm('Bạn có chắc muốn thoát? Bài thi chưa nộp sẽ không được lưu!')) location.reload(); }
+        function confirmLogout() {
+            showConfirmPopup('Thoát bài thi?', 'Bài thi chưa nộp sẽ không được lưu! Bạn có chắc muốn thoát?', () => location.reload(), 'Thoát', 'Tiếp tục thi');
+        }
 
         // ============== CÂU HỎI ==============
         async function loadQuestions() {
@@ -2611,7 +2705,7 @@
             try {
                 // ===== FIREBASE LOAD QUESTIONS =====
                 let allQuestions = await firebaseRead('questions');
-                if (!allQuestions) { alert('Chưa có câu hỏi trên hệ thống!'); hideLoading(); return; }
+                if (!allQuestions) { showPopup('Không có câu hỏi', 'Chưa có câu hỏi trên hệ thống! Vui lòng liên hệ giáo viên.', 'error'); hideLoading(); return; }
 
                 // Convert object to array (BẢO MẬT: bỏ dapAnDung ở client)
                 let questionsArr = Object.values(allQuestions).map(q => ({
@@ -2667,7 +2761,7 @@
                 }
             } catch (e) {
                 console.error('Load questions error:', e);
-                alert('Không thể tải câu hỏi!');
+                showPopup('Lỗi tải câu hỏi', 'Không thể tải câu hỏi! Kiểm tra kết nối mạng.', 'error');
             }
             hideLoading();
         }
@@ -3396,10 +3490,11 @@
 
         // ============== XÓA TOÀN BỘ DỮ LIỆU ==============
         async function confirmClearAll() {
-            let c1 = confirm('⚠️ XÓA TOÀN BỘ DỮ LIỆU?\n\nSẽ xóa:\n- Tất cả kết quả thi\n- Tất cả kết quả thi thử\n- Reset trạng thái tất cả HS\n- Xóa hết file trên Google Drive\n\nBạn có chắc chắn?');
-            if (!c1) return;
-            let c2 = confirm('🔴 XÁC NHẬN LẦN 2\n\nThao tác này KHÔNG THỂ hoàn tác!\nNhấn OK để xóa hoàn toàn.');
-            if (!c2) return;
+            showConfirmPopup('⚠️ XÓA TOÀN BỘ DỮ LIỆU?', 'Sẽ xóa: Tất cả kết quả thi, kết quả thi thử, reset trạng thái HS, xóa file trên Google Drive. Bạn có chắc chắn?', () => {
+                showConfirmPopup('🔴 XÁC NHẬN LẦN 2', 'Thao tác này KHÔNG THỂ hoàn tác! Nhấn Xác nhận để xóa hoàn toàn.', () => { executeClearAll(); }, 'Xóa hoàn toàn', 'Hủy', 'danger');
+            }, 'Tiếp tục', 'Hủy', 'danger');
+        }
+        async function executeClearAll() {
             try {
                 let msgEl = document.getElementById('settingsMsg');
                 msgEl.style.display = 'block';
@@ -3422,7 +3517,7 @@
                     msgEl.textContent = resp.message || 'Lỗi xóa dữ liệu!';
                 }
             } catch (e) {
-                alert('Lỗi: ' + e.message);
+                showPopup('Lỗi xóa', 'Lỗi xóa dữ liệu: ' + e.message, 'error');
             }
         }
 
@@ -3527,12 +3622,10 @@
                         return;
                     }
                 } catch (e) { /* if check fails, still offer restore */ }
-                let useBackup = confirm('⚡ Phát hiện bài thi chưa hoàn thành. Bạn muốn tiếp tục làm bài cũ không?\n\n(Nhấn OK để khôi phục, Cancel để bắt đầu mới)');
-                if (useBackup) {
+                showConfirmPopup('⚡ Phát hiện bài thi chưa hoàn thành', 'Bạn muốn tiếp tục làm bài cũ không?<br><small>(Nhấn "Khôi phục" để tiếp tục, "Bắt đầu mới" để làm lại)</small>', () => {
                     restoreExamFromBackup(backup);
-                    return;
-                }
-                clearExamBackup(currentStudent.maHS);
+                }, 'Khôi phục', 'Bắt đầu mới', 'info');
+                return;
             }
             await _origLoadQuestions();
         };
@@ -4050,15 +4143,17 @@
         }
 
         async function toggleExamStatus(maHS, value) {
-            if (!confirm(value === 'X' ? 'Đánh dấu học sinh này đã thi?' : 'Cho phép học sinh này thi lại?')) return;
-            try {
-                let newStatus = value === 'X' ? 'X' : '';
-                await firebaseUpdate('students/' + maHS, { trangThai: newStatus });
-                // Also sync to Google Sheet
+            let msg = value === 'X' ? 'Đánh dấu học sinh này đã thi?' : 'Cho phép học sinh này thi lại?';
+            showConfirmPopup('Xác nhận', msg, async () => {
                 try {
-                    await apiCall('updateStudent', { maHS: maHS, field: 'Trang_Thai', value: value === 'X' ? 'X' : '__EMPTY__' });
-                } catch (syncErr) { console.log('Sheet sync warning:', syncErr); }
-            } catch (e) { alert('Lỗi: ' + e.message); }
+                    let newStatus = value === 'X' ? 'X' : '';
+                    await firebaseUpdate('students/' + maHS, { trangThai: newStatus });
+                    // Also sync to Google Sheet
+                    try {
+                        await apiCall('updateStudent', { maHS: maHS, field: 'Trang_Thai', value: value === 'X' ? 'X' : '__EMPTY__' });
+                    } catch (syncErr) { console.log('Sheet sync warning:', syncErr); }
+                } catch (e) { showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+            });
         }
 
         // ===== TAB: THEO DÕI =====
@@ -4248,11 +4343,11 @@
                     btn.innerHTML = '<i class="fas fa-check"></i> Da xuat!';
                     setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
                 } else {
-                    alert(resp.message || 'Khong the xuat ket qua!');
+                    showPopup('Lỗi xuất Excel', resp.message || 'Không thể xuất kết quả!', 'error');
                     btn.innerHTML = originalHtml;
                 }
             } catch (e) {
-                alert('Loi xuat Excel: ' + e.message);
+                showPopup('Lỗi xuất Excel', 'Lỗi xuất Excel: ' + e.message, 'error');
                 btn.innerHTML = originalHtml;
             }
             btn.disabled = false;
@@ -4489,7 +4584,7 @@
                 }
             } catch (e) {
                 hideSubmitOverlay();
-                alert('⏰ Hết giờ nhưng nộp bài thất bại: ' + e.message + '\n\nVui lòng liên hệ giáo viên!');
+                showPopup('Hết giờ!', 'Hết giờ nhưng nộp bài thất bại: ' + e.message + '. Vui lòng liên hệ giáo viên!', 'error');
             }
         }
 
@@ -4878,11 +4973,12 @@
         }
 
         async function deleteStudyMaterial(key) {
-            if (!confirm('Bạn có chắc muốn xóa tài liệu này?')) return;
-            try {
-                await firebaseDelete('studyMaterials/' + key);
-                loadStudyMaterials();
-            } catch (e) { alert('Lỗi xóa: ' + e.message); }
+            showConfirmPopup('Xóa tài liệu?', 'Bạn có chắc muốn xóa tài liệu này?', async () => {
+                try {
+                    await firebaseDelete('studyMaterials/' + key);
+                    loadStudyMaterials();
+                } catch (e) { showPopup('Lỗi xóa', 'Lỗi xóa tài liệu: ' + e.message, 'error'); }
+            }, 'Xóa', 'Hủy', 'danger');
         }
 
         function editStudyMaterial(key) {
@@ -4909,12 +5005,12 @@
             let title = document.getElementById('editSMTitle').value.trim();
             let category = document.getElementById('editSMCategory').value.trim();
             let content = document.getElementById('editSMContent').value.trim();
-            if (!title || !content) { alert('Vui lòng nhập tiêu đề và nội dung!'); return; }
+            if (!title || !content) { showPopup('Thiếu thông tin', 'Vui lòng nhập tiêu đề và nội dung!', 'warning'); return; }
             try {
                 await firebaseUpdate('studyMaterials/' + key, { title, category: category || 'Chung', content });
                 document.getElementById('editStudentModal').style.display = 'none';
                 loadStudyMaterials();
-            } catch (e) { alert('Lỗi: ' + e.message); }
+            } catch (e) { showPopup('Lỗi', 'Lỗi lưu tài liệu: ' + e.message, 'error'); }
         }
 
         // ===== STUDENT: TÀI LIỆU ÔN TẬP =====
