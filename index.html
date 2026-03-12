@@ -1491,6 +1491,8 @@
         function firebaseListen(path, callback) {
             db.ref(path).on('value', snapshot => {
                 callback(snapshot.val());
+            }, error => {
+                console.warn('Firebase listen error on', path, ':', error.message || error);
             });
         }
 
@@ -1502,7 +1504,7 @@
         let firebaseConnected = false;
         db.ref('.info/connected').on('value', snap => {
             firebaseConnected = snap.val() === true;
-        });
+        }, err => { console.warn('Firebase connection check error:', err); });
 
         function isFirebaseReady() {
             return typeof firebase !== 'undefined' && db && firebaseConnected;
