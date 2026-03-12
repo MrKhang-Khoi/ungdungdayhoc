@@ -2647,7 +2647,7 @@
                         if (isPracticeMode) setupPracticeUI();
                         else setupNormalUI();
 
-                        await loadQuestions();
+                        await _origLoadQuestions();
                         hideLoginLoading();
                         showScreen('examScreen');
                         startStudentNotifListener();
@@ -2656,6 +2656,8 @@
                         try { await startSessionManagement(); } catch(e) {}
                         initExamTimer();
                         showExamGuide();
+                        // Check backup AFTER screen is visible
+                        setTimeout(() => checkAndOfferRestore(), 300);
                     } catch (e) {
                         console.error('Post-confirm error:', e);
                         hideLoginLoading();
@@ -3669,42 +3671,36 @@
             }
         });
 
-        // Override loadQuestions to check backup first
-        let _origLoadQuestions = loadQuestions;
-        loadQuestions = async function () {
+        // After exam screen is visible, check & offer to restore backup
+        async function checkAndOfferRestore() {
+            if (!currentStudent || !currentStudent.maHS) return;
             let backup = loadExamBackup(currentStudent.maHS);
-            if (backup && backup.questions && backup.questions.length) {
-                // Validate backup questions against current questions on Firebase
-                try {
-                    let currentQuestions = await firebaseRead('questions') || {};
-                    // Convert to numbers and sort numerically to avoid '10' < '2' string sort issue
-                    let currentSTTs = Object.keys(currentQuestions).map(Number).sort((a,b)=>a-b).join(',');
-                    let backupSTTs = backup.questions.map(q => Number(q.stt)).sort((a,b)=>a-b).join(',');
-                    if (currentSTTs !== backupSTTs) {
-                        clearExamBackup(currentStudent.maHS);
-                        await _origLoadQuestions();
-                        return;
-                    }
-                } catch (e) { /* if check fails, still offer restore */ }
-                showConfirmPopup(
-                    '⚡ Phát hiện bài thi chưa hoàn thành',
-                    'Bạn muốn tiếp tục làm bài cũ không?<br><small>(Nhấn "Khôi phục" để tiếp tục, "Bắt đầu mới" để làm lại)</small>',
-                    () => {
-                        // Confirm: restore backup
-                        restoreExamFromBackup(backup);
-                        goToStep(1);
-                    },
-                    'Khôi phục', 'Bắt đầu mới', 'info',
-                    async () => {
-                        // Cancel: clear backup and load fresh questions
-                        clearExamBackup(currentStudent.maHS);
-                        await _origLoadQuestions();
-                    }
-                );
-                return;
-            }
-            await _origLoadQuestions();
-        };
+            if (!backup || !backup.questions || !backup.questions.length) return;
+            // Validate backup questions still match current questions
+            try {
+                let currentQuestions = await firebaseRead('questions') || {};
+                let currentSTTs = Object.keys(currentQuestions).map(Number).sort((a,b)=>a-b).join(',');
+                let backupSTTs = backup.questions.map(q => Number(q.stt)).sort((a,b)=>a-b).join(',');
+                if (currentSTTs !== backupSTTs) {
+                    clearExamBackup(currentStudent.maHS);
+                    return;
+                }
+            } catch (e) { /* if check fails, still offer restore */ }
+            // Exam screen is now visible — show popup safely
+            showConfirmPopup(
+                '⚡ Phát hiện bài thi chưa hoàn thành',
+                'Bạn muốn tiếp tục làm bài cũ không?<br><small>(Nhấn "Khôi phục" để tiếp tục, "Bắt đầu mới" để làm lại)</small>',
+                () => {
+                    restoreExamFromBackup(backup);
+                    goToStep(1);
+                },
+                'Khôi phục', 'Bắt đầu mới', 'info',
+                () => { clearExamBackup(currentStudent.maHS); }
+            );
+        }
+
+        // loadQuestions: always load fresh (backup check happens after screen shows)
+        let _origLoadQuestions = loadQuestions;
 
         // ============== DASHBOARD ==============
         let currentMainTab = 'manage';
