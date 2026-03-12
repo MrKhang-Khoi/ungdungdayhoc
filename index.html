@@ -1801,6 +1801,59 @@
         </div>
     </div>
 
+    <!-- ==================== OVERLAY CHỜ XUNG ĐỘT ĐĂNG NHẬP (Student B) ==================== -->
+    <div class="session-overlay" id="loginConflictWaitOverlay">
+        <div style="text-align:center;max-width:440px;width:90%;animation:slideUp .4s ease">
+            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--warning),#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(245,158,11,0.4)">
+                <i class="fas fa-user-lock" style="font-size:40px;color:#fff"></i>
+            </div>
+            <h2 style="color:var(--text);font-size:22px;margin-bottom:8px">Tài khoản đang được sử dụng</h2>
+            <p style="color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:20px">
+                Tài khoản này <strong>đang đăng nhập trên thiết bị khác</strong>.<br>
+                Hệ thống đang gửi xác nhận đến thiết bị đó...
+            </p>
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px">
+                <div style="width:12px;height:12px;border-radius:50%;background:var(--warning);animation:livePulse 1.5s ease-in-out infinite"></div>
+                <span id="loginConflictWaitStatus" style="color:var(--warning);font-size:14px;font-weight:600">Đang chờ phản hồi...</span>
+            </div>
+            <div id="loginConflictTimer" style="font-size:28px;font-weight:800;color:var(--text);margin-bottom:16px;font-variant-numeric:tabular-nums">01:00</div>
+            <p style="color:var(--text2);font-size:12px;margin-bottom:20px;line-height:1.6">
+                Nếu đây là tài khoản của em, hãy <strong>liên hệ thầy/cô giáo</strong> để được hỗ trợ.<br>
+                Hệ thống sẽ tự động xử lý nếu không có phản hồi.
+            </p>
+            <button class="btn" onclick="cancelLoginConflict()" style="width:auto;padding:10px 24px;font-size:13px;background:var(--bg3);color:var(--text)">
+                <i class="fas fa-arrow-left"></i> Quay lại đăng nhập
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== OVERLAY CẢNH BÁO ĐĂNG NHẬP (Student A đang thi) ==================== -->
+    <div class="session-overlay" id="loginConflictAlertOverlay">
+        <div style="text-align:center;max-width:460px;width:90%;animation:slideUp .4s ease">
+            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(239,68,68,0.4);animation:livePulse 1.5s ease-in-out infinite">
+                <i class="fas fa-exclamation-triangle" style="font-size:40px;color:#fff"></i>
+            </div>
+            <h2 style="color:var(--text);font-size:22px;margin-bottom:8px">⚠️ Phát hiện đăng nhập!</h2>
+            <p style="color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:8px">
+                Có người đang cố đăng nhập vào tài khoản này từ <strong>thiết bị khác</strong>.
+            </p>
+            <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:14px;margin-bottom:20px">
+                <p style="color:var(--danger);font-size:13px;margin:0;font-weight:600;line-height:1.6">
+                    Nếu tài khoản <strong>KHÔNG PHẢI</strong> của em, đề nghị <strong>Đăng xuất ngay</strong>!
+                </p>
+            </div>
+            <div id="loginConflictAlertTimer" style="font-size:24px;font-weight:800;color:var(--warning);margin-bottom:16px;font-variant-numeric:tabular-nums"></div>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+                <button class="btn" onclick="confirmMyAccount()" style="width:auto;padding:12px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--success),#059669);color:#fff;border:none">
+                    <i class="fas fa-check-circle"></i> Đúng, tài khoản của tôi
+                </button>
+                <button class="btn" onclick="denyMyAccount()" style="width:auto;padding:12px 24px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;border:none">
+                    <i class="fas fa-sign-out-alt"></i> Không phải, đăng xuất
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- ==================== MÀN HÌNH THÀNH CÔNG ==================== -->
     <div class="screen" id="successScreen">
         <div class="success-container">
@@ -2556,11 +2609,19 @@
                 let settings = await firebaseRead('settings') || {};
                 let isPractice = settings.practiceMode === true || settings.practiceMode === 'true';
 
-                // ===== SESSION LOCK CHECK — auto-unlock on correct password =====
-                // If account was locked (previous session), unlock it silently
-                // Student who knows their password can ALWAYS log back in and recover saved answers
+                // ===== SESSION LOCK CHECK =====
                 if (student.isLocked && student.lockedAt) {
-                    try { await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                    let lockAge = Date.now() - student.lockedAt;
+                    if (lockAge < 7200000) {
+                        // Account actively in use (< 2h) → conflict resolution
+                        hideLoginLoading();
+                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
+                        await handleLoginConflict(maHS, student, password, isPractice);
+                        return;
+                    } else {
+                        // Stale lock (> 2h) → safe to auto-unlock
+                        try { await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                    }
                 }
 
                 if (isPractice) {
@@ -5336,6 +5397,15 @@
                     _handleSessionKicked();
                 }
             });
+
+            // Listen for login conflict requests (real-time)
+            firebaseListen('students/' + currentStudent.maHS + '/loginRequest/status', (status) => {
+                if (!currentStudent || !_currentSessionId) return;
+                if (status === 'pending') {
+                    // Someone is trying to login with this account
+                    _showLoginConflictAlert();
+                }
+            });
         }
 
         function stopSessionManagement() {
@@ -5345,7 +5415,9 @@
             }
             if (currentStudent && currentStudent.maHS) {
                 firebaseStopListen('students/' + currentStudent.maHS + '/sessionId');
+                firebaseStopListen('students/' + currentStudent.maHS + '/loginRequest/status');
             }
+            clearInterval(_conflictAlertTimer);
             _currentSessionId = null;
         }
 
@@ -5361,6 +5433,195 @@
             // Show kicked overlay
             let overlay = document.getElementById('sessionKickedOverlay');
             if (overlay) overlay.classList.add('show');
+        }
+
+        // ============== DUAL LOGIN CONFLICT RESOLUTION ==============
+        let _conflictWaitListener = null;
+        let _conflictWaitTimer = null;
+        let _conflictWaitMaHS = null;
+        let _conflictAlertTimer = null;
+
+        // === STUDENT B: Waiting for Student A to respond ===
+        async function handleLoginConflict(maHS, student, password, isPractice) {
+            _conflictWaitMaHS = maHS;
+
+            // Write login request to Firebase
+            try {
+                await firebaseUpdate('students/' + maHS, {
+                    loginRequest: { status: 'pending', requestedAt: Date.now() }
+                });
+            } catch (e) {
+                showPopup('Lỗi', 'Không thể gửi yêu cầu đăng nhập: ' + e.message, 'error');
+                return;
+            }
+
+            // Show waiting overlay
+            let overlay = document.getElementById('loginConflictWaitOverlay');
+            if (overlay) overlay.classList.add('show');
+            let statusEl = document.getElementById('loginConflictWaitStatus');
+            let timerEl = document.getElementById('loginConflictTimer');
+
+            // Countdown 60 seconds
+            let remaining = 60;
+            if (timerEl) timerEl.textContent = '01:00';
+            _conflictWaitTimer = setInterval(() => {
+                remaining--;
+                if (timerEl) {
+                    let m = Math.floor(remaining / 60);
+                    let s = remaining % 60;
+                    timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                }
+                if (remaining <= 0) {
+                    clearInterval(_conflictWaitTimer);
+                    // Timeout → treat as approved (Student A not responding)
+                    _resolveConflictForStudentB(maHS, student, password, isPractice, statusEl, overlay);
+                }
+            }, 1000);
+
+            // Listen for loginRequest status changes from Student A
+            _conflictWaitListener = maHS;
+            firebaseListen('students/' + maHS + '/loginRequest/status', (status) => {
+                if (!_conflictWaitMaHS) return;
+                if (status === 'denied') {
+                    // Student A confirmed — deny Student B
+                    clearInterval(_conflictWaitTimer);
+                    if (statusEl) { statusEl.textContent = '❌ Yêu cầu bị từ chối'; statusEl.style.color = 'var(--danger)'; }
+                    setTimeout(() => {
+                        if (overlay) overlay.classList.remove('show');
+                        showPopup(
+                            'Đăng nhập bị từ chối',
+                            'Chủ tài khoản đã xác nhận đây là tài khoản của họ.<br><br>Nếu đây thực sự là tài khoản của em, hãy <strong>liên hệ thầy/cô giáo</strong> để được hỗ trợ.',
+                            'warning'
+                        );
+                        _cleanupConflictWait(maHS);
+                    }, 1500);
+                } else if (status === 'approved') {
+                    // Student A approved — let Student B proceed
+                    clearInterval(_conflictWaitTimer);
+                    _resolveConflictForStudentB(maHS, student, password, isPractice, statusEl, overlay);
+                }
+            });
+        }
+
+        async function _resolveConflictForStudentB(maHS, student, password, isPractice, statusEl, overlay) {
+            if (statusEl) { statusEl.textContent = '✅ Đang đăng nhập...'; statusEl.style.color = 'var(--success)'; }
+
+            // Clean up and unlock
+            try {
+                await firebaseUpdate('students/' + maHS, {
+                    isLocked: false, lockedAt: null, loginRequest: null
+                });
+            } catch (e) {}
+
+            _cleanupConflictWait(maHS);
+
+            setTimeout(() => {
+                if (overlay) overlay.classList.remove('show');
+                // Re-trigger login by simulating the click with same credentials
+                document.getElementById('studentId').value = maHS;
+                document.getElementById('studentPass').value = password;
+                document.getElementById('btnStudentLogin').click();
+            }, 800);
+        }
+
+        function cancelLoginConflict() {
+            if (_conflictWaitMaHS) {
+                // Cancel the login request
+                try { firebaseUpdate('students/' + _conflictWaitMaHS, { loginRequest: null }).catch(() => {}); } catch(e) {}
+                _cleanupConflictWait(_conflictWaitMaHS);
+            }
+            let overlay = document.getElementById('loginConflictWaitOverlay');
+            if (overlay) overlay.classList.remove('show');
+        }
+
+        function _cleanupConflictWait(maHS) {
+            clearInterval(_conflictWaitTimer);
+            _conflictWaitTimer = null;
+            if (maHS) firebaseStopListen('students/' + maHS + '/loginRequest/status');
+            _conflictWaitMaHS = null;
+            _conflictWaitListener = null;
+        }
+
+        // === STUDENT A: Receives conflict alert while in exam ===
+        function _showLoginConflictAlert() {
+            let overlay = document.getElementById('loginConflictAlertOverlay');
+            if (overlay) overlay.classList.add('show');
+
+            // Play alert sound
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.value = 660; osc.type = 'square'; gain.gain.value = 0.3;
+                osc.start(); osc.stop(ctx.currentTime + 0.2);
+                setTimeout(() => {
+                    let o2 = ctx.createOscillator(); o2.connect(gain);
+                    o2.frequency.value = 880; o2.type = 'square';
+                    o2.start(); o2.stop(ctx.currentTime + 0.2);
+                }, 250);
+                setTimeout(() => {
+                    let o3 = ctx.createOscillator(); o3.connect(gain);
+                    o3.frequency.value = 1100; o3.type = 'square';
+                    o3.start(); o3.stop(ctx.currentTime + 0.3);
+                }, 500);
+            } catch(e) {}
+
+            // Countdown in the alert overlay
+            let timerEl = document.getElementById('loginConflictAlertTimer');
+            let remaining = 60;
+            if (timerEl) timerEl.textContent = 'Tự động đăng xuất sau: 01:00';
+            _conflictAlertTimer = setInterval(() => {
+                remaining--;
+                if (timerEl) {
+                    let m = Math.floor(remaining / 60);
+                    let s = remaining % 60;
+                    timerEl.textContent = 'Tự động đăng xuất sau: ' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                }
+                if (remaining <= 0) {
+                    clearInterval(_conflictAlertTimer);
+                    // Timeout → auto-approve (student A didn't respond)
+                    denyMyAccount();
+                }
+            }, 1000);
+        }
+
+        function confirmMyAccount() {
+            // Student A confirms — deny Student B
+            clearInterval(_conflictAlertTimer);
+            if (currentStudent && currentStudent.maHS) {
+                firebaseUpdate('students/' + currentStudent.maHS, {
+                    'loginRequest/status': 'denied'
+                }).catch(() => {});
+                // Clean up loginRequest after a delay
+                setTimeout(() => {
+                    firebaseUpdate('students/' + currentStudent.maHS, { loginRequest: null }).catch(() => {});
+                }, 3000);
+            }
+            let overlay = document.getElementById('loginConflictAlertOverlay');
+            if (overlay) overlay.classList.remove('show');
+            // Student A continues exam normally
+        }
+
+        function denyMyAccount() {
+            // Student A says it's not their account → approve Student B
+            clearInterval(_conflictAlertTimer);
+            if (currentStudent && currentStudent.maHS) {
+                firebaseUpdate('students/' + currentStudent.maHS, {
+                    'loginRequest/status': 'approved'
+                }).catch(() => {});
+            }
+            let overlay = document.getElementById('loginConflictAlertOverlay');
+            if (overlay) overlay.classList.remove('show');
+            // Log out Student A
+            stopAntiCheat();
+            stopStudentHeartbeat();
+            stopSessionManagement();
+            _currentSessionId = null;
+            currentStudent = null;
+            // Show kicked overlay
+            let kickedOverlay = document.getElementById('sessionKickedOverlay');
+            if (kickedOverlay) kickedOverlay.classList.add('show');
         }
 
         // ============== XÁC NHẬN UPLOAD FILE (ENHANCED) ==============
