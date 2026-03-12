@@ -2550,7 +2550,7 @@
                     stt: q.stt,
                     noiDung: q.noiDung,
                     dapAn: [q.dapAn1, q.dapAn2, q.dapAn3, q.dapAn4]
-                    // NOTE: dapAnDung is NOT included (Firebase rules block it)
+                    // BẢO MẬT: dapAnDung bị loại bỏ phía client, chấm điểm chỉ ở server
                 }));
 
                 // Shuffle and pick
@@ -3062,7 +3062,7 @@
                 try {
                     let settings = await firebaseRead('settings') || {};
                     if (!settings.allowViewResults) {
-                        panel.innerHTML = '<div style="text-align:center;padding:30px;background:var(--card);border:1px solid var(--border);border-radius:16px"><i class="fas fa-lock" style="font-size:40px;color:var(--warning);margin-bottom:12px;display:block"></i><h3 style="color:var(--text);margin-bottom:8px">Ch\u1ee9c n\u0103ng xem k\u1ebft qu\u1ea3 \u0111ang b\u1ecb kh\u00f3a</h3><p style="color:var(--text2);font-size:13px;margin:0">Gi\u00e1o vi\u00ean ch\u01b0a cho ph\u00e9p xem k\u1ebft qu\u1ea3.<br>Vui l\u00f2ng li\u00ean h\u1ec7 gi\u00e1o vi\u00ean.</p></div>';
+                        panel.innerHTML = '<div style="text-align:center;padding:30px;background:var(--card);border:1px solid var(--border);border-radius:16px"><i class="fas fa-lock" style="font-size:40px;color:var(--warning);margin-bottom:12px;display:block"></i><h3 style="color:var(--text);margin-bottom:8px">Chức năng xem kết quả đang bị khóa</h3><p style="color:var(--text2);font-size:13px;margin:0">Giáo viên chưa cho phép xem kết quả.<br>Vui lòng liên hệ giáo viên.</p></div>';
                         panel.style.display = 'block';
                         return;
                     }
@@ -3072,9 +3072,14 @@
             panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải kết quả...</p></div>';
             panel.style.display = 'block';
             try {
-                let data = await apiCall('getStudentResults', { maHS: currentStudent.maHS });
-                if (data.success && data.results && data.results.length) {
-                    let r = data.results[0]; // Latest result
+                // Read results directly from Firebase (more reliable than API)
+                let resultsObj = await firebaseRead('results') || {};
+                let myResults = Object.values(resultsObj).filter(r => r.maHS === currentStudent.maHS);
+                if (myResults.length > 0) {
+                    // Get the latest result
+                    let r = myResults.sort((a, b) => (b.thoiGian || 0) - (a.thoiGian || 0))[0];
+                    let correctCount = r.correctCount || 0;
+                    let thoiGian = r.thoiGian ? new Date(r.thoiGian).toLocaleString('vi-VN') : '-';
                     let html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px">';
                     html += '<h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-poll" style="color:var(--primary)"></i> Kết quả bài thi</h3>';
                     html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px">';
@@ -3089,6 +3094,27 @@
             } catch (e) {
                 panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger)"><i class="fas fa-exclamation-circle"></i> Lỗi tải kết quả: ' + e.message + '</div>';
             }
+        }
+
+        // ============== COMPUTE STATS UTILITY ==============
+        function _computeStats(results) {
+            if (!results || !results.length) return { count: 0, avgScore: 0, maxScore: 0, minScore: 0, distribution: { '0-1': 0, '1-2': 0, '2-3': 0, '3-4': 0 } };
+            let scores = results.map(r => parseFloat(r.score) || 0);
+            let sum = scores.reduce((a, b) => a + b, 0);
+            let dist = { '0-1': 0, '1-2': 0, '2-3': 0, '3-4': 0 };
+            scores.forEach(s => {
+                if (s <= 1) dist['0-1']++;
+                else if (s <= 2) dist['1-2']++;
+                else if (s <= 3) dist['2-3']++;
+                else dist['3-4']++;
+            });
+            return {
+                count: scores.length,
+                avgScore: (sum / scores.length).toFixed(2),
+                maxScore: Math.max(...scores),
+                minScore: Math.min(...scores),
+                distribution: dist
+            };
         }
 
         // ============== DEBOUNCE UTILITY ==============
@@ -3150,7 +3176,7 @@
             let keys = Object.keys(localStorage);
             let count = 0;
             keys.forEach(k => {
-                if (k.startsWith('exam_backup_') || k.startsWith('exam_answers_') || k.startsWith('practice_')) {
+                if (k.startsWith('exam_backup_') || k.startsWith('exam_answers_') || k.startsWith('practice_') || k.startsWith('exam_timer_end_')) {
                     localStorage.removeItem(k);
                     count++;
                 }
@@ -3160,8 +3186,8 @@
             msgEl.style.background = 'rgba(6,182,212,0.15)';
             msgEl.style.border = '1px solid rgba(6,182,212,0.3)';
             msgEl.style.color = 'var(--accent)';
-            msgEl.textContent = '✅ Đã xóa ' + count + ' mục cache trình duyệt.';
-            setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+            msgEl.textContent = '✅ Đã xóa ' + count + ' mục cache trên trình duyệt này. Lưu ý: chỉ xóa cache trên máy hiện tại, không ảnh hưởng máy HS.';
+            setTimeout(() => { msgEl.style.display = 'none'; }, 5000);
         }
 
         function fileToBase64(file) {
@@ -3177,10 +3203,10 @@
         function openFilePicker() {
             _cheatActive = false; // Pause anti-cheat
             document.getElementById('fileInput').click();
-            // Re-enable after a delay (file dialog closed)
+            // Re-enable after a longer delay (file dialog may take time to open/close)
             setTimeout(() => {
                 if (currentStudent) _cheatActive = true;
-            }, 1000);
+            }, 3000);
         }
 
         // ============== LOCALSTORAGE BACKUP ==============
@@ -3234,6 +3260,18 @@
         loadQuestions = async function () {
             let backup = loadExamBackup(currentStudent.maHS);
             if (backup && backup.questions && backup.questions.length) {
+                // Validate backup questions against current questions on Firebase
+                try {
+                    let currentQuestions = await firebaseRead('questions') || {};
+                    let currentSTTs = Object.keys(currentQuestions).sort().join(',');
+                    let backupSTTs = backup.questions.map(q => q.stt).sort().join(',');
+                    if (currentSTTs !== backupSTTs) {
+                        // Questions have changed since backup — discard stale backup
+                        clearExamBackup(currentStudent.maHS);
+                        await _origLoadQuestions();
+                        return;
+                    }
+                } catch (e) { /* if check fails, still offer restore */ }
                 let useBackup = confirm('⚡ Phát hiện bài thi chưa hoàn thành. Bạn muốn tiếp tục làm bài cũ không?\n\n(Nhấn OK để khôi phục, Cancel để bắt đầu mới)');
                 if (useBackup) {
                     restoreExamFromBackup(backup);
@@ -3731,7 +3769,12 @@
         async function toggleExamStatus(maHS, value) {
             if (!confirm(value === 'X' ? 'Đánh dấu học sinh này đã thi?' : 'Cho phép học sinh này thi lại?')) return;
             try {
-                await firebaseUpdate('students/' + maHS, { trangThai: value === 'X' ? 'X' : '' });
+                let newStatus = value === 'X' ? 'X' : '';
+                await firebaseUpdate('students/' + maHS, { trangThai: newStatus });
+                // Also sync to Google Sheet
+                try {
+                    await apiCall('updateStudent', { maHS: maHS, field: 'Trang_Thai', value: value === 'X' ? 'X' : '__EMPTY__' });
+                } catch (syncErr) { console.log('Sheet sync warning:', syncErr); }
             } catch (e) { alert('Lỗi: ' + e.message); }
         }
 

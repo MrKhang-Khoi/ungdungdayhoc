@@ -285,6 +285,9 @@ function handleRequest(e) {
           result = { success: false, message: 'Không nhận được file!' };
         }
         break;
+      case 'verifyFile':
+        result = verifyFileExists(params.maHS);
+        break;
       case 'updateStudent':
         var val = params.value === '__EMPTY__' ? '' : (params.value || '');
         result = updateStudent(params.maHS, params.field, val);
@@ -631,7 +634,7 @@ function submitExam(data) {
 
   // 2. Chấm điểm
   var totalQ = data.answers.length;
-  var pointPerQ = totalQ > 0 ? (isPractice ? 10 / totalQ : 4 / 8) : 0;
+  var pointPerQ = totalQ > 0 ? (isPractice ? 10 / totalQ : 4 / totalQ) : 0;
   var score = 0;
   var details = [];
   var answerResults = [];
@@ -662,6 +665,10 @@ function submitExam(data) {
     var pSheet = getOrCreatePracticeSheet(ss);
     var pLastRow = pSheet.getLastRow();
     var attempts = countPracticeAttempts(ss, data.maHS.trim());
+    // Server-side validation: prevent bypassing max attempts
+    if (attempts >= 5) {
+      return { success: false, message: '⚠️ Bạn đã hết 5 lượt thi thử! Không thể nộp thêm.' };
+    }
     pSheet.appendRow([pLastRow, data.maHS, data.hoTen, data.lop, attempts + 1, score, new Date()]);
 
     // Write to Firebase
@@ -920,6 +927,37 @@ function saveFileOnly(data) {
     return { success: true, message: 'Đã lưu file!' };
   } catch(err) {
     return { success: false, message: 'Lỗi lưu file: ' + err.toString() };
+  }
+}
+
+// ============== XÁC NHẬN FILE ĐÃ UPLOAD ==============
+function verifyFileExists(maHS) {
+  if (!maHS) return { success: false, message: 'Thiếu mã HS!' };
+  try {
+    var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), ROOT_FOLDER_NAME);
+    // Search for student folder containing maHS
+    var student = firebaseGet('students/' + maHS.trim());
+    if (!student) return { success: false, hasFile: false, message: 'Không tìm thấy HS!' };
+    var classFolder = getOrCreateFolder(rootFolder, student.lop || 'Unknown');
+    var studentFolderName = removeVietnameseTones(student.hoTen || '').replace(/\s+/g, '') + '_' + maHS.trim();
+    var folders = classFolder.getFoldersByName(studentFolderName);
+    if (folders.hasNext()) {
+      var studentFolder = folders.next();
+      var files = studentFolder.getFiles();
+      var hasFile = false;
+      while (files.hasNext()) {
+        var f = files.next();
+        // Check for uploaded practice files (not the result text file)
+        if (f.getName() !== 'KetQuaTracNghiem.txt') {
+          hasFile = true;
+          break;
+        }
+      }
+      return { success: true, hasFile: hasFile };
+    }
+    return { success: true, hasFile: false };
+  } catch(err) {
+    return { success: false, hasFile: false, message: 'Lỗi kiểm tra: ' + err.toString() };
   }
 }
 
