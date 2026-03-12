@@ -758,10 +758,18 @@ function submitExam(data) {
     } catch (fe) { Logger.log('Firebase result write error: ' + fe); }
 
     // 6. Lưu file lên Google Drive
+    var driveFolderUrl = '';
     try {
-      saveFilesToDrive(data, details, score);
+      driveFolderUrl = saveFilesToDrive(data, details, score);
     } catch (err) {
       Logger.log('Lỗi lưu Drive: ' + err.toString());
+    }
+
+    // 6b. Save Drive folder URL to Firebase for teacher access
+    if (driveFolderUrl) {
+      try {
+        firebaseUpdate('students/' + data.maHS, { driveFolder: driveFolderUrl });
+      } catch (fe2) { Logger.log('Save driveFolder error: ' + fe2); }
     }
 
     return {
@@ -924,7 +932,13 @@ function saveFileOnly(data) {
       );
       studentFolder.createFile(fileBlob);
     }
-    return { success: true, message: 'Đã lưu file!' };
+    // Share folder and save URL to Firebase
+    studentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    var folderUrl = studentFolder.getUrl();
+    try {
+      firebaseUpdate('students/' + data.maHS, { driveFolder: folderUrl });
+    } catch (fe) { Logger.log('Save driveFolder (saveFileOnly) error: ' + fe); }
+    return { success: true, message: 'Đã lưu file!', driveFolder: folderUrl };
   } catch(err) {
     return { success: false, message: 'Lỗi lưu file: ' + err.toString() };
   }
@@ -1050,6 +1064,10 @@ function saveFilesToDrive(data, details, score) {
 
   var resultBlob = Utilities.newBlob(resultText, 'text/plain; charset=utf-8', 'KetQuaTracNghiem.txt');
   studentFolder.createFile(resultBlob);
+
+  // Share folder and return URL for teacher access
+  studentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  return studentFolder.getUrl();
 }
 
 // ============== DASHBOARD - GIÁO VIÊN ==============

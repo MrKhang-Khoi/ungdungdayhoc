@@ -3367,7 +3367,8 @@
                         isOnline: isOnline,
                         cheatingCount: s.cheatingCount || 0,
                         uploadFailed: s.uploadFailed || false,
-                        uploadError: s.uploadError || ''
+                        uploadError: s.uploadError || '',
+                        driveFolder: s.driveFolder || ''
                     };
                 });
 
@@ -3857,7 +3858,18 @@
                 }
                 html += `<td style="text-align:center">${fileBadge}</td>`;
                 html += `<td style="font-size:12px">${s.thoiGianDN}</td>`;
-                html += `<td style="font-size:12px">${s.thoiGianNB}</td></tr>`;
+                // Nộp bài column: show clickable Drive link if submitted
+                let submitBadge = '';
+                if (s.statusCode === 2) {
+                    if (s.driveFolder) {
+                        submitBadge = `<a href="${s.driveFolder}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .2s" onmouseover="this.style.background='rgba(16,185,129,0.3)'" onmouseout="this.style.background='rgba(16,185,129,0.15)'" title="Mở thư mục bài làm trên Google Drive"><i class="fas fa-folder-open"></i> Xem bài</a>`;
+                    } else {
+                        submitBadge = '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check"></i> Đã nộp</span>';
+                    }
+                } else {
+                    submitBadge = '<span style="font-size:12px;color:var(--text2)">--</span>';
+                }
+                html += `<td style="text-align:center">${submitBadge}</td></tr>`;
             });
             html += '</tbody></table>';
             if (!students.length && search) html = '<div class="empty-state"><p style="color:var(--text2)">Không tìm thấy</p></div>';
