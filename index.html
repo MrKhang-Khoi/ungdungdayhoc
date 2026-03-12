@@ -1467,12 +1467,18 @@
 
         // Catch ALL unhandled promise rejections (must be FIRST, before any Firebase ops)
         window.addEventListener('unhandledrejection', function(event) {
-            event.preventDefault();
-            if (event.reason && event.reason.code === 403) {
-                // Firebase permission — silent (usually stale connection)
+            // Suppress Firebase 403 errors from app AND browser extensions
+            if (event.reason && (event.reason.code === 403 || event.reason.code === 'PERMISSION_DENIED')) {
+                event.preventDefault();
                 return;
             }
-            console.warn('Promise warning:', event.reason);
+            // Suppress Firebase internal SDK errors
+            if (event.reason && event.reason.name === 'n') {
+                event.preventDefault();
+                return;
+            }
+            event.preventDefault();
+            console.warn('Unhandled promise:', event.reason);
         });
 
         // ============== FIREBASE HELPERS ==============
@@ -4680,7 +4686,9 @@
         // ============== FIREBASE ANSWER BACKUP (OFFLINE RECOVERY) ==============
         let _firebaseBackupDebounce = null;
         function saveAnswersToFirebase() {
-            if (!currentStudent || !currentStudent.maHS) return;
+            // Real exam: localStorage only (saveExamBackup handles it)
+            // Practice mode: also backup to Firebase for cross-device recovery
+            if (!currentStudent || !currentStudent.maHS || !isPracticeMode) return;
             clearTimeout(_firebaseBackupDebounce);
             _firebaseBackupDebounce = setTimeout(async () => {
                 try {
