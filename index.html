@@ -1789,14 +1789,23 @@
 
     <!-- ==================== OVERLAY BỊ ĐÁ PHIÊN ==================== -->
     <div class="session-overlay" id="sessionKickedOverlay">
-        <div style="text-align:center;max-width:420px;width:90%;animation:slideUp .4s ease">
-            <div style="width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--danger),#dc2626);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;box-shadow:0 0 40px rgba(239,68,68,0.4)">
-                <i class="fas fa-user-slash" style="font-size:40px;color:#fff"></i>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:420px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+            <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(239,68,68,0.35)">
+                <i class="fas fa-user-slash" style="font-size:36px;color:#fff"></i>
             </div>
-            <h2 style="color:var(--text);font-size:22px;margin-bottom:8px">Phiên đăng nhập đã hết!</h2>
-            <p style="color:var(--text2);font-size:15px;line-height:1.6;margin-bottom:24px">Tài khoản của bạn đã được đăng nhập trên <strong>thiết bị khác</strong>.<br>Mỗi tài khoản chỉ cho phép đăng nhập trên 1 thiết bị.</p>
-            <button class="btn btn-primary" onclick="location.reload()" style="width:auto;padding:12px 28px;font-size:15px">
-                <i class="fas fa-home"></i> Về trang chủ
+            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">Phiên đăng nhập đã hết!</h2>
+            <p style="color:var(--text2);font-size:13px;line-height:1.7;margin:0 0 24px">
+                Tài khoản của bạn đã được đăng nhập trên <strong style="color:var(--text)">thiết bị khác</strong>.<br>
+                Mỗi tài khoản chỉ cho phép đăng nhập trên 1 thiết bị.
+            </p>
+            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:12px 16px;margin:0 0 24px">
+                <p style="color:var(--text2);font-size:12px;margin:0;line-height:1.7">
+                    <i class="fas fa-info-circle" style="color:var(--danger);margin-right:4px"></i>
+                    Nếu bạn không đăng nhập ở thiết bị nào khác, hãy <strong style="color:var(--danger)">liên hệ thầy/cô giáo</strong> ngay.
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="location.reload()" style="width:100%;padding:14px;font-size:15px;font-weight:700;border-radius:12px;box-shadow:0 4px 15px rgba(99,102,241,0.3)">
+                <i class="fas fa-home" style="margin-right:6px"></i> Về trang chủ
             </button>
         </div>
     </div>
