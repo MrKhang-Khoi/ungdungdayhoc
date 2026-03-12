@@ -3677,10 +3677,10 @@
                 // Validate backup questions against current questions on Firebase
                 try {
                     let currentQuestions = await firebaseRead('questions') || {};
-                    let currentSTTs = Object.keys(currentQuestions).sort().join(',');
-                    let backupSTTs = backup.questions.map(q => q.stt).sort().join(',');
+                    // Convert to numbers and sort numerically to avoid '10' < '2' string sort issue
+                    let currentSTTs = Object.keys(currentQuestions).map(Number).sort((a,b)=>a-b).join(',');
+                    let backupSTTs = backup.questions.map(q => Number(q.stt)).sort((a,b)=>a-b).join(',');
                     if (currentSTTs !== backupSTTs) {
-                        // Questions have changed since backup — discard stale backup
                         clearExamBackup(currentStudent.maHS);
                         await _origLoadQuestions();
                         return;
