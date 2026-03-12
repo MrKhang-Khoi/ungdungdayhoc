@@ -3056,7 +3056,7 @@
                 let answers = [];
                 examQuestions.forEach((q, i) => {
                     let sel = document.querySelector(`input[name="q${i}"]:checked`);
-                    answers.push({ questionSTT: q.stt, selected: sel ? sel.value : '', noiDung: q.noiDung });
+                    answers.push({ questionSTT: q.stt, selected: sel ? sel.value : '' });
                 });
 
                 updateSubmitOverlay('Đang gửi đáp án...', 'Bài thi của bạn đang được gửi lên hệ thống chấm điểm', 25);
@@ -4547,7 +4547,7 @@
                 let answers = [];
                 examQuestions.forEach((q, i) => {
                     let sel = document.querySelector(`input[name="q${i}"]:checked`);
-                    answers.push({ questionSTT: q.stt, selected: sel ? sel.value : '', noiDung: q.noiDung });
+                    answers.push({ questionSTT: q.stt, selected: sel ? sel.value : '' });
                 });
                 let examData = {
                     maHS: currentStudent.maHS,
