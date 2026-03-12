@@ -2419,7 +2419,7 @@
             document.body.appendChild(modal);
         }
 
-        function showConfirmPopup(title, message, onConfirm, confirmText = 'Xác nhận', cancelText = 'Hủy', type = 'warning') {
+        function showConfirmPopup(title, message, onConfirm, confirmText = 'Xác nhận', cancelText = 'Hủy', type = 'warning', onCancel = null) {
             let existing = document.getElementById('globalPopupModal');
             if (existing) existing.remove();
             let icons = {
@@ -2441,7 +2441,7 @@
                 </div>
             </div>`;
             document.body.appendChild(modal);
-            document.getElementById('popupCancelBtn').onclick = () => modal.remove();
+            document.getElementById('popupCancelBtn').onclick = () => { modal.remove(); if (onCancel) onCancel(); };
             document.getElementById('popupConfirmBtn').onclick = () => { modal.remove(); if (onConfirm) onConfirm(); };
         }
         let practiceMaxAttempts = 5;
@@ -2556,18 +2556,11 @@
                 let settings = await firebaseRead('settings') || {};
                 let isPractice = settings.practiceMode === true || settings.practiceMode === 'true';
 
-                // ===== SESSION LOCK CHECK =====
+                // ===== SESSION LOCK CHECK — auto-unlock on correct password =====
+                // If account was locked (previous session), unlock it silently
+                // Student who knows their password can ALWAYS log back in and recover saved answers
                 if (student.isLocked && student.lockedAt) {
-                    let lockAge = Date.now() - student.lockedAt;
-                    if (lockAge < 7200000) { // 2 hours
-                        hideLoginLoading();
-                        showPopup('🔒 Tài khoản đang được sử dụng', `Tài khoản <strong>${student.hoTen}</strong> đang được sử dụng trên thiết bị khác.<br><br>Nếu bạn chắc chắn đây là tài khoản của mình, hãy liên hệ giáo viên để mở khóa.`, 'error');
-                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
-                        return;
-                    } else {
-                        // Auto-unlock after 2 hours
-                        await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null });
-                    }
+                    try { await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
                 }
 
                 if (isPractice) {
@@ -3693,20 +3686,21 @@
                         return;
                     }
                 } catch (e) { /* if check fails, still offer restore */ }
-                showConfirmPopup('⚡ Phát hiện bài thi chưa hoàn thành', 'Bạn muốn tiếp tục làm bài cũ không?<br><small>(Nhấn "Khôi phục" để tiếp tục, "Bắt đầu mới" để làm lại)</small>', () => {
-                    restoreExamFromBackup(backup);
-                    goToStep(1);
-                }, 'Khôi phục', 'Bắt đầu mới', 'info');
-                // When user clicks "Bắt đầu mới" (cancel), also need to load fresh questions
-                let cancelBtn = document.getElementById('popupCancelBtn');
-                if (cancelBtn) {
-                    let origCancel = cancelBtn.onclick;
-                    cancelBtn.onclick = async () => {
-                        if (origCancel) origCancel();
+                showConfirmPopup(
+                    '⚡ Phát hiện bài thi chưa hoàn thành',
+                    'Bạn muốn tiếp tục làm bài cũ không?<br><small>(Nhấn "Khôi phục" để tiếp tục, "Bắt đầu mới" để làm lại)</small>',
+                    () => {
+                        // Confirm: restore backup
+                        restoreExamFromBackup(backup);
+                        goToStep(1);
+                    },
+                    'Khôi phục', 'Bắt đầu mới', 'info',
+                    async () => {
+                        // Cancel: clear backup and load fresh questions
                         clearExamBackup(currentStudent.maHS);
                         await _origLoadQuestions();
-                    };
-                }
+                    }
+                );
                 return;
             }
             await _origLoadQuestions();
