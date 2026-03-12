@@ -3042,6 +3042,19 @@
             let panel = document.getElementById('studentResultsPanel');
             let btn = document.getElementById('btnViewResults');
             if (!panel) return;
+
+            // Check if viewing results is allowed in real exam
+            if (!isPracticeMode) {
+                try {
+                    let settings = await firebaseRead('settings') || {};
+                    if (!settings.allowViewResults) {
+                        panel.innerHTML = '<div style="text-align:center;padding:30px;background:var(--card);border:1px solid var(--border);border-radius:16px"><i class="fas fa-lock" style="font-size:40px;color:var(--warning);margin-bottom:12px;display:block"></i><h3 style="color:var(--text);margin-bottom:8px">Ch\u1ee9c n\u0103ng xem k\u1ebft qu\u1ea3 \u0111ang b\u1ecb kh\u00f3a</h3><p style="color:var(--text2);font-size:13px;margin:0">Gi\u00e1o vi\u00ean ch\u01b0a cho ph\u00e9p xem k\u1ebft qu\u1ea3.<br>Vui l\u00f2ng li\u00ean h\u1ec7 gi\u00e1o vi\u00ean.</p></div>';
+                        panel.style.display = 'block';
+                        return;
+                    }
+                } catch (e) { }
+            }
+
             panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải kết quả...</p></div>';
             panel.style.display = 'block';
             try {
