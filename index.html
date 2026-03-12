@@ -2653,8 +2653,8 @@
                         showScreen('examScreen');
                         startStudentNotifListener();
                         startStudentHeartbeat();
-                        startAntiCheat();
-                        startSessionManagement();
+                        try { await startAntiCheat(); } catch(e) {}
+                        try { await startSessionManagement(); } catch(e) {}
                         initExamTimer();
                         showExamGuide();
                     } catch (e) {
@@ -5274,9 +5274,11 @@
             _currentSessionId = generateSessionId();
 
             // Write session ID to Firebase
-            await firebaseUpdate('students/' + currentStudent.maHS, {
-                sessionId: _currentSessionId
-            });
+            try {
+                await firebaseUpdate('students/' + currentStudent.maHS, {
+                    sessionId: _currentSessionId
+                });
+            } catch(e) { console.warn('Session write error:', e); }
 
             // Listen for session changes (real-time)
             firebaseListen('students/' + currentStudent.maHS + '/sessionId', (newSessionId) => {
