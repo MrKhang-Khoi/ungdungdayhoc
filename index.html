@@ -3699,17 +3699,21 @@
                 } catch (e) { /* silent - no Firebase backup available */ }
             }
             if (!backup || !backup.questions || !backup.questions.length) return;
-            // Validate backup questions still match current questions
-            try {
-                let currentQuestions = await firebaseRead('questions') || {};
-                let currentSTTs = Object.keys(currentQuestions).map(Number).sort((a,b)=>a-b).join(',');
-                let backupSTTs = backup.questions.map(q => Number(q.stt)).sort((a,b)=>a-b).join(',');
-                if (currentSTTs !== backupSTTs) {
-                    clearExamBackup(currentStudent.maHS);
-                    try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(()=>{}); } catch(e) {}
-                    return;
-                }
-            } catch (e) { /* if check fails, still offer restore */ }
+            // Validate backup questions still exist in the system
+            // For Firebase backups: skip validation — loadQuestions() already verified assignment
+            // For localStorage backups: check each question still exists (subset check, not exact match)
+            if (!backup.fromFirebase) {
+                try {
+                    let currentQuestions = await firebaseRead('questions') || {};
+                    let availableSTTs = new Set(Object.keys(currentQuestions).map(Number));
+                    let backupSTTs = backup.questions.map(q => Number(q.stt));
+                    let allExist = backupSTTs.every(stt => availableSTTs.has(stt));
+                    if (!allExist) {
+                        clearExamBackup(currentStudent.maHS);
+                        return;
+                    }
+                } catch (e) { /* if check fails, still offer restore */ }
+            }
             // Exam screen is now visible — show popup safely
             showConfirmPopup(
                 '⚡ Phát hiện bài thi chưa hoàn thành',
