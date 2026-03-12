@@ -146,6 +146,7 @@
             font-size: 48px;
             background: linear-gradient(135deg, var(--primary), var(--accent));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 12px;
             display: block
@@ -156,6 +157,7 @@
             font-weight: 700;
             background: linear-gradient(135deg, var(--text), var(--accent));
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent
         }
 
@@ -1878,6 +1880,18 @@
 
             <!-- ===== TAB: Kết quả ===== -->
             <div id="tabResults" style="display:none">
+                <!-- Sub-tabs: Thi thật vs Thi thử -->
+                <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px">
+                    <button class="btn btn-sm" id="subTabReal" onclick="switchResultsSubTab('real')"
+                        style="flex:1;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;transition:.3s;border:none;cursor:pointer;background:var(--primary);color:#fff">
+                        <i class="fas fa-file-alt"></i> Thi Thật
+                    </button>
+                    <button class="btn btn-sm" id="subTabPractice" onclick="switchResultsSubTab('practice')"
+                        style="flex:1;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;transition:.3s;border:none;cursor:pointer;background:transparent;color:var(--text2)">
+                        <i class="fas fa-flask"></i> Thi Thử
+                    </button>
+                </div>
+
                 <div id="scoreStatsBar" style="margin-bottom:16px">
                     <div
                         style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;gap:20px;flex-wrap:wrap;align-items:center">
@@ -3772,6 +3786,24 @@
             html += '</tbody></table>';
             if (!students.length && search) html = '<div class="empty-state"><p style="color:var(--text2)">Không tìm thấy</p></div>';
             container.innerHTML = html;
+        }
+
+
+
+        let _resultsSubTab = 'real';
+        function switchResultsSubTab(tab) {
+            _resultsSubTab = tab;
+            let subR = document.getElementById('subTabReal');
+            let subP = document.getElementById('subTabPractice');
+            if (subR) {
+                subR.style.background = tab === 'real' ? 'var(--primary)' : 'transparent';
+                subR.style.color = tab === 'real' ? '#fff' : 'var(--text2)';
+            }
+            if (subP) {
+                subP.style.background = tab === 'practice' ? 'var(--warning)' : 'transparent';
+                subP.style.color = tab === 'practice' ? '#fff' : 'var(--text2)';
+            }
+            renderResultsTable();
         }
 
 
