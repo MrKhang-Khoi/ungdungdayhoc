@@ -3175,8 +3175,8 @@
                     stopSessionManagement();
                     stopExamTimer();
                     clearExamBackup(currentStudent.maHS);
-                    // Unlock session after submit
-                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                    // Clear Firebase answer backup & unlock session after submit
+                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null, savedAnswers: null, savedAnswersTime: null }); } catch(e) {}
 
                     if (isPracticeMode && resp.isPractice) {
                         showPracticeResults(resp);
@@ -3675,6 +3675,24 @@
         async function checkAndOfferRestore() {
             if (!currentStudent || !currentStudent.maHS) return;
             let backup = loadExamBackup(currentStudent.maHS);
+            // If no localStorage backup, try Firebase backup as fallback
+            if (!backup || !backup.questions || !backup.questions.length) {
+                try {
+                    let studentData = await firebaseRead('students/' + currentStudent.maHS);
+                    if (studentData && studentData.savedAnswers && Object.keys(studentData.savedAnswers).length > 0) {
+                        // Build a backup object from Firebase data
+                        backup = {
+                            maHS: currentStudent.maHS,
+                            hoTen: currentStudent.hoTen || studentData.hoTen,
+                            lop: currentStudent.lop || studentData.lop,
+                            timestamp: studentData.savedAnswersTime || Date.now(),
+                            answers: studentData.savedAnswers,
+                            questions: examQuestions, // Use currently loaded questions
+                            fromFirebase: true
+                        };
+                    }
+                } catch (e) { /* silent - no Firebase backup available */ }
+            }
             if (!backup || !backup.questions || !backup.questions.length) return;
             // Validate backup questions still match current questions
             try {
@@ -3683,6 +3701,7 @@
                 let backupSTTs = backup.questions.map(q => Number(q.stt)).sort((a,b)=>a-b).join(',');
                 if (currentSTTs !== backupSTTs) {
                     clearExamBackup(currentStudent.maHS);
+                    try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(()=>{}); } catch(e) {}
                     return;
                 }
             } catch (e) { /* if check fails, still offer restore */ }
@@ -3695,7 +3714,7 @@
                     goToStep(1);
                 },
                 'Khôi phục', 'Bắt đầu mới', 'info',
-                () => { clearExamBackup(currentStudent.maHS); }
+                () => { clearExamBackup(currentStudent.maHS); try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(()=>{}); } catch(e) {} }
             );
         }
 
@@ -4664,6 +4683,8 @@
                     hideSubmitOverlay();
                     stopSessionManagement();
                     clearExamBackup(currentStudent.maHS);
+                    // Clear Firebase answer backup too
+                    try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(()=>{}); } catch(e) {}
                     if (isPracticeMode && resp.isPractice) {
                         showPracticeResults(resp);
                     } else {
@@ -4681,9 +4702,9 @@
         // ============== FIREBASE ANSWER BACKUP (OFFLINE RECOVERY) ==============
         let _firebaseBackupDebounce = null;
         function saveAnswersToFirebase() {
-            // Real exam: localStorage only (saveExamBackup handles it)
-            // Practice mode: also backup to Firebase for cross-device recovery
-            if (!currentStudent || !currentStudent.maHS || !isPracticeMode) return;
+            // Save answers to Firebase for BOTH practice and real exam modes
+            // This enables cross-device/cross-session recovery when browser is closed
+            if (!currentStudent || !currentStudent.maHS) return;
             clearTimeout(_firebaseBackupDebounce);
             _firebaseBackupDebounce = setTimeout(async () => {
                 try {
