@@ -743,17 +743,19 @@ function submitExam(data) {
         maHS: data.maHS,
         hoTen: data.hoTen,
         lop: data.lop,
-        answers: answerResults,
+        answers: details,
         correctCount: correctCount,
         wrongCount: wrongCount,
         score: score,
         thoiGian: Date.now(),
         synced: true
       });
-      // Update student status on Firebase
+      // Update student status on Firebase + clear assigned questions
       firebaseUpdate('students/' + data.maHS, {
         trangThai: 'X',
-        thoiGianNB: Date.now()
+        thoiGianNB: Date.now(),
+        assignedQuestions: null,
+        assignedAnswerOrder: null
       });
     } catch (fe) { Logger.log('Firebase result write error: ' + fe); }
 
@@ -1024,8 +1026,11 @@ function saveFilesToDrive(data, details, score) {
   resultText += '🆔 Mã học sinh       : ' + data.maHS + '\n';
   resultText += '👤 Họ và tên         : ' + data.hoTen + '\n';
   resultText += '🏫 Lớp               : ' + data.lop + '\n';
-  resultText += '📊 Điểm trắc nghiệm : ' + score + ' / 4.0\n';
-  resultText += '   Số câu đúng      : ' + (score / 0.5) + ' / 8\n\n';
+  var correctCount = 0;
+  for (var dc = 0; dc < details.length; dc++) { if (details[dc].ketQua === 'Đúng') correctCount++; }
+  var totalQ = details.length;
+  resultText += '📊 Điểm trắc nghiệm : ' + score + ' / ' + (data.isPractice ? '10.0' : '4.0') + '\n';
+  resultText += '   Số câu đúng      : ' + correctCount + ' / ' + totalQ + '\n\n';
   resultText += '──────────────────────────────────────────────────\n';
   resultText += '           CHI TIẾT CÂU TRẢ LỜI\n';
   resultText += '──────────────────────────────────────────────────\n\n';

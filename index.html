@@ -2548,19 +2548,58 @@
                 let allQuestions = await firebaseRead('questions');
                 if (!allQuestions) { alert('Chưa có câu hỏi trên hệ thống!'); hideLoading(); return; }
 
-                // Convert object to array
+                // Convert object to array (BẢO MẬT: bỏ dapAnDung ở client)
                 let questionsArr = Object.values(allQuestions).map(q => ({
                     stt: q.stt,
                     noiDung: q.noiDung,
                     dapAn: [q.dapAn1, q.dapAn2, q.dapAn3, q.dapAn4]
-                    // BẢO MẬT: dapAnDung bị loại bỏ phía client, chấm điểm chỉ ở server
                 }));
 
-                // Shuffle and pick
-                shuffleArray(questionsArr);
-                let count = isPracticeMode ? Math.min(16, questionsArr.length) : Math.min(8, questionsArr.length);
-                examQuestions = questionsArr.slice(0, count);
-                renderQuestions();
+                // Build lookup by STT
+                let questionMap = {};
+                questionsArr.forEach(q => { questionMap[q.stt] = q; });
+
+                if (!isPracticeMode && currentStudent) {
+                    // ===== THI THẬT: Giữ bộ đề cố định =====
+                    let studentData = await firebaseRead('students/' + currentStudent.maHS) || {};
+                    let assignedSTTs = studentData.assignedQuestions;
+
+                    if (assignedSTTs && Array.isArray(assignedSTTs) && assignedSTTs.length > 0) {
+                        // HS đã có bộ đề → khôi phục đúng bộ cũ
+                        examQuestions = assignedSTTs.map(stt => questionMap[stt]).filter(Boolean);
+                        if (examQuestions.length === 0) {
+                            // Nếu câu hỏi bị xóa khỏi hệ thống, random lại
+                            shuffleArray(questionsArr);
+                            let count = Math.min(8, questionsArr.length);
+                            examQuestions = questionsArr.slice(0, count);
+                            let newSTTs = examQuestions.map(q => q.stt);
+                            try { await firebaseUpdate('students/' + currentStudent.maHS, { assignedQuestions: newSTTs }); } catch (e) {}
+                        }
+                        // Khôi phục thứ tự đáp án đã lưu
+                        let savedAnswerOrder = studentData.assignedAnswerOrder;
+                        renderQuestions(savedAnswerOrder);
+                    } else {
+                        // HS lần đầu → random bộ đề mới, lưu vào Firebase
+                        shuffleArray(questionsArr);
+                        let count = Math.min(8, questionsArr.length);
+                        examQuestions = questionsArr.slice(0, count);
+                        renderQuestions(); // sẽ tự lưu answer order
+
+                        // Lưu danh sách STT câu hỏi đã giao
+                        let assignedSTTList = examQuestions.map(q => q.stt);
+                        try {
+                            await firebaseUpdate('students/' + currentStudent.maHS, {
+                                assignedQuestions: assignedSTTList
+                            });
+                        } catch (e) { console.log('Save assigned questions error:', e); }
+                    }
+                } else {
+                    // ===== THI THỬ: luôn random =====
+                    shuffleArray(questionsArr);
+                    let count = Math.min(16, questionsArr.length);
+                    examQuestions = questionsArr.slice(0, count);
+                    renderQuestions();
+                }
             } catch (e) {
                 console.error('Load questions error:', e);
                 alert('Không thể tải câu hỏi!');
@@ -2568,7 +2607,7 @@
             hideLoading();
         }
 
-        function renderQuestions() {
+        function renderQuestions(savedAnswerOrder) {
             let container = document.getElementById('questionsContainer');
             container.innerHTML = '';
             let navGrid = document.getElementById('qnavGrid');
@@ -2576,11 +2615,22 @@
             let qnavTotal = document.getElementById('qnavTotal');
             if (qnavTotal) qnavTotal.textContent = examQuestions.length;
 
+            let answerOrderToSave = [];
+
             examQuestions.forEach((q, i) => {
-                // Shuffle answers
-                let answers = q.dapAn.map((a, idx) => ({ text: a, key: ['a', 'b', 'c', 'd'][idx] }));
-                shuffleArray(answers);
+                let answers;
+                if (savedAnswerOrder && savedAnswerOrder[i]) {
+                    // Khôi phục thứ tự đáp án đã lưu
+                    let order = savedAnswerOrder[i]; // e.g. ['b','d','a','c']
+                    let keyMap = { a: 0, b: 1, c: 2, d: 3 };
+                    answers = order.map(key => ({ text: q.dapAn[keyMap[key]], key: key }));
+                } else {
+                    // Tạo thứ tự mới
+                    answers = q.dapAn.map((a, idx) => ({ text: a, key: ['a', 'b', 'c', 'd'][idx] }));
+                    shuffleArray(answers);
+                }
                 examQuestions[i]._shuffledAnswers = answers;
+                answerOrderToSave.push(answers.map(a => a.key));
 
                 let html = `<div class="question-block" id="qblock_${i}"><div class="q-header"><div class="q-num">${i + 1}</div><div class="q-text">${q.noiDung}</div></div><div class="options">`;
                 let labels = ['A', 'B', 'C', 'D'];
@@ -2598,6 +2648,13 @@
                 btn.onclick = () => scrollToQuestion(i);
                 if (navGrid) navGrid.appendChild(btn);
             });
+
+            // Lưu thứ tự đáp án vào Firebase (chỉ thi thật + lần đầu render)
+            if (!isPracticeMode && currentStudent && !savedAnswerOrder) {
+                firebaseUpdate('students/' + currentStudent.maHS, {
+                    assignedAnswerOrder: answerOrderToSave
+                }).catch(e => console.log('Save answer order error:', e));
+            }
 
             updateProgress();
         }
@@ -4004,13 +4061,26 @@
 
             results.forEach((r, idx) => {
                 let correctCount = 0, wrongCount = 0;
-                if (r.answers) r.answers.forEach(a => { if (a && a.includes('✓')) correctCount++; else if (a && a.length > 0) wrongCount++; });
+                if (r.answers) r.answers.forEach(a => {
+                    if (typeof a === 'object') { if (a.ketQua === 'Đúng') correctCount++; else wrongCount++; }
+                    else { if (a && a.includes('✓')) correctCount++; else if (a && a.length > 0) wrongCount++; }
+                });
                 html += '<tr><td style="font-size:12px;color:var(--text2)">' + (idx + 1) + '</td><td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">' + r.maHS + '</code></td><td><strong style="font-size:13px">' + r.hoTen + '</strong></td><td>' + r.lop + '</td>';
                 if (isPracticeTab) html += '<td style="text-align:center"><span style="background:rgba(245,158,11,0.15);color:var(--warning);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">' + (r.luot || '-') + '</span></td>';
                 for (let ci = 0; ci < maxAnswers; ci++) {
-                    let a = r.answers && r.answers[ci] ? r.answers[ci] : '-';
-                    let isCorrect = a.includes('✓');
-                    html += '<td style="text-align:center"><span style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;font-size:10px;font-weight:700;background:' + (isCorrect ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)') + ';color:' + (isCorrect ? 'var(--success)' : 'var(--danger)') + '">' + a.charAt(0) + '</span></td>';
+                    let a = r.answers && r.answers[ci] ? r.answers[ci] : null;
+                    let isCorrect = false;
+                    let displayChar = '-';
+                    if (a && typeof a === 'object') {
+                        // New details format: {ketQua, dapAnHS, dapAnDung, ...}
+                        isCorrect = a.ketQua === 'Đúng';
+                        displayChar = (a.dapAnHS || '-').toUpperCase();
+                    } else if (a && typeof a === 'string') {
+                        // Old format: "A✓" or "B✗"
+                        isCorrect = a.includes('✓');
+                        displayChar = a.charAt(0);
+                    }
+                    html += '<td style="text-align:center"><span style="display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;font-size:10px;font-weight:700;background:' + (isCorrect ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)') + ';color:' + (isCorrect ? 'var(--success)' : 'var(--danger)') + '">' + displayChar + '</span></td>';
                 }
                 html += '<td style="text-align:center"><span style="background:rgba(16,185,129,0.15);color:var(--success);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700">' + correctCount + '</span></td>';
                 html += '<td style="text-align:center"><span style="background:rgba(239,68,68,0.15);color:var(--danger);padding:2px 8px;border-radius:10px;font-size:12px;font-weight:700">' + wrongCount + '</span></td>';
