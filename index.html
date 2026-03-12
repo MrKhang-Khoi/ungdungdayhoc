@@ -3649,9 +3649,12 @@
         function clearExamBackup(maHS) { localStorage.removeItem(LS_KEY + maHS); }
         function restoreExamFromBackup(backup) {
             if (!backup || !backup.answers || !backup.questions) return false;
-            // Restore questions
-            examQuestions = backup.questions;
-            renderQuestions();
+            // If backup is from Firebase, questions are already rendered with correct answer order
+            // by loadQuestions(). Only re-render for localStorage backups which carry their own questions.
+            if (!backup.fromFirebase) {
+                examQuestions = backup.questions;
+                renderQuestions();
+            }
             // Restore selected answers
             setTimeout(() => {
                 for (let name in backup.answers) {
@@ -3659,6 +3662,8 @@
                     if (radio) radio.checked = true;
                 }
                 updateProgress();
+                // Re-save to localStorage for future quick recovery
+                saveExamBackup();
             }, 100);
             return true;
         }
@@ -4801,12 +4806,27 @@
             // Stop on page close
             window.addEventListener('beforeunload', () => {
                 stopStudentHeartbeat();
-                // Best-effort unlock on page close
+                // Flush any pending debounced answer save IMMEDIATELY before closing
                 if (currentStudent && currentStudent.maHS) {
-                    try { firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }).catch(() => {}); } catch(e) {}
+                    if (_firebaseBackupDebounce) {
+                        clearTimeout(_firebaseBackupDebounce);
+                        _firebaseBackupDebounce = null;
+                    }
+                    try {
+                        let answers = {};
+                        document.querySelectorAll('#questionsContainer input[type=radio]:checked')
+                            .forEach(r => { answers[r.name] = r.value; });
+                        // Combine answer save + session unlock into one write for reliability
+                        db.ref('students/' + currentStudent.maHS).update({
+                            savedAnswers: Object.keys(answers).length > 0 ? answers : null,
+                            savedAnswersTime: Object.keys(answers).length > 0 ? Date.now() : null,
+                            isLocked: false,
+                            lockedAt: null
+                        });
+                    } catch(e) {}
                 }
-                // Cleanly disconnect Firebase to prevent stale 403 errors
-                setTimeout(() => { try { db.goOffline(); } catch(e) {} }, 200);
+                // Give Firebase enough time to flush the write before going offline
+                setTimeout(() => { try { db.goOffline(); } catch(e) {} }, 1500);
             });
         }
         function _sendHeartbeat() {
