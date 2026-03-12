@@ -3057,7 +3057,6 @@
         async function viewMyResults() {
             if (!currentStudent) return;
             let panel = document.getElementById('studentResultsPanel');
-            let btn = document.getElementById('btnViewResults');
             if (!panel) return;
 
             // Check if viewing results is allowed in real exam
@@ -3075,21 +3074,77 @@
             panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải kết quả...</p></div>';
             panel.style.display = 'block';
             try {
-                // Read results directly from Firebase (more reliable than API)
+                // Read results from Firebase
                 let resultsObj = await firebaseRead('results') || {};
                 let myResults = Object.values(resultsObj).filter(r => r.maHS === currentStudent.maHS);
+                
+                // Also read questions for detail view
+                let questionsObj = await firebaseRead('questions') || {};
+
                 if (myResults.length > 0) {
-                    // Get the latest result
                     let r = myResults.sort((a, b) => (b.thoiGian || 0) - (a.thoiGian || 0))[0];
                     let correctCount = r.correctCount || 0;
+                    let wrongCount = r.wrongCount || 0;
+                    let totalQ = correctCount + wrongCount || (r.answers ? r.answers.length : 0);
                     let thoiGian = r.thoiGian ? new Date(r.thoiGian).toLocaleString('vi-VN') : '-';
-                    let html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px">';
-                    html += '<h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-poll" style="color:var(--primary)"></i> Kết quả bài thi</h3>';
-                    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px">';
-                    html += `<div style="background:var(--bg);border-radius:12px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:var(--primary)">${r.score || '-'}</div><div style="font-size:11px;color:var(--text2)">Điểm số</div></div>`;
-                    html += `<div style="background:var(--bg);border-radius:12px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:var(--success)">${r.correct || '-'}</div><div style="font-size:11px;color:var(--text2)">Câu đúng</div></div>`;
-                    html += `<div style="background:var(--bg);border-radius:12px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:var(--text2)">${r.thoiGian || '-'}</div><div style="font-size:11px;color:var(--text2)">Thời gian</div></div>`;
-                    html += '</div></div>';
+                    let pct = totalQ > 0 ? Math.round(correctCount / totalQ * 100) : 0;
+                    let scoreColor = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)';
+                    let emoji = pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '📚';
+                    let labels = { a: 'A', b: 'B', c: 'C', d: 'D' };
+
+                    let html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px">';
+
+                    // Score cards
+                    html += '<div style="display:flex;justify-content:center;gap:14px;margin-bottom:24px;flex-wrap:wrap">';
+                    html += `<div style="background:linear-gradient(135deg,${scoreColor},${scoreColor}dd);border-radius:16px;padding:18px 28px;text-align:center;min-width:110px;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.2)"><div style="font-size:36px;font-weight:900;line-height:1.1">${r.score}</div><div style="font-size:12px;opacity:.85;margin-top:4px">Điểm số</div></div>`;
+                    html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:18px 24px;text-align:center;min-width:90px"><div style="font-size:30px;font-weight:800;color:var(--success);line-height:1.1">${correctCount}<small style="font-size:14px;opacity:.5">/${totalQ}</small></div><div style="font-size:12px;color:var(--text2);margin-top:4px">✅ Đúng</div></div>`;
+                    html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:18px 24px;text-align:center;min-width:90px"><div style="font-size:30px;font-weight:800;color:var(--danger);line-height:1.1">${wrongCount}</div><div style="font-size:12px;color:var(--text2);margin-top:4px">❌ Sai</div></div>`;
+                    html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:18px 24px;text-align:center;min-width:90px"><div style="font-size:30px;font-weight:800;color:var(--text);line-height:1.1">${pct}%</div><div style="font-size:12px;color:var(--text2);margin-top:4px">Tỷ lệ đúng</div></div>`;
+                    html += '</div>';
+
+                    html += `<p style="text-align:center;font-size:12px;color:var(--text2);margin-bottom:20px">⏰ Nộp lúc: ${thoiGian}</p>`;
+
+                    // Detailed question review (if answers data available)
+                    if (r.answers && r.answers.length > 0) {
+                        html += '<h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-list-check" style="color:var(--primary)"></i> Xem lại ' + r.answers.length + ' câu hỏi</h3>';
+                        html += '<div style="display:flex;flex-direction:column;gap:12px">';
+                        r.answers.forEach((ans, idx) => {
+                            // Try to find question details from Firebase questions
+                            let qStt = ans.stt || (idx + 1);
+                            let q = questionsObj[qStt] || {};
+                            let noiDung = ans.noiDung || q.noiDung || ('Câu ' + (idx + 1));
+                            let dapAnHS = (ans.dapAnHS || '').toLowerCase();
+                            let dapAnDung = (ans.dapAnDung || q.dapAnDung || '').toLowerCase();
+                            let isCorrect = ans.ketQua === 'Đúng' || (dapAnHS === dapAnDung && dapAnHS !== '');
+                            let borderColor = isCorrect ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)';
+                            let bgColor = isCorrect ? 'rgba(16,185,129,0.06)' : 'rgba(239,68,68,0.06)';
+
+                            let optKeys = ['a', 'b', 'c', 'd'];
+                            let dapAn = ans.dapAn || { a: q.dapAn1, b: q.dapAn2, c: q.dapAn3, d: q.dapAn4 };
+                            let optionsHtml = optKeys.map(key => {
+                                let optText = dapAn[key] || '';
+                                if (!optText) return '';
+                                let isSC = dapAnHS === key;
+                                let isCA = dapAnDung === key;
+                                let optBg = 'transparent', optBorder = 'var(--border)', optColor = 'var(--text)', icon = '';
+                                if (isCA && isSC) { optBg = 'rgba(16,185,129,0.15)'; optBorder = 'rgba(16,185,129,0.5)'; optColor = 'var(--success)'; icon = '<i class="fas fa-check-circle" style="color:var(--success);margin-left:auto;flex-shrink:0"></i>'; }
+                                else if (isSC && !isCA) { optBg = 'rgba(239,68,68,0.12)'; optBorder = 'rgba(239,68,68,0.5)'; optColor = 'var(--danger)'; icon = '<i class="fas fa-times-circle" style="color:var(--danger);margin-left:auto;flex-shrink:0"></i>'; }
+                                else if (isCA) { optBg = 'rgba(16,185,129,0.08)'; optBorder = 'rgba(16,185,129,0.35)'; optColor = 'var(--success)'; icon = '<i class="fas fa-check" style="color:var(--success);margin-left:auto;font-size:11px;flex-shrink:0"></i>'; }
+                                return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${optBg};border:1px solid ${optBorder};border-radius:10px;font-size:13px"><span style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;${isSC ? 'background:' + (isCA ? 'var(--success)' : 'var(--danger)') + ';color:#fff' : 'background:var(--bg);color:var(--text2);border:1px solid var(--border)'}">${labels[key]}</span><span style="color:${optColor};font-weight:${(isSC || isCA) ? '600' : '400'}">${optText}</span>${icon}</div>`;
+                            }).filter(Boolean).join('');
+
+                            html += `<div style="background:${bgColor};border:1px solid ${borderColor};border-radius:14px;padding:18px;text-align:left">`;
+                            html += `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px"><span style="min-width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;background:${isCorrect ? 'var(--success)' : 'var(--danger)'};flex-shrink:0">${idx + 1}</span><span style="font-size:14px;font-weight:600;line-height:1.5;padding-top:5px">${noiDung}</span></div>`;
+                            html += `<div style="display:flex;flex-direction:column;gap:6px;margin-left:44px">${optionsHtml}</div>`;
+                            html += `<div style="margin-top:10px;margin-left:44px;display:flex;gap:12px;font-size:12px;color:var(--text2);flex-wrap:wrap">`;
+                            html += `<span>Bạn chọn: <strong style="color:${isCorrect ? 'var(--success)' : 'var(--danger)'}"> ${labels[dapAnHS] || (dapAnHS || '--').toUpperCase()}</strong></span>`;
+                            html += isCorrect ? '<span style="color:var(--success)">✓ Chính xác!</span>' : `<span>Đáp án đúng: <strong style="color:var(--success)">${labels[dapAnDung] || (dapAnDung || '--').toUpperCase()}</strong></span>`;
+                            html += '</div></div>';
+                        });
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
                     panel.innerHTML = html;
                 } else {
                     panel.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)"><i class="fas fa-info-circle"></i> Chưa có kết quả.</div>';
@@ -3942,7 +3997,7 @@
             results.forEach(r => { if (r.answers && r.answers.length > maxAnswers) maxAnswers = r.answers.length; });
             if (maxAnswers === 0) maxAnswers = isPracticeTab ? 16 : 8;
 
-            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th>';
+            let html = '<div style="overflow-x:auto;border-radius:12px;border:1px solid var(--border)"><table style="min-width:' + (500 + maxAnswers * 40) + 'px"><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th>';
             if (isPracticeTab) html += '<th>Lượt</th>';
             for (let i = 1; i <= maxAnswers; i++) html += '<th>C' + i + '</th>';
             html += '<th>Đúng</th><th>Sai</th><th>Điểm</th><th>T.gian</th></tr></thead><tbody>';
@@ -3963,7 +4018,7 @@
                 html += '<td><span style="background:' + scoreColor + ';color:#fff;padding:3px 10px;border-radius:14px;font-weight:700;font-size:12px">' + r.score + '</span></td>';
                 html += '<td style="font-size:11px;color:var(--text2)">' + r.thoiGian + '</td></tr>';
             });
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             container.innerHTML = html;
         }
 
