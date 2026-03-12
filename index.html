@@ -1572,9 +1572,10 @@
                         <div id="examStudentInfo"
                             style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
                     </div>
-                    <button class="btn btn-danger btn-sm" onclick="confirmLogout()"
-                        style="width:auto;padding:6px 14px;font-size:12px"><i class="fas fa-sign-out-alt"></i>
-                        Thoát</button>
+                    <div style="display:flex;gap:6px;align-items:center">
+                        <button class="btn btn-sm" id="btnStudyOnExam" onclick="openStudyMaterials()" style="display:none;width:auto;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-radius:8px"><i class="fas fa-book-reader"></i> Ôn tập</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="width:auto;padding:6px 14px;font-size:12px"><i class="fas fa-sign-out-alt"></i> Thoát</button>
+                    </div>
                 </div>
                 <!-- Countdown Timer -->
                 <div class="exam-timer normal" id="examTimer">
@@ -2034,6 +2035,10 @@
                         </div>
                         <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nội dung kiến thức</label>
                         <textarea id="smContent" rows="4" placeholder="Nhập nội dung kiến thức ôn tập cho học sinh..." style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+                        <div style="margin-top:10px">
+                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">📎 Đính kèm file (Word/PDF, tối đa 10MB) — tùy chọn</label>
+                            <input type="file" id="smFile" accept=".doc,.docx,.pdf,.ppt,.pptx,.xls,.xlsx" style="font-size:12px;color:var(--text2)">
+                        </div>
                         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
                             <button class="btn btn-primary" id="btnAddSM" onclick="addStudyMaterial()" style="width:auto;padding:8px 20px;font-size:13px"><i class="fas fa-plus"></i> Thêm tài liệu</button>
                         </div>
@@ -2530,6 +2535,10 @@
 
             // Hide step 2 (Thực hành)
             document.getElementById('step2').style.display = 'none';
+
+            // Show study materials button on exam screen
+            let studyBtn = document.getElementById('btnStudyOnExam');
+            if (studyBtn) studyBtn.style.display = 'inline-flex';
 
             // Update exam title
             document.querySelector('.exam-info h2').innerHTML = '<i class="fas fa-flask"></i> Thi Thử Lý Thuyết';
@@ -4718,7 +4727,11 @@
                     html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px">`;
                     html += `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">`;
                     html += `<div style="flex:1"><h4 style="margin:0 0 6px;font-size:14px;color:var(--text)">${m.title}</h4>`;
-                    html += `<p style="margin:0;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${m.content}</p></div>`;
+                    html += `<p style="margin:0;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${m.content}</p>`;
+                    if (m.fileUrl) {
+                        html += `<a href="${m.fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 12px;background:rgba(99,102,241,0.1);color:var(--primary);border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(99,102,241,0.2)"><i class="fas fa-file-download"></i> ${m.fileName || 'Tải file'}</a>`;
+                    }
+                    html += `</div>`;
                     html += `<div style="display:flex;gap:4px;flex-shrink:0">`;
                     html += `<button onclick="editStudyMaterial('${m._key}')" style="background:var(--bg3);border:none;color:var(--accent);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Sửa"><i class="fas fa-edit"></i></button>`;
                     html += `<button onclick="deleteStudyMaterial('${m._key}')" style="background:rgba(239,68,68,0.1);border:none;color:var(--danger);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Xóa"><i class="fas fa-trash"></i></button>`;
@@ -4733,6 +4746,7 @@
             let title = document.getElementById('smTitle').value.trim();
             let category = document.getElementById('smCategory').value.trim();
             let content = document.getElementById('smContent').value.trim();
+            let fileInput = document.getElementById('smFile');
             let msgEl = document.getElementById('smMsg');
             if (!title || !content) {
                 msgEl.innerHTML = '⚠️ Vui lòng nhập tiêu đề và nội dung!';
@@ -4743,15 +4757,44 @@
             let btn = document.getElementById('btnAddSM');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
             try {
-                await firebasePush('studyMaterials', {
+                let materialData = {
                     title: title,
                     category: category || 'Chung',
                     content: content,
                     createdAt: Date.now()
-                });
+                };
+
+                // Upload file if selected
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    let file = fileInput.files[0];
+                    if (file.size > 10 * 1024 * 1024) {
+                        msgEl.innerHTML = '⚠️ File quá lớn! Tối đa 10MB.';
+                        msgEl.style.display = 'block'; msgEl.style.background = 'rgba(245,158,11,0.15)'; msgEl.style.color = 'var(--warning)';
+                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm tài liệu';
+                        return;
+                    }
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải file lên Drive...';
+                    let base64 = await fileToBase64(file);
+                    let uploadResp = await apiPost('uploadStudyFile', {
+                        fileData: base64,
+                        fileName: file.name,
+                        fileMimeType: file.type
+                    });
+                    if (uploadResp && uploadResp.success) {
+                        materialData.fileUrl = uploadResp.fileUrl;
+                        materialData.fileName = file.name;
+                        materialData.fileId = uploadResp.fileId;
+                    } else {
+                        msgEl.innerHTML = '⚠️ Tải file thất bại: ' + (uploadResp?.message || 'Không rõ lỗi') + '. Tài liệu sẽ được lưu không kèm file.';
+                        msgEl.style.display = 'block'; msgEl.style.background = 'rgba(245,158,11,0.15)'; msgEl.style.color = 'var(--warning)';
+                    }
+                }
+
+                await firebasePush('studyMaterials', materialData);
                 document.getElementById('smTitle').value = '';
                 document.getElementById('smCategory').value = '';
                 document.getElementById('smContent').value = '';
+                if (fileInput) fileInput.value = '';
                 msgEl.innerHTML = '✅ Đã thêm tài liệu thành công!';
                 msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
                 loadStudyMaterials();
@@ -4840,6 +4883,10 @@
                         html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px">`;
                         html += `<h4 style="margin:0 0 8px;font-size:15px;color:var(--text);display:flex;align-items:center;gap:8px"><i class="fas fa-bookmark" style="color:var(--primary);font-size:12px"></i> ${m.title}</h4>`;
                         html += `<div style="font-size:14px;color:var(--text2);line-height:1.8;white-space:pre-wrap;padding-left:20px;border-left:3px solid var(--primary)">${m.content}</div>`;
+                        if (m.fileUrl) {
+                            let icon = (m.fileName || '').match(/\.pdf$/i) ? 'fa-file-pdf' : (m.fileName || '').match(/\.docx?$/i) ? 'fa-file-word' : (m.fileName || '').match(/\.pptx?$/i) ? 'fa-file-powerpoint' : (m.fileName || '').match(/\.xlsx?$/i) ? 'fa-file-excel' : 'fa-file-alt';
+                            html += `<div style="margin-top:10px"><a href="${m.fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 2px 8px rgba(99,102,241,0.3)"><i class="fas ${icon}" style="font-size:16px"></i> 📥 ${m.fileName || 'Tải tài liệu'}</a></div>`;
+                        }
                         html += `</div>`;
                     });
                     html += `</div>`;

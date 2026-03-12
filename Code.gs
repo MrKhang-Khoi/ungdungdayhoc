@@ -344,6 +344,14 @@ function handleRequest(e) {
       case 'deleteTeacher':
         result = deleteTeacher(params.maGV);
         break;
+      case 'uploadStudyFile':
+        if (e.postData && e.postData.contents) {
+          var sfPost = JSON.parse(e.postData.contents);
+          result = uploadStudyFile(sfPost);
+        } else {
+          result = { success: false, message: 'Missing POST data' };
+        }
+        break;
       default:
         result = { success: false, message: 'Action không hợp lệ' };
     }
@@ -974,6 +982,41 @@ function verifyFileExists(maHS) {
     return { success: true, hasFile: false };
   } catch(err) {
     return { success: false, hasFile: false, message: 'Lỗi kiểm tra: ' + err.toString() };
+  }
+}
+
+// ============== UPLOAD TÀI LIỆU ÔN TẬP ==============
+function uploadStudyFile(data) {
+  try {
+    if (!data.fileData || !data.fileName) {
+      return { success: false, message: 'Thiếu dữ liệu file!' };
+    }
+    // Tạo/tìm thư mục TAI_LIEU_ON_TAP
+    var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), 'TAI_LIEU_ON_TAP');
+    
+    // Tạo file từ base64
+    var fileBlob = Utilities.newBlob(
+      Utilities.base64Decode(data.fileData),
+      data.fileMimeType || 'application/octet-stream',
+      data.fileName
+    );
+    var file = rootFolder.createFile(fileBlob);
+    
+    // Chia sẻ công khai để HS có thể tải
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    var fileUrl = file.getUrl();
+    var fileId = file.getId();
+    
+    return {
+      success: true,
+      fileUrl: fileUrl,
+      fileId: fileId,
+      fileName: data.fileName,
+      message: 'Đã tải file lên thành công!'
+    };
+  } catch (err) {
+    return { success: false, message: 'Lỗi tải file: ' + err.toString() };
   }
 }
 
