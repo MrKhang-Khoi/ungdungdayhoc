@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Thi Trực Tuyến</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -1819,9 +1820,11 @@
                             oninput="renderManageTable()"
                             style="flex:1;min-width:150px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none">
                         <select id="manageStatusFilter" onchange="renderManageTable()"
-                            style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:130px">
+                            style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:160px">
                             <option value="">📊 Tất cả</option>
-                            <option value="tested">✅ Đã thi</option>
+                            <option value="tested_real">✅ Đã thi thật</option>
+                            <option value="tested_practice">🎯 Đã thi thử</option>
+                            <option value="tested_both">🏆 Đã thi cả hai</option>
                             <option value="nottested">⏳ Chưa thi</option>
                         </select>
                         <span id="manageCount"
@@ -3289,8 +3292,10 @@
         async function initDashboard() {
             let overlay = document.getElementById('dashboardLoadingOverlay');
             if (overlay) overlay.style.display = 'flex';
-            await loadDashboard();
-            loadSettings();
+            try {
+                await loadDashboard();
+                loadSettings();
+            } catch (e) { console.log('Dashboard init error:', e); }
             if (overlay) overlay.style.display = 'none';
             startFirebaseListeners();
         }
@@ -3327,9 +3332,22 @@
             try {
                 let studentsObj = await firebaseRead('students') || {};
                 let now = Date.now();
+
+                // Cross-reference practice results to know who has practiced
+                let practiceObj = await firebaseRead('practiceResults') || {};
+                let practiceByStudent = {};
+                Object.values(practiceObj).forEach(r => {
+                    let maHS = r.maHS;
+                    if (!practiceByStudent[maHS]) practiceByStudent[maHS] = 0;
+                    practiceByStudent[maHS]++;
+                });
+
                 let students = Object.entries(studentsObj).map(([maHS, s]) => {
                     let trangThaiRaw = (s.trangThai || '').toString().trim().toUpperCase();
-                    let statusCode = trangThaiRaw === 'X' ? 2 : s.thoiGianDN ? 1 : 0;
+                    let hasReal = trangThaiRaw === 'X';
+                    let hasPractice = (practiceByStudent[maHS] || 0) > 0;
+                    let practiceCount = practiceByStudent[maHS] || 0;
+                    let statusCode = hasReal ? 2 : s.thoiGianDN ? 1 : 0;
                     let trangThai = statusCode === 2 ? 'Đã thi' : statusCode === 1 ? 'Đang thi' : 'Chưa thi';
                     let lastSeen = s.lastSeen || 0;
                     let isOnline = statusCode === 1 && (now - lastSeen) < 60000;
@@ -3340,6 +3358,9 @@
                         lop: (s.lop || '').toString(),
                         trangThai: trangThai,
                         statusCode: statusCode,
+                        hasReal: hasReal,
+                        hasPractice: hasPractice,
+                        practiceCount: practiceCount,
                         thoiGianDN: s.thoiGianDN ? new Date(s.thoiGianDN).toLocaleTimeString('vi-VN') : '',
                         thoiGianNB: s.thoiGianNB ? new Date(s.thoiGianNB).toLocaleTimeString('vi-VN') : '',
                         lastSeen: lastSeen,
@@ -3371,12 +3392,13 @@
                 let loggedIn = submitted + inProgress;
                 let notLoggedIn = total - loggedIn;
                 let onlineCount = students.filter(s => s.isOnline).length;
+                let practiceStudents = students.filter(s => s.hasPractice).length;
 
                 dashboardData = {
                     success: true,
                     students: students,
                     classes: classes,
-                    stats: { total, submitted, notSubmitted: total - submitted, inProgress, loggedIn, notLoggedIn, onlineCount }
+                    stats: { total, submitted, notSubmitted: total - submitted, inProgress, loggedIn, notLoggedIn, onlineCount, practiceStudents }
                 };
 
                 renderDashboard();
@@ -3692,26 +3714,33 @@
             let students = dashboardData.students.filter(s => {
                 if (search && !s.hoTen.toLowerCase().includes(search) && !s.maHS.toLowerCase().includes(search)) return false;
                 if (classF && s.lop !== classF) return false;
-                if (statusF === 'tested' && s.statusCode !== 2) return false;
-                if (statusF === 'nottested' && s.statusCode === 2) return false;
+                if (statusF === 'tested_real' && !s.hasReal) return false;
+                if (statusF === 'tested_practice' && !s.hasPractice) return false;
+                if (statusF === 'tested_both' && (!s.hasReal || !s.hasPractice)) return false;
+                if (statusF === 'nottested' && (s.hasReal || s.hasPractice)) return false;
                 return true;
             });
             document.getElementById('manageCount').textContent = `${students.length}/${dashboardData.students.length} HS`;
-            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Trạng thái</th><th style="width:100px">Thao tác</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:100px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
-                let isTested = s.statusCode === 2;
-                let statusBadge = isTested
+                // Real exam badge
+                let realBadge = s.hasReal
                     ? '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check-circle"></i> Đã thi</span>'
                     : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);color:var(--warning);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-clock"></i> Chưa thi</span>';
+                // Practice exam badge
+                let practiceBadge = s.hasPractice
+                    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,0.15);color:var(--primary);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-flask"></i> ${s.practiceCount}/5 lượt</span>`
+                    : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(100,116,139,0.15);color:var(--text2);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-minus-circle"></i> Chưa</span>';
                 html += `<tr>`;
                 html += `<td style="font-size:12px;color:var(--text2)">${idx + 1}</td>`;
                 html += `<td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">${s.maHS}</code></td>`;
                 html += `<td><strong style="font-size:13px">${s.hoTen}</strong></td>`;
                 html += `<td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>`;
-                html += `<td>${statusBadge}</td>`;
+                html += `<td>${realBadge}</td>`;
+                html += `<td>${practiceBadge}</td>`;
                 html += `<td style="white-space:nowrap">`;
                 html += `<button onclick="openEditModal('${s.maHS}')" style="background:var(--primary);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
-                if (isTested) {
+                if (s.hasReal) {
                     html += `<button onclick="toggleExamStatus('${s.maHS}','__EMPTY__')" style="background:var(--warning);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Cho thi lại"><i class="fas fa-undo"></i></button>`;
                 } else {
                     html += `<button onclick="toggleExamStatus('${s.maHS}','X')" style="background:var(--success);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Đánh dấu đã thi"><i class="fas fa-check"></i></button>`;
