@@ -3874,6 +3874,20 @@
         // ===== TAB: CÀI ĐẶT =====
         async function loadSettings() {
             try {
+
+        // ===== XU\u1ea4T EXCEL =====
+        async function exportExcel() {
+            let btn = document.getElementById('btnExportExcel');
+            let originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> \u0110ang xu\u1ea5t...';
+            try {
+                let lop = document.getElementById('manageClassFilter')?.value || '';
+                let resp = await apiCall('exportResults', { lop });
+                if (resp.success && resp.downloadUrl) {
+                    window.open(resp.downloadUrl, '_blank');
+                    btn.innerHTML = '<i class="fas fa-check"></i> \u0110\u00e3 xu\u1ea5t!';
+                    setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
                 let settings = await firebaseRead('settings') || {};
                 let toggle = document.getElementById('togglePracticeMode');
                 let isOn = settings.practiceMode === true || settings.practiceMode === 'true';
