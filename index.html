@@ -2543,6 +2543,20 @@
                 let settings = await firebaseRead('settings') || {};
                 let isPractice = settings.practiceMode === true || settings.practiceMode === 'true';
 
+                // ===== SESSION LOCK CHECK =====
+                if (student.isLocked && student.lockedAt) {
+                    let lockAge = Date.now() - student.lockedAt;
+                    if (lockAge < 7200000) { // 2 hours
+                        hideLoginLoading();
+                        showPopup('🔒 Tài khoản đang được sử dụng', `Tài khoản <strong>${student.hoTen}</strong> đang được sử dụng trên thiết bị khác.<br><br>Nếu bạn chắc chắn đây là tài khoản của mình, hãy liên hệ giáo viên để mở khóa.`, 'error');
+                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
+                        return;
+                    } else {
+                        // Auto-unlock after 2 hours
+                        await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null });
+                    }
+                }
+
                 if (isPractice) {
                     // Count practice attempts from Firebase
                     let practiceData = await firebaseRead('practiceResults') || {};
@@ -2556,9 +2570,6 @@
                         btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
                         return;
                     }
-                    // Update login time on Firebase
-                    await firebaseUpdate('students/' + maHS, { thoiGianDN: Date.now() });
-
                     currentStudent = { stt: student.stt, maHS: maHS, hoTen: student.hoTen, lop: student.lop };
                     savedPassword = password;
                     isPracticeMode = true;
@@ -2573,39 +2584,78 @@
                         btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
                         return;
                     }
-                    // Update login time on Firebase
-                    await firebaseUpdate('students/' + maHS, { thoiGianDN: Date.now() });
-
                     currentStudent = { stt: student.stt, maHS: maHS, hoTen: student.hoTen, lop: student.lop };
                     savedPassword = password;
                     isPracticeMode = false;
                 }
 
-                // Update exam header
-                let headerHtml = `
-                    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(99,102,241,0.15);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(99,102,241,0.25)">
-                        <i class="fas fa-user" style="font-size:10px"></i> ${currentStudent.hoTen}
-                    </span>
-                    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.15);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(16,185,129,0.25)">
-                        <i class="fas fa-school" style="font-size:10px"></i> ${currentStudent.lop}
-                    </span>
-                    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(6,182,212,0.15);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(6,182,212,0.25)">
-                        <i class="fas fa-id-badge" style="font-size:10px"></i> ${currentStudent.maHS}
-                    </span>`;
-                document.getElementById('examStudentInfo').innerHTML = headerHtml;
-
-                if (isPracticeMode) setupPracticeUI();
-                else setupNormalUI();
-
-                await loadQuestions();
+                // ===== IDENTITY CONFIRMATION =====
                 hideLoginLoading();
-                showScreen('examScreen');
-                startStudentNotifListener();
-                startStudentHeartbeat();
-                startAntiCheat();
-                startSessionManagement();
-                initExamTimer();
-                showExamGuide();
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
+
+                let identityModal = document.createElement('div');
+                identityModal.id = 'identityConfirmModal';
+                identityModal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:10006;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease';
+                identityModal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:440px;width:100%;text-align:center;animation:slideUp .3s ease">
+                    <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;color:#fff"><i class="fas fa-user-check"></i></div>
+                    <h3 style="margin:0 0 6px;font-size:20px;color:var(--text)">Xác nhận danh tính</h3>
+                    <p style="color:var(--text2);font-size:13px;margin:0 0 20px">Vui lòng kiểm tra thông tin bên dưới có đúng là bạn không</p>
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:20px;text-align:left">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><i class="fas fa-user" style="color:var(--primary);width:20px;text-align:center"></i><span style="font-size:13px;color:var(--text2)">Họ tên:</span><strong style="color:var(--text);font-size:15px">${student.hoTen}</strong></div>
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><i class="fas fa-school" style="color:var(--success);width:20px;text-align:center"></i><span style="font-size:13px;color:var(--text2)">Lớp:</span><strong style="color:var(--text);font-size:15px">${student.lop}</strong></div>
+                        <div style="display:flex;align-items:center;gap:10px"><i class="fas fa-id-badge" style="color:var(--accent);width:20px;text-align:center"></i><span style="font-size:13px;color:var(--text2)">Mã HS:</span><strong style="color:var(--text);font-size:15px">${maHS}</strong></div>
+                    </div>
+                    <div style="display:flex;gap:10px;justify-content:center">
+                        <button id="identityDenyBtn" class="btn" style="width:auto;background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:11px 24px;font-size:14px;font-weight:600"><i class="fas fa-times"></i> Không phải tôi</button>
+                        <button id="identityConfirmBtn" class="btn btn-primary" style="width:auto;padding:11px 24px;font-size:14px;font-weight:600"><i class="fas fa-check"></i> Đúng, tiếp tục</button>
+                    </div>
+                </div>`;
+                document.body.appendChild(identityModal);
+
+                document.getElementById('identityDenyBtn').onclick = () => {
+                    identityModal.remove();
+                    currentStudent = null;
+                    isPracticeMode = false;
+                    showPopup('Đăng xuất', 'Đã hủy đăng nhập. Vui lòng nhập đúng mã học sinh của bạn.', 'info');
+                };
+                document.getElementById('identityConfirmBtn').onclick = async () => {
+                    identityModal.remove();
+                    showLoginLoading();
+                    try {
+                        // Lock the session
+                        await firebaseUpdate('students/' + maHS, { thoiGianDN: Date.now(), isLocked: true, lockedAt: Date.now() });
+
+                        // Update exam header
+                        let headerHtml = `
+                            <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(99,102,241,0.15);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(99,102,241,0.25)">
+                                <i class="fas fa-user" style="font-size:10px"></i> ${currentStudent.hoTen}
+                            </span>
+                            <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.15);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(16,185,129,0.25)">
+                                <i class="fas fa-school" style="font-size:10px"></i> ${currentStudent.lop}
+                            </span>
+                            <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(6,182,212,0.15);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(6,182,212,0.25)">
+                                <i class="fas fa-id-badge" style="font-size:10px"></i> ${currentStudent.maHS}
+                            </span>`;
+                        document.getElementById('examStudentInfo').innerHTML = headerHtml;
+
+                        if (isPracticeMode) setupPracticeUI();
+                        else setupNormalUI();
+
+                        await loadQuestions();
+                        hideLoginLoading();
+                        showScreen('examScreen');
+                        startStudentNotifListener();
+                        startStudentHeartbeat();
+                        startAntiCheat();
+                        startSessionManagement();
+                        initExamTimer();
+                        showExamGuide();
+                    } catch (e) {
+                        console.error('Post-confirm error:', e);
+                        hideLoginLoading();
+                        showPopup('Lỗi', 'Lỗi tải bài thi: ' + e.message, 'error');
+                    }
+                };
             } catch (e) {
                 console.error('Login error:', e);
                 hideLoginLoading();
@@ -2696,7 +2746,13 @@
         function showAlert(id, msg) { let el = document.getElementById(id); el.textContent = msg; el.style.display = 'block'; }
 
         function confirmLogout() {
-            showConfirmPopup('Thoát bài thi?', 'Bài thi chưa nộp sẽ không được lưu! Bạn có chắc muốn thoát?', () => location.reload(), 'Thoát', 'Tiếp tục thi');
+            showConfirmPopup('Thoát bài thi?', 'Bài thi chưa nộp sẽ không được lưu! Bạn có chắc muốn thoát?', async () => {
+                // Unlock session before logout
+                if (currentStudent && currentStudent.maHS) {
+                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                }
+                location.reload();
+            }, 'Thoát', 'Tiếp tục thi');
         }
 
         // ============== CÂU HỎI ==============
@@ -3111,6 +3167,8 @@
                     stopSessionManagement();
                     stopExamTimer();
                     clearExamBackup(currentStudent.maHS);
+                    // Unlock session after submit
+                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
 
                     if (isPracticeMode && resp.isPractice) {
                         showPracticeResults(resp);
@@ -3624,7 +3682,18 @@
                 } catch (e) { /* if check fails, still offer restore */ }
                 showConfirmPopup('⚡ Phát hiện bài thi chưa hoàn thành', 'Bạn muốn tiếp tục làm bài cũ không?<br><small>(Nhấn "Khôi phục" để tiếp tục, "Bắt đầu mới" để làm lại)</small>', () => {
                     restoreExamFromBackup(backup);
+                    goToStep(1);
                 }, 'Khôi phục', 'Bắt đầu mới', 'info');
+                // When user clicks "Bắt đầu mới" (cancel), also need to load fresh questions
+                let cancelBtn = document.getElementById('popupCancelBtn');
+                if (cancelBtn) {
+                    let origCancel = cancelBtn.onclick;
+                    cancelBtn.onclick = async () => {
+                        if (origCancel) origCancel();
+                        clearExamBackup(currentStudent.maHS);
+                        await _origLoadQuestions();
+                    };
+                }
                 return;
             }
             await _origLoadQuestions();
@@ -4088,9 +4157,12 @@
                 html += `<td style="white-space:nowrap">`;
                 html += `<button onclick="openEditModal('${s.maHS}')" style="background:var(--primary);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
                 if (s.hasReal) {
-                    html += `<button onclick="toggleExamStatus('${s.maHS}','__EMPTY__')" style="background:var(--warning);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Cho thi lại"><i class="fas fa-undo"></i></button>`;
+                    html += `<button onclick="toggleExamStatus('${s.maHS}','__EMPTY__')" style="background:var(--warning);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Cho thi lại"><i class="fas fa-undo"></i></button> `;
                 } else {
-                    html += `<button onclick="toggleExamStatus('${s.maHS}','X')" style="background:var(--success);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Đánh dấu đã thi"><i class="fas fa-check"></i></button>`;
+                    html += `<button onclick="toggleExamStatus('${s.maHS}','X')" style="background:var(--success);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Đánh dấu đã thi"><i class="fas fa-check"></i></button> `;
+                }
+                if (s.isLocked) {
+                    html += `<button onclick="unlockStudent('${s.maHS}')" style="background:var(--danger);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Mở khóa tài khoản"><i class="fas fa-lock-open"></i></button> `;
                 }
                 html += `</td></tr>`;
             });
@@ -4154,6 +4226,16 @@
                     } catch (syncErr) { console.log('Sheet sync warning:', syncErr); }
                 } catch (e) { showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
             });
+        }
+
+        async function unlockStudent(maHS) {
+            showConfirmPopup('Mở khóa tài khoản?', `Mở khóa tài khoản <strong>${maHS}</strong> để học sinh có thể đăng nhập lại?`, async () => {
+                try {
+                    await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null, sessionId: null });
+                    showPopup('Thành công', 'Đã mở khóa tài khoản ' + maHS, 'success');
+                    loadDashboard();
+                } catch (e) { showPopup('Lỗi', 'Lỗi mở khóa: ' + e.message, 'error'); }
+            }, 'Mở khóa', 'Hủy');
         }
 
         // ===== TAB: THEO DÕI =====
@@ -4686,7 +4768,13 @@
             // Then every 30s
             _heartbeatInterval = setInterval(_sendHeartbeat, 30000);
             // Stop on page close
-            window.addEventListener('beforeunload', stopStudentHeartbeat);
+            window.addEventListener('beforeunload', () => {
+                stopStudentHeartbeat();
+                // Best-effort unlock on page close
+                if (currentStudent && currentStudent.maHS) {
+                    try { firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                }
+            });
         }
         function _sendHeartbeat() {
             if (!currentStudent || !currentStudent.maHS) return;
@@ -5207,7 +5295,10 @@
             stopAntiCheat();
             stopStudentHeartbeat();
             _currentSessionId = null; // Prevent further checks
-
+            // Unlock session
+            if (currentStudent && currentStudent.maHS) {
+                firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }).catch(() => {});
+            }
             // Show kicked overlay
             let overlay = document.getElementById('sessionKickedOverlay');
             if (overlay) overlay.classList.add('show');
