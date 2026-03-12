@@ -4772,14 +4772,14 @@
                 stopStudentHeartbeat();
                 // Best-effort unlock on page close
                 if (currentStudent && currentStudent.maHS) {
-                    try { firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                    try { firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }).catch(() => {}); } catch(e) {}
                 }
             });
         }
         function _sendHeartbeat() {
             if (!currentStudent || !currentStudent.maHS) return;
             try {
-                firebaseUpdate('students/' + currentStudent.maHS, { lastSeen: Date.now() });
+                firebaseUpdate('students/' + currentStudent.maHS, { lastSeen: Date.now() }).catch(() => {});
             } catch (e) { /* silent */ }
         }
         function stopStudentHeartbeat() {
@@ -5238,10 +5238,10 @@
                         type: type,
                         timestamp: Date.now(),
                         count: _cheatCount
-                    });
+                    }).catch(() => {});
                     firebaseUpdate('students/' + currentStudent.maHS, {
                         cheatingCount: _cheatCount
-                    });
+                    }).catch(() => {});
                 } catch (e) { /* silent */ }
             }
         }
