@@ -2760,17 +2760,15 @@
             if (isPracticeMode) {
                 // Practice mode: skip step 2 (no file upload)
                 if (step === 2) {
-                    // Determine direction: from step 1 → forward to 3, from step 3 → back to 1
                     let currentlyOnStep3 = document.getElementById('examPart3').style.display !== 'none';
                     if (currentlyOnStep3) {
-                        // Going BACK from step 3 → go to step 1
                         step = 1;
                     } else {
-                        // Going FORWARD from step 1 → validate all questions answered
+                        // Validate all questions answered
                         let total = examQuestions.length;
                         let answered = document.querySelectorAll('#questionsContainer input[type=radio]:checked').length;
                         if (answered < total) {
-                            alert(`⚠️ Bạn chưa trả lời hết câu hỏi!\n\nĐã trả lời: ${answered}/${total} câu.\nVui lòng trả lời tất cả câu hỏi trước khi nộp bài.`);
+                            showStepAlert(`⚠️ Bạn chưa trả lời hết câu hỏi!`, `Đã trả lời: ${answered}/${total} câu. Vui lòng trả lời tất cả câu hỏi trước khi nộp bài.`);
                             return;
                         }
                         step = 3;
@@ -2780,6 +2778,27 @@
                 document.getElementById('examPart2').style.display = 'none';
                 document.getElementById('examPart3').style.display = step === 3 ? 'block' : 'none';
             } else {
+                // Real exam: validate before moving forward
+                if (step === 2) {
+                    // Moving from step 1 to step 2: check all questions answered
+                    let currentOnStep1 = document.getElementById('examPart1').style.display !== 'none';
+                    if (currentOnStep1) {
+                        let total = examQuestions.length;
+                        let answered = document.querySelectorAll('#questionsContainer input[type=radio]:checked').length;
+                        if (answered < total) {
+                            showStepAlert(`⚠️ Chưa trả lời đủ câu hỏi!`, `Bạn đã trả lời ${answered}/${total} câu. Vui lòng trả lời tất cả câu hỏi trước khi tiếp tục.`);
+                            return;
+                        }
+                    }
+                }
+                if (step === 3) {
+                    // Moving from step 2 to step 3: check file uploaded
+                    let currentOnStep2 = document.getElementById('examPart2').style.display !== 'none';
+                    if (currentOnStep2 && !uploadedFile) {
+                        showStepAlert(`⚠️ Chưa tải file thực hành!`, `Bạn cần tải file bài thực hành lên trước khi tiếp tục. Hãy nhấn vào vùng tải file hoặc kéo thả file vào.`);
+                        return;
+                    }
+                }
                 ['examPart1', 'examPart2', 'examPart3'].forEach((id, i) => document.getElementById(id).style.display = (i + 1 === step) ? 'block' : 'none');
             }
             document.querySelectorAll('.step-item').forEach((el, i) => {
@@ -2791,6 +2810,22 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // Alert popup for step validation
+        function showStepAlert(title, message) {
+            let existing = document.getElementById('stepAlertModal');
+            if (existing) existing.remove();
+            let modal = document.createElement('div');
+            modal.id = 'stepAlertModal';
+            modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10003;align-items:center;justify-content:center;padding:20px';
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:420px;width:100%;text-align:center;animation:slideUp .3s ease">
+                <div style="width:60px;height:60px;border-radius:50%;background:rgba(245,158,11,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">⚠️</div>
+                <h3 style="margin:0 0 8px;font-size:18px;color:var(--text)">${title}</h3>
+                <p style="color:var(--text2);font-size:14px;margin:0 0 20px;line-height:1.6">${message}</p>
+                <button onclick="this.closest('#stepAlertModal').remove()" class="btn btn-primary" style="padding:12px 32px;font-size:15px"><i class="fas fa-check"></i> Đã hiểu</button>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+
         // ============== FILE UPLOAD ==============
         const uploadZone = document.getElementById('uploadZone');
         uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
@@ -2800,13 +2835,49 @@
         function handleFileSelect(e) { if (e.target.files.length) processFile(e.target.files[0]); }
 
         function processFile(file) {
-            if (file.size > 10 * 1024 * 1024) { alert('File quá lớn! Tối đa 10MB.'); return; }
-            uploadedFile = file;
+            if (file.size > 10 * 1024 * 1024) {
+                showStepAlert('⚠️ File quá lớn!', 'File tối đa 10MB. Vui lòng chọn file nhỏ hơn.');
+                return;
+            }
+            // Show loading state
             let display = document.getElementById('fileInfoDisplay');
-            let size = file.size < 1024 ? file.size + 'B' : file.size < 1048576 ? (file.size / 1024).toFixed(1) + 'KB' : (file.size / 1048576).toFixed(1) + 'MB';
-            display.innerHTML = `<div class="file-info"><i class="fas fa-file"></i><div class="file-details"><div class="file-name">${file.name}</div><div class="file-size">${size}</div></div><span class="remove-file" onclick="removeFile()"><i class="fas fa-times-circle"></i></span></div>`;
-            display.style.display = 'block';
-            uploadZone.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success)"></i><h3>File đã được chọn</h3><p>Nhấn để thay đổi file</p>';
+            uploadZone.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:var(--primary)"></i><h3>Đang xử lý file...</h3><p>Vui lòng chờ...</p>';
+            uploadZone.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                uploadedFile = file;
+                let size = file.size < 1024 ? file.size + 'B' : file.size < 1048576 ? (file.size / 1024).toFixed(1) + 'KB' : (file.size / 1048576).toFixed(1) + 'MB';
+                let icon = file.name.match(/\.pdf$/i) ? 'fa-file-pdf' : file.name.match(/\.docx?$/i) ? 'fa-file-word' : file.name.match(/\.pptx?$/i) ? 'fa-file-powerpoint' : file.name.match(/\.xlsx?$/i) ? 'fa-file-excel' : 'fa-file-alt';
+
+                display.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-top:12px">
+                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${icon}" style="color:var(--primary);font-size:20px"></i></div>
+                    <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${size}</div></div>
+                    <button onclick="confirmRemoveFile()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--danger);padding:6px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="fas fa-trash-alt"></i> Xóa file</button>
+                </div>`;
+                display.style.display = 'block';
+
+                // Show success state on upload zone
+                uploadZone.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);font-size:48px"></i><h3 style="color:var(--success);margin-top:8px">✅ Tải file thành công!</h3><p>Nhấn để thay đổi file khác</p>';
+                uploadZone.style.pointerEvents = 'auto';
+            }, 600);
+        }
+
+        function confirmRemoveFile() {
+            let existing = document.getElementById('stepAlertModal');
+            if (existing) existing.remove();
+            let modal = document.createElement('div');
+            modal.id = 'stepAlertModal';
+            modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10003;align-items:center;justify-content:center;padding:20px';
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:420px;width:100%;text-align:center;animation:slideUp .3s ease">
+                <div style="width:60px;height:60px;border-radius:50%;background:rgba(239,68,68,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:28px">🗑️</div>
+                <h3 style="margin:0 0 8px;font-size:18px;color:var(--text)">Xóa file thực hành?</h3>
+                <p style="color:var(--text2);font-size:14px;margin:0 0 20px;line-height:1.6">Bạn có chắc muốn xóa file <strong>${uploadedFile ? uploadedFile.name : ''}</strong> và tải file khác không?</p>
+                <div style="display:flex;gap:10px;justify-content:center">
+                    <button onclick="this.closest('#stepAlertModal').remove()" class="btn" style="width:auto;background:var(--bg3);color:var(--text);padding:10px 24px;font-size:14px">Hủy</button>
+                    <button onclick="removeFile();this.closest('#stepAlertModal').remove()" class="btn" style="width:auto;background:var(--danger);color:#fff;padding:10px 24px;font-size:14px"><i class="fas fa-trash-alt"></i> Xóa và tải lại</button>
+                </div>
+            </div>`;
+            document.body.appendChild(modal);
         }
 
         function removeFile() {
