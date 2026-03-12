@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -1611,7 +1611,7 @@
                 <h3 style="margin-bottom:8px"><i class="fas fa-laptop-code"></i> Phần Thực Hành</h3>
                 <p style="color:var(--text2);font-size:14px;margin-bottom:20px">Tải file bài thực hành từ máy tính của
                     bạn lên hệ thống.</p>
-                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-zone" id="uploadZone" onclick="openFilePicker()">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <h3>Kéo thả file vào đây</h3>
                     <p>hoặc nhấn để chọn file (Tối đa 10MB)</p>
@@ -2015,6 +2015,42 @@
                             <span
                                 style="position:absolute;inset:0;border-radius:13px;background:var(--bg3);transition:.3s"></span>
                             <span id="toggleSlider"
+                                style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
+                        </label>
+                    </div>
+
+                    <!-- Toggle chống gian lận -->
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-top:12px">
+                        <div>
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-shield-alt"
+                                    style="color:var(--danger);margin-right:6px"></i> Chống gian lận</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Phát hiện HS chuyển tab/ẩn cửa sổ, cảnh báo + ghi log</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
+                            <input type="checkbox" id="toggleAntiCheat" onchange="toggleAntiCheatSetting()"
+                                style="opacity:0;width:0;height:0" checked>
+                            <span
+                                style="position:absolute;inset:0;border-radius:13px;background:var(--primary);transition:.3s"></span>
+                            <span id="toggleAntiCheatSlider"
+                                style="position:absolute;left:27px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
+                        </label>
+                    </div>
+
+                    <!-- Toggle xem kết quả -->
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-top:12px">
+                        <div>
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-poll"
+                                    style="color:var(--success);margin-right:6px"></i> HS xem kết quả (thi thật)</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Cho phép HS xem kết quả sau khi nộp bài trong chế độ thi thật</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
+                            <input type="checkbox" id="toggleViewResults" onchange="toggleViewResultsSetting()"
+                                style="opacity:0;width:0;height:0">
+                            <span
+                                style="position:absolute;inset:0;border-radius:13px;background:var(--bg3);transition:.3s"></span>
+                            <span id="toggleViewResultsSlider"
                                 style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
                         </label>
                     </div>
@@ -3110,6 +3146,16 @@
             });
         }
 
+        // Open file picker without triggering anti-cheat
+        function openFilePicker() {
+            _cheatActive = false; // Pause anti-cheat
+            document.getElementById('fileInput').click();
+            // Re-enable after a delay (file dialog closed)
+            setTimeout(() => {
+                if (currentStudent) _cheatActive = true;
+            }, 1000);
+        }
+
         // ============== LOCALSTORAGE BACKUP ==============
         const LS_KEY = 'exam_backup_';
         function saveExamBackup() {
@@ -3817,6 +3863,20 @@
                 if (timerInput && settings.timerMinutes) {
                     timerInput.value = settings.timerMinutes;
                 }
+                // Anti-cheat setting
+                let acToggle = document.getElementById('toggleAntiCheat');
+                let acOn = settings.antiCheatEnabled !== false; // default ON
+                if (acToggle) {
+                    acToggle.checked = acOn;
+                    updateAntiCheatToggleVisual(acOn);
+                }
+                // View results setting
+                let vrToggle = document.getElementById('toggleViewResults');
+                let vrOn = settings.allowViewResults === true;
+                if (vrToggle) {
+                    vrToggle.checked = vrOn;
+                    updateViewResultsToggleVisual(vrOn);
+                }
             } catch (e) { console.log('Settings load error:', e); }
         }
 
@@ -4042,15 +4102,68 @@
             let msgEl = document.getElementById('settingsMsg');
             try {
                 await firebaseUpdate('settings', { practiceMode: isOn });
-                msgEl.innerHTML = isOn ? '🎯 Đã bật CHẾ ĐỘ THI THỬ — HS thi 16 câu lý thuyết, tối đa 5 lượt' : '📝 Đã tắt Thi Thử — HS thi chính thức 8 câu + thực hành';
-                msgEl.style.display = 'block';
-                msgEl.style.background = isOn ? 'rgba(245,158,11,0.15)' : 'rgba(16,185,129,0.15)';
-                msgEl.style.color = isOn ? 'var(--warning)' : 'var(--success)';
+                showSettingsMsg(msgEl, isOn ? '🎯 Đã bật CHẾ ĐỘ THI THỬ — HS thi 16 câu lý thuyết, tối đa 5 lượt' : '📝 Đã tắt Thi Thử — HS thi chính thức 8 câu + thực hành', isOn ? 'var(--warning)' : 'var(--success)');
             } catch (e) {
-                msgEl.innerHTML = '❌ Lỗi: ' + e.message; msgEl.style.display = 'block';
-                msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                showSettingsMsg(msgEl, '❌ Lỗi: ' + e.message, 'var(--danger)');
             }
-            setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+        }
+
+        // Anti-cheat toggle visual + handlers
+        function updateAntiCheatToggleVisual(isOn) {
+            let slider = document.getElementById('toggleAntiCheatSlider');
+            let bg = document.getElementById('toggleAntiCheat')?.parentElement?.querySelector('span');
+            if (isOn) {
+                if (bg) bg.style.background = 'var(--primary)';
+                if (slider) slider.style.left = '27px';
+            } else {
+                if (bg) bg.style.background = 'var(--bg3)';
+                if (slider) slider.style.left = '3px';
+            }
+        }
+        async function toggleAntiCheatSetting() {
+            let isOn = document.getElementById('toggleAntiCheat').checked;
+            updateAntiCheatToggleVisual(isOn);
+            let msgEl = document.getElementById('settingsMsg');
+            try {
+                await firebaseUpdate('settings', { antiCheatEnabled: isOn });
+                showSettingsMsg(msgEl, isOn ? '🛡️ Chống gian lận đã BẬT' : '⚠️ Chống gian lận đã TẮT', isOn ? 'var(--primary)' : 'var(--warning)');
+            } catch (e) {
+                showSettingsMsg(msgEl, '❌ Lỗi: ' + e.message, 'var(--danger)');
+            }
+        }
+
+        // View results toggle visual + handlers
+        function updateViewResultsToggleVisual(isOn) {
+            let slider = document.getElementById('toggleViewResultsSlider');
+            let bg = document.getElementById('toggleViewResults')?.parentElement?.querySelector('span');
+            if (isOn) {
+                if (bg) bg.style.background = 'var(--success)';
+                if (slider) slider.style.left = '27px';
+            } else {
+                if (bg) bg.style.background = 'var(--bg3)';
+                if (slider) slider.style.left = '3px';
+            }
+        }
+        async function toggleViewResultsSetting() {
+            let isOn = document.getElementById('toggleViewResults').checked;
+            updateViewResultsToggleVisual(isOn);
+            let msgEl = document.getElementById('settingsMsg');
+            try {
+                await firebaseUpdate('settings', { allowViewResults: isOn });
+                showSettingsMsg(msgEl, isOn ? '\u2705 HS \u0111\u01b0\u1ee3c ph\u00e9p xem k\u1ebft qu\u1ea3 thi th\u1eadt' : '\ud83d\udd12 HS kh\u00f4ng \u0111\u01b0\u1ee3c xem k\u1ebft qu\u1ea3 thi th\u1eadt', isOn ? 'var(--success)' : 'var(--warning)');
+            } catch (e) {
+                showSettingsMsg(msgEl, '\u274c L\u1ed7i: ' + e.message, 'var(--danger)');
+            }
+        }
+
+        function showSettingsMsg(el, text, color) {
+            if (!el) return;
+            el.innerHTML = text;
+            el.style.display = 'block';
+            el.style.background = color === 'var(--danger)' ? 'rgba(239,68,68,0.15)' : color === 'var(--warning)' ? 'rgba(245,158,11,0.15)' : color === 'var(--success)' ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)';
+            el.style.color = color;
+            el.style.border = '1px solid ' + (color === 'var(--danger)' ? 'rgba(239,68,68,0.3)' : color === 'var(--warning)' ? 'rgba(245,158,11,0.3)' : color === 'var(--success)' ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)');
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
         }
 
         // ===== STUDENT HEARTBEAT (Online tracking) =====
@@ -4248,7 +4361,16 @@
         let _cheatActive = false;
         let _cheatWarningShown = false;
 
-        function startAntiCheat() {
+        async function startAntiCheat() {
+            // Check if teacher enabled anti-cheat
+            try {
+                let settings = await firebaseRead('settings') || {};
+                if (settings.antiCheatEnabled === false) {
+                    _cheatActive = false;
+                    return; // Teacher disabled anti-cheat
+                }
+            } catch (e) { /* default: enabled */ }
+
             _cheatCount = 0;
             _cheatActive = true;
             _cheatWarningShown = false;
