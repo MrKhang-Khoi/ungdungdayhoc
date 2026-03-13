@@ -2155,6 +2155,12 @@
                         <span id="manageCount"
                             style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></span>
                     </div>
+                    <!-- Nút Mở/Khóa cả lớp -->
+                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" id="bulkMoThiBar">
+                        <button class="btn btn-sm" onclick="toggleMoThiClass(true)" style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock-open"></i> Mở thi cả lớp</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass(false)" style="width:auto;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock"></i> Khóa thi cả lớp</button>
+                        <span id="moThiCountBadge" style="font-size:11px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"></span>
+                    </div>
                 </div>
                 <!-- Dòng thống kê chi tiết -->
                 <div id="manageStatsBar" style="display:none;margin-bottom:16px"></div>
@@ -2890,6 +2896,14 @@
                         // Stale lock (> 2h) → safe to auto-unlock
                         try { await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null }); } catch (e) { }
                     }
+                }
+
+                // ===== CHECK MỞ KỲ THI =====
+                if (!student.moThi) {
+                    hideLoginLoading();
+                    showAlert('loginWarning', '⏳ Giáo viên chưa mở kỳ thi cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
+                    return;
                 }
 
                 if (isPractice) {
@@ -4165,7 +4179,9 @@
                         cheatingCount: s.cheatingCount || 0,
                         uploadFailed: s.uploadFailed || false,
                         uploadError: s.uploadError || '',
-                        driveFolder: s.driveFolder || ''
+                        driveFolder: s.driveFolder || '',
+                        moThi: s.moThi || false,
+                        isLocked: s.isLocked || false
                     };
                 });
 
@@ -4611,8 +4627,20 @@
                         </div>
                     </div>`;
             }
-            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:100px">Thao tác</th></tr></thead><tbody>';
+            // Cập nhật badge mở thi
+            let moThiBadge = document.getElementById('moThiCountBadge');
+            if (moThiBadge && dashboardData.students) {
+                let targetStudents = classF ? dashboardData.students.filter(s => s.lop === classF) : dashboardData.students;
+                let opened = targetStudents.filter(s => s.moThi).length;
+                let closed = targetStudents.length - opened;
+                moThiBadge.innerHTML = `<i class="fas fa-info-circle"></i> Đã mở: <strong style="color:var(--success)">${opened}</strong> | Chưa mở: <strong style="color:var(--danger)">${closed}</strong>`;
+            }
+            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mở thi</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:120px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
+                // moThi badge
+                let moThiB = s.moThi
+                    ? '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-lock-open"></i> Đã mở</span>'
+                    : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(239,68,68,0.15);color:var(--danger);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-lock"></i> Chưa mở</span>';
                 // Real exam badge
                 let realBadge = s.hasReal
                     ? '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check-circle"></i> Đã thi</span>'
@@ -4626,9 +4654,16 @@
                 html += `<td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">${s.maHS}</code></td>`;
                 html += `<td><strong style="font-size:13px">${s.hoTen}</strong></td>`;
                 html += `<td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>`;
+                html += `<td>${moThiB}</td>`;
                 html += `<td>${realBadge}</td>`;
                 html += `<td>${practiceBadge}</td>`;
                 html += `<td style="white-space:nowrap">`;
+                // Nút Mở/Khóa thi
+                if (s.moThi) {
+                    html += `<button onclick="toggleMoThi('${s.maHS}',false)" style="background:var(--danger);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Khóa thi"><i class="fas fa-lock"></i></button>`;
+                } else {
+                    html += `<button onclick="toggleMoThi('${s.maHS}',true)" style="background:#10b981;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Mở thi"><i class="fas fa-lock-open"></i></button>`;
+                }
                 html += `<button onclick="openEditModal('${s.maHS}')" style="background:var(--primary);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
                 if (s.hasReal) {
                     html += `<button onclick="toggleExamStatus('${s.maHS}','__EMPTY__')" style="background:var(--warning);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Cho thi lại"><i class="fas fa-undo"></i></button> `;
@@ -4636,7 +4671,7 @@
                     html += `<button onclick="toggleExamStatus('${s.maHS}','X')" style="background:var(--success);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Đánh dấu đã thi"><i class="fas fa-check"></i></button> `;
                 }
                 if (s.isLocked) {
-                    html += `<button onclick="unlockStudent('${s.maHS}')" style="background:var(--danger);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Mở khóa tài khoản"><i class="fas fa-lock-open"></i></button> `;
+                    html += `<button onclick="unlockStudent('${s.maHS}')" style="background:#7c3aed;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Mở khóa tài khoản"><i class="fas fa-lock-open"></i></button> `;
                 }
                 html += `</td></tr>`;
             });
@@ -4686,6 +4721,47 @@
                 msgEl.innerHTML = '❌ Lỗi: ' + e.message; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
             }
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu';
+        }
+
+        // ===== MỞ/KHÓA KỲ THI =====
+        async function toggleMoThi(maHS, value) {
+            let msg = value ? 'Mở kỳ thi cho học sinh <strong>' + maHS + '</strong>?' : 'Khóa kỳ thi cho học sinh <strong>' + maHS + '</strong>?';
+            showConfirmPopup('Xác nhận', msg, async () => {
+                try {
+                    await firebaseUpdate('students/' + maHS, { moThi: value });
+                    // Update local data immediately
+                    let s = dashboardData.students.find(x => x.maHS === maHS);
+                    if (s) s.moThi = value;
+                    renderManageTable();
+                } catch (e) { showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+            }, value ? 'Mở thi' : 'Khóa thi', 'Hủy');
+        }
+
+        async function toggleMoThiClass(value) {
+            let classF = document.getElementById('manageClassFilter').value;
+            if (!classF) {
+                showPopup('Cảnh báo', 'Vui lòng chọn một lớp cụ thể trước khi mở/khóa cả lớp!', 'warning');
+                return;
+            }
+            let targetStudents = dashboardData.students.filter(s => s.lop === classF);
+            let msg = value
+                ? 'Mở kỳ thi cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?'
+                : 'Khóa kỳ thi cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?';
+            showConfirmPopup('Xác nhận', msg, async () => {
+                try {
+                    showLoading();
+                    let updates = {};
+                    targetStudents.forEach(s => {
+                        updates['students/' + s.maHS + '/moThi'] = value;
+                    });
+                    await db.ref().update(updates);
+                    // Update local data
+                    targetStudents.forEach(s => { s.moThi = value; });
+                    hideLoading();
+                    showPopup('Thành công', (value ? 'Đã mở' : 'Đã khóa') + ' kỳ thi cho ' + targetStudents.length + ' HS lớp ' + classF, 'success');
+                    renderManageTable();
+                } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+            }, value ? 'Mở cả lớp' : 'Khóa cả lớp', 'Hủy');
         }
 
         async function toggleExamStatus(maHS, value) {
