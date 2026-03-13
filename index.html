@@ -2156,6 +2156,8 @@
                             style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></span>
                     </div>
                 </div>
+                <!-- Dòng thống kê chi tiết -->
+                <div id="manageStatsBar" style="display:none;margin-bottom:16px"></div>
                 <div class="table-container" id="manageTableContainer"></div>
             </div>
 
@@ -4283,7 +4285,11 @@
             container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải câu hỏi...</div>';
             try {
                 let data = await firebaseRead('questions') || {};
-                allQuestionsData = Object.values(data);
+                // Normalize: đảm bảo mọi câu hỏi đều có trường lop (fix cho dữ liệu cũ)
+                allQuestionsData = Object.values(data).map(q => {
+                    q.lop = q.lop || '';
+                    return q;
+                });
                 renderQuestionsList();
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)">❌ Lỗi: ' + e.message + '</div>';
@@ -4555,6 +4561,55 @@
                 return true;
             });
             document.getElementById('manageCount').textContent = `${students.length}/${dashboardData.students.length} HS`;
+
+            // ===== THỐNG KÊ CHI TIẾT THEO LỚP =====
+            let statsBar = document.getElementById('manageStatsBar');
+            if (statsBar) {
+                let allStudents = classF ? dashboardData.students.filter(s => s.lop === classF) : dashboardData.students;
+                let totalCount = allStudents.length;
+                let realDone = allStudents.filter(s => s.hasReal).length;
+                let realNot = totalCount - realDone;
+                let pracDone = allStudents.filter(s => s.hasPractice).length;
+                let pracNot = totalCount - pracDone;
+                let realPct = totalCount > 0 ? Math.round(realDone / totalCount * 100) : 0;
+                let pracPct = totalCount > 0 ? Math.round(pracDone / totalCount * 100) : 0;
+                let lopLabel = classF ? ('Lớp ' + classF) : 'Tất cả lớp';
+
+                statsBar.style.display = 'block';
+                statsBar.innerHTML = `
+                    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px">
+                        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+                            <i class="fas fa-chart-bar" style="color:var(--primary);font-size:13px"></i>
+                            <span style="font-size:13px;font-weight:700;color:var(--text)">${lopLabel} — ${totalCount} học sinh</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                            <!-- Thi Thật -->
+                            <div style="background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border)">
+                                <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px"><i class="fas fa-file-alt" style="margin-right:4px;color:var(--success)"></i>THI THẬT</div>
+                                <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">
+                                    <span style="font-size:12px"><span style="color:var(--success);font-weight:700">${realDone}</span> <span style="color:var(--text2)">đã thi</span></span>
+                                    <span style="font-size:12px"><span style="color:var(--warning);font-weight:700">${realNot}</span> <span style="color:var(--text2)">chưa thi</span></span>
+                                </div>
+                                <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+                                    <div style="height:100%;width:${realPct}%;background:linear-gradient(90deg,var(--success),#34d399);border-radius:3px;transition:width .5s ease"></div>
+                                </div>
+                                <div style="font-size:10px;color:var(--text2);margin-top:3px;text-align:right">${realPct}%</div>
+                            </div>
+                            <!-- Thi Thử -->
+                            <div style="background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border)">
+                                <div style="font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px"><i class="fas fa-flask" style="margin-right:4px;color:var(--primary)"></i>THI THỬ</div>
+                                <div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">
+                                    <span style="font-size:12px"><span style="color:var(--primary);font-weight:700">${pracDone}</span> <span style="color:var(--text2)">đã thi</span></span>
+                                    <span style="font-size:12px"><span style="color:var(--text2);font-weight:700">${pracNot}</span> <span style="color:var(--text2)">chưa thi</span></span>
+                                </div>
+                                <div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+                                    <div style="height:100%;width:${pracPct}%;background:linear-gradient(90deg,var(--primary),#818cf8);border-radius:3px;transition:width .5s ease"></div>
+                                </div>
+                                <div style="font-size:10px;color:var(--text2);margin-top:3px;text-align:right">${pracPct}%</div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
             let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:100px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
                 // Real exam badge
