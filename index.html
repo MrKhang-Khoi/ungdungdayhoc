@@ -2100,6 +2100,7 @@
                     <h2 style="margin:0 0 2px;font-size:20px;display:flex;align-items:center;gap:8px"><i
                             class="fas fa-graduation-cap" style="color:var(--primary)"></i> Quản Lý Thi Trực Tuyến</h2>
                     <p style="color:var(--text2);font-size:12px;margin:0" id="dashTime">Cập nhật lúc: --:--:--</p>
+                    <p style="color:var(--accent);font-size:12px;margin:2px 0 0;font-weight:600" id="dashTeacherName"></p>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                     <span
@@ -3066,34 +3067,54 @@
             let btn = document.getElementById('btnTeacherLogin');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang kiểm tra...';
             try {
-                // ===== FIREBASE TEACHER LOGIN (SHA-256) =====
+                // ===== KIỂM TRA ADMIN TRƯỚC =====
                 let settings = await firebaseRead('settings') || {};
                 let inputHash = await sha256(pass);
+                let isAdmin = false;
 
-                // So sánh hash: nếu chưa có hash trong Firebase, tạo hash từ mật khẩu hiện tại và lưu lại
                 if (settings.teacherPasswordHash) {
-                    // Đã có hash → so sánh
-                    if (inputHash === settings.teacherPasswordHash) {
-                        showScreen('dashboardScreen');
-                        initDashboard();
-                    } else {
-                        showAlert('loginAlert', '❌ Mật khẩu không đúng!');
-                    }
+                    if (inputHash === settings.teacherPasswordHash) isAdmin = true;
                 } else {
-                    // Chưa có hash → kiểm tra mật khẩu cũ (plaintext), nếu đúng thì tự tạo hash
                     let oldPass = settings.teacherPassword || 'admin@2025';
                     if (pass === oldPass) {
-                        // Đăng nhập thành công → tự động chuyển sang hash
                         let newHash = await sha256(pass);
-                        await firebaseUpdate('settings', {
-                            teacherPasswordHash: newHash,
-                            teacherPassword: null // Xóa mật khẩu plaintext
-                        });
-                        showScreen('dashboardScreen');
-                        initDashboard();
-                    } else {
-                        showAlert('loginAlert', '❌ Mật khẩu không đúng!');
+                        await firebaseUpdate('settings', { teacherPasswordHash: newHash, teacherPassword: null });
+                        isAdmin = true;
                     }
+                }
+
+                if (isAdmin) {
+                    currentTeacher = { maGV: 'ADMIN', hoTen: 'Admin', lopPhuTrach: '', isAdmin: true, allowedClasses: [] };
+                    showScreen('dashboardScreen');
+                    initDashboard();
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
+                    return;
+                }
+
+                // ===== KIỂM TRA GIÁO VIÊN THEO MẬT KHẨU =====
+                let teachers = await firebaseRead('teachers') || {};
+                let foundTeacher = null;
+                for (let maGV in teachers) {
+                    let t = teachers[maGV];
+                    if (t.matKhau && t.matKhau === pass) {
+                        foundTeacher = { maGV: maGV, hoTen: t.hoTen || '', lopPhuTrach: t.lopPhuTrach || '' };
+                        break;
+                    }
+                }
+
+                if (foundTeacher) {
+                    let allowedClasses = foundTeacher.lopPhuTrach ? foundTeacher.lopPhuTrach.split(',').map(c => c.trim()).filter(c => c) : [];
+                    currentTeacher = {
+                        maGV: foundTeacher.maGV,
+                        hoTen: foundTeacher.hoTen,
+                        lopPhuTrach: foundTeacher.lopPhuTrach,
+                        isAdmin: false,
+                        allowedClasses: allowedClasses
+                    };
+                    showScreen('dashboardScreen');
+                    initDashboard();
+                } else {
+                    showAlert('loginAlert', '❌ Mật khẩu không đúng!');
                 }
             } catch (e) {
                 console.error('Teacher login error:', e);
@@ -4107,6 +4128,7 @@
         // ============== DASHBOARD ==============
         let currentMainTab = 'manage';
         let editingStudent = null;
+        let currentTeacher = null; // { maGV, hoTen, lopPhuTrach, isAdmin, allowedClasses: [] }
 
         async function initDashboard() {
             let overlay = document.getElementById('dashboardLoadingOverlay');
@@ -4116,6 +4138,28 @@
                 loadSettings();
             } catch (e) { console.log('Dashboard init error:', e); }
             if (overlay) overlay.style.display = 'none';
+            // Hiển tên GV + phân quyền tab
+            let teacherNameEl = document.getElementById('dashTeacherName');
+            if (teacherNameEl && currentTeacher) {
+                if (currentTeacher.isAdmin) {
+                    teacherNameEl.innerHTML = '<i class="fas fa-crown" style="color:#f59e0b"></i> Admin';
+                } else {
+                    teacherNameEl.innerHTML = '<i class="fas fa-chalkboard-teacher"></i> ' + currentTeacher.hoTen;
+                }
+            }
+            // Ẩn tab cho GV thường
+            if (currentTeacher && !currentTeacher.isAdmin) {
+                let tabBar = document.getElementById('mainTabBar');
+                if (tabBar) {
+                    let tabs = tabBar.querySelectorAll('.main-tab');
+                    tabs.forEach(t => {
+                        let onclick = t.getAttribute('onclick') || '';
+                        if (onclick.includes("'questions'") || onclick.includes("'settings'") || onclick.includes("'studymaterials'")) {
+                            t.style.display = 'none';
+                        }
+                    });
+                }
+            }
             startFirebaseListeners();
         }
 
@@ -4193,13 +4237,19 @@
                     };
                 });
 
-                // Filter by class
-                let lop = document.getElementById('manageClassFilter')?.value || '';
-                if (lop) students = students.filter(s => s.lop === lop);
+                // === PHÂN QUYỀN: Lọc HS theo lớp phụ trách của GV ===
+                if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                    students = students.filter(s => currentTeacher.allowedClasses.includes(s.lop));
+                }
 
                 // Classes for filter dropdown
                 let classSet = {};
-                Object.values(studentsObj).forEach(s => { if (s.lop) classSet[s.lop.toString()] = true; });
+                // Nếu là GV thường, chỉ hiện lớp được phân công
+                if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                    currentTeacher.allowedClasses.forEach(c => { classSet[c] = true; });
+                } else {
+                    Object.values(studentsObj).forEach(s => { if (s.lop) classSet[s.lop.toString()] = true; });
+                }
                 let classes = Object.keys(classSet).sort();
                 let sel = document.getElementById('manageClassFilter');
                 if (sel && sel.options.length <= 1) {
@@ -4239,6 +4289,10 @@
                 let realResults = [];
                 Object.values(resultsObj).forEach(r => {
                     if (lop && r.lop !== lop) return;
+                    // Phân quyền GV: chỉ hiển kết quả lớp phụ trách
+                    if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                        if (!currentTeacher.allowedClasses.includes(r.lop)) return;
+                    }
                     realResults.push({
                         maHS: r.maHS, hoTen: r.hoTen, lop: r.lop,
                         answers: r.answers || [], score: parseFloat(r.score) || 0,
@@ -4251,6 +4305,10 @@
                 let practiceResults = [];
                 Object.values(practiceObj).forEach(r => {
                     if (lop && r.lop !== lop) return;
+                    // Phân quyền GV: chỉ hiển kết quả lớp phụ trách
+                    if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                        if (!currentTeacher.allowedClasses.includes(r.lop)) return;
+                    }
                     practiceResults.push({
                         maHS: r.maHS, hoTen: r.hoTen, lop: r.lop,
                         answers: r.answers || [], score: parseFloat(r.score) || 0,
@@ -5810,6 +5868,7 @@
             firebaseStopListen('students');
             firebaseStopListen('results');
             firebaseStopListen('notifications');
+            currentTeacher = null;
             location.reload();
         }
 
