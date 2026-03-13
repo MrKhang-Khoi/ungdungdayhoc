@@ -2165,6 +2165,7 @@
                         <button class="btn btn-sm" onclick="toggleMoThiClass(true)" style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock-open"></i> Mở thi cả lớp</button>
                         <button class="btn btn-sm" onclick="toggleMoThiClass(false)" style="width:auto;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock"></i> Khóa thi cả lớp</button>
                         <button class="btn btn-sm" onclick="exportStudentsExcel()" style="width:auto;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-file-excel"></i> Tải Excel</button>
+                        <button class="btn btn-sm" id="btnDownloadClassFiles" onclick="downloadClassFiles()" style="width:auto;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-download"></i> Tải Bài làm HS</button>
                         <span id="moThiCountBadge" style="font-size:11px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"></span>
                     </div>
                 </div>
@@ -4748,7 +4749,7 @@
                 let closed = targetStudents.length - opened;
                 moThiBadge.innerHTML = `<i class="fas fa-info-circle"></i> Đã mở: <strong style="color:var(--success)">${opened}</strong> | Chưa mở: <strong style="color:var(--danger)">${closed}</strong>`;
             }
-            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mở thi</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:120px">Thao tác</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mở thi</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:150px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
                 // moThi badge
                 let moThiB = s.moThi
@@ -4785,6 +4786,10 @@
                 }
                 if (s.isLocked) {
                     html += `<button onclick="unlockStudent('${s.maHS}')" style="background:#7c3aed;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Mở khóa tài khoản"><i class="fas fa-lock-open"></i></button> `;
+                }
+                if (s.hasReal) {
+                    html += `<button onclick="downloadStudentFile('${s.maHS}','${s.lop.replace(/'/g,"\\'")}')"
+                        style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Tải bài làm"><i class="fas fa-download"></i></button> `;
                 }
                 html += `</td></tr>`;
             });
@@ -4922,6 +4927,80 @@
             let fileName = 'DanhSach_HS' + (classF ? '_' + classF : '') + '.xlsx';
             XLSX.writeFile(wb, fileName);
             showPopup('Thành công', 'Đã tải file <strong>' + fileName + '</strong> (' + students.length + ' HS)', 'success');
+        }
+
+        // ============== TẢI BÀI LÀM HỌC SINH ==============
+        async function downloadClassFiles() {
+            let classF = document.getElementById('manageClassFilter').value;
+            if (!classF) {
+                showPopup('Chọn lớp', 'Vui lòng chọn một lớp cụ thể để tải bài làm!', 'warning');
+                return;
+            }
+            let btn = document.getElementById('btnDownloadClassFiles');
+            let origHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang nén...';
+            try {
+                let params = { lop: classF };
+                if (currentTeacher) {
+                    if (currentTeacher.isAdmin) { params.isAdmin = 'true'; }
+                    else { params.maGV = currentTeacher.maGV; }
+                }
+                let resp = await apiCall('downloadClassFiles', params);
+                if (resp.success) {
+                    // Mở link tải
+                    window.open(resp.downloadUrl, '_blank');
+                    showPopup('Tải thành công', resp.message + '<br><small>File: ' + resp.fileName + '</small>', 'success');
+                    // Tự động xóa ZIP tạm sau 60 giây
+                    if (resp.zipFileId) {
+                        setTimeout(() => { _cleanupZip(resp.zipFileId); }, 60000);
+                    }
+                } else if (resp.folderUrl) {
+                    // Fallback: mở folder Drive
+                    showConfirmPopup('Mở Google Drive', resp.message + '<br><br>Nhấn <strong>Mở Drive</strong> để tải thủ công từ Google Drive.', () => {
+                        window.open(resp.folderUrl, '_blank');
+                    }, 'Mở Drive', 'Đóng', 'info');
+                } else {
+                    showPopup('Thông báo', resp.message || 'Chưa có file bài làm!', 'warning');
+                }
+            } catch (e) {
+                showPopup('Lỗi', 'Lỗi tải file: ' + e.message, 'error');
+            }
+            btn.disabled = false;
+            btn.innerHTML = origHTML;
+        }
+
+        async function downloadStudentFile(maHS, lop) {
+            showLoading();
+            try {
+                let params = { lop: lop, maHS: maHS };
+                if (currentTeacher) {
+                    if (currentTeacher.isAdmin) { params.isAdmin = 'true'; }
+                    else { params.maGV = currentTeacher.maGV; }
+                }
+                let resp = await apiCall('downloadStudentFiles', params);
+                hideLoading();
+                if (resp.success) {
+                    window.open(resp.downloadUrl, '_blank');
+                    // Xóa ZIP tạm sau 60 giây (nếu là ZIP, không phải direct file)
+                    if (resp.zipFileId) {
+                        setTimeout(() => { _cleanupZip(resp.zipFileId); }, 60000);
+                    }
+                } else if (resp.folderUrl) {
+                    showConfirmPopup('Mở Google Drive', resp.message, () => {
+                        window.open(resp.folderUrl, '_blank');
+                    }, 'Mở Drive', 'Đóng', 'info');
+                } else {
+                    showPopup('Thông báo', resp.message || 'Chưa có file!', 'warning');
+                }
+            } catch (e) {
+                hideLoading();
+                showPopup('Lỗi', 'Lỗi tải file HS ' + maHS + ': ' + e.message, 'error');
+            }
+        }
+
+        async function _cleanupZip(fileId) {
+            try { await apiCall('cleanupDownloadZip', { fileId: fileId }); } catch (e) { /* silent */ }
         }
 
         async function toggleExamStatus(maHS, value) {
