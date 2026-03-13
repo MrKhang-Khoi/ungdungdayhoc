@@ -5126,23 +5126,62 @@
             let btn = document.getElementById('btnExportExcel');
             let originalHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đồng bộ dữ liệu...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xuất...';
             try {
-                // Tự động sync Firebase → GGSheet trước khi xuất
-                try { await apiCall('syncFirebaseToSheet'); } catch (e) { console.log('Pre-sync warning:', e); }
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xuất Excel...';
-                let lop = document.getElementById('manageClassFilter')?.value || '';
-                let resp = await apiCall('exportResults', { lop });
-                if (resp.success && resp.downloadUrl) {
-                    window.open(resp.downloadUrl, '_blank');
-                    btn.innerHTML = '<i class="fas fa-check"></i> Đã xuất!';
-                    setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
-                } else {
-                    showPopup('Lỗi xuất Excel', resp.message || 'Không thể xuất kết quả!', 'error');
-                    btn.innerHTML = originalHtml;
+                if (!dashboardData || !dashboardData.results) {
+                    showPopup('Lỗi xuất Excel', 'Chưa có dữ liệu kết quả!', 'error');
+                    btn.disabled = false; btn.innerHTML = originalHtml;
+                    return;
                 }
+                let isPractice = _resultsSubTab === 'practice';
+                let results = isPractice ? (dashboardData.results.practiceResults || []) : (dashboardData.results.realResults || []);
+                if (!results.length) {
+                    showPopup('Lỗi xuất Excel', 'Không có dữ liệu kết quả để xuất!', 'error');
+                    btn.disabled = false; btn.innerHTML = originalHtml;
+                    return;
+                }
+                // Xây dựng header (tìm số câu tối đa)
+                let maxAnswers = 0;
+                results.forEach(r => { if (r.answers && r.answers.length > maxAnswers) maxAnswers = r.answers.length; });
+                if (maxAnswers === 0) maxAnswers = isPractice ? 16 : 8;
+
+                let header = ['STT', 'Mã HS', 'Họ tên', 'Lớp'];
+                if (isPractice) header.push('Lượt');
+                for (let i = 1; i <= maxAnswers; i++) header.push('C' + i);
+                header.push('Đúng', 'Sai', 'Điểm', 'Thời gian');
+
+                let rows = [header];
+                results.forEach((r, idx) => {
+                    let correctCount = 0, wrongCount = 0;
+                    let row = [idx + 1, r.maHS, r.hoTen, r.lop];
+                    if (isPractice) row.push(r.luot || '');
+                    for (let ci = 0; ci < maxAnswers; ci++) {
+                        let a = r.answers && r.answers[ci] ? r.answers[ci] : null;
+                        let displayChar = '';
+                        if (a && typeof a === 'object') {
+                            displayChar = (a.dapAnHS || '') + (a.ketQua === 'Đúng' ? '✓' : '✗');
+                            if (a.ketQua === 'Đúng') correctCount++; else wrongCount++;
+                        } else if (a && typeof a === 'string') {
+                            displayChar = a;
+                            if (a.includes('✓')) correctCount++; else if (a.length > 0) wrongCount++;
+                        }
+                        row.push(displayChar);
+                    }
+                    row.push(correctCount, wrongCount, r.score || 0, r.thoiGian || '');
+                    rows.push(row);
+                });
+
+                let ws = XLSX.utils.aoa_to_sheet(rows);
+                let wb = XLSX.utils.book_new();
+                let sheetName = isPractice ? 'Thi_Thu' : 'Thi_That';
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                let fileName = 'KetQua_' + sheetName + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+                XLSX.writeFile(wb, fileName);
+                showPopup('Thành công', 'Đã tải <strong>' + fileName + '</strong> (' + results.length + ' kết quả)', 'success');
+                btn.innerHTML = '<i class="fas fa-check"></i> Đã xuất!';
+                setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
             } catch (e) {
-                showPopup('Lỗi xuất Excel', 'Lỗi xuất Excel: ' + e.message, 'error');
+                showPopup('Lỗi xuất Excel', 'Lỗi: ' + e.message, 'error');
                 btn.innerHTML = originalHtml;
             }
             btn.disabled = false;
@@ -5522,47 +5561,47 @@
 
         // ===== FIREBASE SYNC HANDLERS =====
         async function doSyncSheetToFirebase() {
-            let btn = document.getElementById('btnSyncToFB');
+            let btn = document.getElementById('btnSyncToFB') || document.getElementById('btnHeaderSync');
             let msgEl = document.getElementById('syncMsg');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đồng bộ...';
-            msgEl.style.display = 'none';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đồng bộ...'; }
+            if (msgEl) msgEl.style.display = 'none';
             try {
                 let resp = await apiCall('syncSheetToFirebase');
                 if (resp.success) {
-                    msgEl.innerHTML = '✅ ' + resp.message;
-                    msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
+                    showPopup('Thành công', resp.message, 'success');
+                    if (msgEl) { msgEl.innerHTML = '✅ ' + resp.message; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)'; }
                 } else {
-                    msgEl.innerHTML = '❌ ' + (resp.message || 'Lỗi đồng bộ');
-                    msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                    showPopup('Lỗi', resp.message || 'Lỗi đồng bộ', 'error');
+                    if (msgEl) { msgEl.innerHTML = '❌ ' + (resp.message || 'Lỗi'); msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)'; }
                 }
             } catch (e) {
-                msgEl.innerHTML = '❌ Lỗi kết nối: ' + e.message;
-                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                showPopup('Lỗi', 'Lỗi kết nối: ' + e.message, 'error');
+                if (msgEl) { msgEl.innerHTML = '❌ Lỗi: ' + e.message; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)'; }
             }
-            btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> Push lên Firebase';
-            setTimeout(() => { msgEl.style.display = 'none'; }, 8000);
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> Push lên Firebase'; }
+            if (msgEl) setTimeout(() => { msgEl.style.display = 'none'; }, 8000);
         }
 
         async function doSyncFirebaseToSheet() {
-            let btn = document.getElementById('btnSyncToSheet');
+            let btn = document.getElementById('btnSyncToSheet') || document.getElementById('btnHeaderPull');
             let msgEl = document.getElementById('syncMsg');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đồng bộ...';
-            msgEl.style.display = 'none';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đồng bộ...'; }
+            if (msgEl) msgEl.style.display = 'none';
             try {
                 let resp = await apiCall('syncFirebaseToSheet');
                 if (resp.success) {
-                    msgEl.innerHTML = '✅ ' + resp.message;
-                    msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
+                    showPopup('Thành công', resp.message, 'success');
+                    if (msgEl) { msgEl.innerHTML = '✅ ' + resp.message; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)'; }
                 } else {
-                    msgEl.innerHTML = '❌ ' + (resp.message || 'Lỗi đồng bộ');
-                    msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                    showPopup('Lỗi', resp.message || 'Lỗi đồng bộ', 'error');
+                    if (msgEl) { msgEl.innerHTML = '❌ ' + (resp.message || 'Lỗi'); msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)'; }
                 }
             } catch (e) {
-                msgEl.innerHTML = '❌ Lỗi kết nối: ' + e.message;
-                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                showPopup('Lỗi', 'Lỗi kết nối: ' + e.message, 'error');
+                if (msgEl) { msgEl.innerHTML = '❌ Lỗi: ' + e.message; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)'; }
             }
-            btn.disabled = false; btn.innerHTML = '<i class="fas fa-download"></i> Pull về GGSheet';
-            setTimeout(() => { msgEl.style.display = 'none'; }, 8000);
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-download"></i> Pull về GGSheet'; }
+            if (msgEl) setTimeout(() => { msgEl.style.display = 'none'; }, 8000);
         }
 
         // ===== THÔNG BÁO (TEACHER → STUDENT) =====
