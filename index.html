@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ Thống Thi Trực Tuyến</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>" type="image/svg+xml">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>"
+        type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
@@ -1137,40 +1139,129 @@
 
         /* Mobile small (<=480px) */
         @media (max-width: 480px) {
-            .exam-header { flex-direction: column; gap: 8px; align-items: flex-start; }
-            .exam-header > div:last-child { width: 100%; display: flex; justify-content: flex-end; }
-            .exam-timer { font-size: 14px; padding: 8px 12px; }
-            .stepper { gap: 2px; }
-            .step-item { font-size: 10px; padding: 6px 8px; }
-            .step-item span:last-child { display: none; }
-            .question-nav { padding: 12px; }
-            .qnav-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-            .upload-zone { padding: 24px 16px; }
-            .upload-zone h3 { font-size: 14px; }
-            .nav-buttons { flex-direction: column; gap: 8px; }
-            .nav-buttons .btn { width: 100%; }
-            .success-container h2 { font-size: 20px; }
-            .success-icon { font-size: 56px; }
-            .dashboard .dash-tabs { gap: 2px; flex-wrap: wrap; }
-            .dashboard .tab-btn { font-size: 11px; padding: 6px 10px; }
-            .stat-cards { grid-template-columns: 1fr; gap: 8px; }
-            table { font-size: 11px; }
-            th, td { padding: 6px 8px; }
-            .exam-card { padding: 14px; }
-            .login-card { padding: 16px; margin: 10px; }
+            .exam-header {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+
+            .exam-header>div:last-child {
+                width: 100%;
+                display: flex;
+                justify-content: flex-end;
+            }
+
+            .exam-timer {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+
+            .stepper {
+                gap: 2px;
+            }
+
+            .step-item {
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+
+            .step-item span:last-child {
+                display: none;
+            }
+
+            .question-nav {
+                padding: 12px;
+            }
+
+            .qnav-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
+            .upload-zone {
+                padding: 24px 16px;
+            }
+
+            .upload-zone h3 {
+                font-size: 14px;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .nav-buttons .btn {
+                width: 100%;
+            }
+
+            .success-container h2 {
+                font-size: 20px;
+            }
+
+            .success-icon {
+                font-size: 56px;
+            }
+
+            .dashboard .dash-tabs {
+                gap: 2px;
+                flex-wrap: wrap;
+            }
+
+            .dashboard .tab-btn {
+                font-size: 11px;
+                padding: 6px 10px;
+            }
+
+            .stat-cards {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th,
+            td {
+                padding: 6px 8px;
+            }
+
+            .exam-card {
+                padding: 14px;
+            }
+
+            .login-card {
+                padding: 16px;
+                margin: 10px;
+            }
         }
 
         /* Tablet (481-768px) additional */
         @media (min-width: 481px) and (max-width: 768px) {
-            .qnav-grid { grid-template-columns: repeat(8, 1fr); }
-            .stat-cards { grid-template-columns: repeat(2, 1fr); }
-            .nav-buttons .btn { min-width: 140px; }
+            .qnav-grid {
+                grid-template-columns: repeat(8, 1fr);
+            }
+
+            .stat-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nav-buttons .btn {
+                min-width: 140px;
+            }
         }
 
         /* Table responsive */
         @media (max-width: 768px) {
-            .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            table { min-width: 600px; }
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+            }
         }
 
         /* Notification Toast - Bottom Right */
@@ -1385,20 +1476,55 @@
             backdrop-filter: blur(10px);
             animation: cheatFlash 0.5s ease;
         }
-        .cheat-overlay.show { display: flex; }
+
+        .cheat-overlay.show {
+            display: flex;
+        }
+
         @keyframes cheatFlash {
-            0% { opacity: 0; transform: scale(1.05); }
-            100% { opacity: 1; transform: scale(1); }
+            0% {
+                opacity: 0;
+                transform: scale(1.05);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
+
         .cheat-overlay .cheat-icon {
-            width: 100px; height: 100px; border-radius: 50%;
-            background: rgba(255,255,255,0.15);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 48px; animation: pulse 1.5s infinite;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            animation: pulse 1.5s infinite;
         }
-        .cheat-overlay h2 { color: #fff; font-size: 26px; margin: 0; }
-        .cheat-overlay p { color: rgba(255,255,255,0.85); font-size: 15px; max-width: 400px; text-align: center; line-height: 1.6; margin: 0; }
-        .cheat-overlay .cheat-count { color: #fca5a5; font-size: 13px; font-weight: 600; }
+
+        .cheat-overlay h2 {
+            color: #fff;
+            font-size: 26px;
+            margin: 0;
+        }
+
+        .cheat-overlay p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 15px;
+            max-width: 400px;
+            text-align: center;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .cheat-overlay .cheat-count {
+            color: #fca5a5;
+            font-size: 13px;
+            font-weight: 600;
+        }
 
         /* Session Kicked Overlay */
         .session-overlay {
@@ -1413,7 +1539,10 @@
             gap: 16px;
             backdrop-filter: blur(12px);
         }
-        .session-overlay.show { display: flex; }
+
+        .session-overlay.show {
+            display: flex;
+        }
 
         /* Countdown Timer */
         .exam-timer {
@@ -1428,10 +1557,30 @@
             letter-spacing: 1px;
             transition: all 0.3s;
         }
-        .exam-timer.active { display: flex; }
-        .exam-timer.normal { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
-        .exam-timer.warning { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid rgba(245,158,11,0.4); animation: pulse 1s infinite; }
-        .exam-timer.danger { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid rgba(239,68,68,0.4); animation: pulse 0.5s infinite; }
+
+        .exam-timer.active {
+            display: flex;
+        }
+
+        .exam-timer.normal {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .exam-timer.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            animation: pulse 1s infinite;
+        }
+
+        .exam-timer.danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            animation: pulse 0.5s infinite;
+        }
 
         /* Time Up Overlay */
         .timeup-overlay {
@@ -1446,7 +1595,10 @@
             gap: 16px;
             backdrop-filter: blur(10px);
         }
-        .timeup-overlay.show { display: flex; }
+
+        .timeup-overlay.show {
+            display: flex;
+        }
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1466,7 +1618,7 @@
         const db = firebase.database();
 
         // Catch ALL unhandled promise rejections (must be FIRST, before any Firebase ops)
-        window.addEventListener('unhandledrejection', function(event) {
+        window.addEventListener('unhandledrejection', function (event) {
             // Suppress Firebase 403 errors from app AND browser extensions
             if (event.reason && (event.reason.code === 403 || event.reason.code === 'PERMISSION_DENIED')) {
                 event.preventDefault();
@@ -1547,7 +1699,8 @@
         <div style="text-align:center;animation:slideUp .4s ease">
             <div style="font-size:80px;margin-bottom:16px">&#9200;</div>
             <h2 style="color:#fff;font-size:28px;margin-bottom:8px">H&#7871;t th&#7901;i gian!</h2>
-            <p style="color:rgba(255,255,255,0.85);font-size:16px;line-height:1.6">B&#224;i thi s&#7869; &#273;&#432;&#7907;c <strong>t&#7921; &#273;&#7897;ng n&#7897;p</strong> trong gi&#226;y l&#225;t...</p>
+            <p style="color:rgba(255,255,255,0.85);font-size:16px;line-height:1.6">B&#224;i thi s&#7869;
+                &#273;&#432;&#7907;c <strong>t&#7921; &#273;&#7897;ng n&#7897;p</strong> trong gi&#226;y l&#225;t...</p>
         </div>
     </div>
 
@@ -1629,8 +1782,12 @@
                             style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px"></div>
                     </div>
                     <div style="display:flex;gap:6px;align-items:center">
-                        <button class="btn btn-sm" id="btnStudyOnExam" onclick="openStudyMaterials()" style="display:none;width:auto;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-radius:8px"><i class="fas fa-book-reader"></i> Ôn tập</button>
-                        <button class="btn btn-danger btn-sm" onclick="confirmLogout()" style="width:auto;padding:6px 14px;font-size:12px"><i class="fas fa-sign-out-alt"></i> Thoát</button>
+                        <button class="btn btn-sm" id="btnStudyOnExam" onclick="openStudyMaterials()"
+                            style="display:none;width:auto;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-radius:8px"><i
+                                class="fas fa-book-reader"></i> Ôn tập</button>
+                        <button class="btn btn-danger btn-sm" onclick="confirmLogout()"
+                            style="width:auto;padding:6px 14px;font-size:12px"><i class="fas fa-sign-out-alt"></i>
+                            Thoát</button>
                     </div>
                 </div>
                 <!-- Countdown Timer -->
@@ -1782,29 +1939,36 @@
         <h2>CẢNH BÁO!</h2>
         <p>Bạn đã rời khỏi trang thi!<br>Hành vi này đã được <strong>ghi nhận</strong> và gửi về giáo viên.</p>
         <div class="cheat-count" id="cheatCountText">Vi phạm: 1 lần</div>
-        <button class="btn btn-primary" onclick="dismissCheatWarning()" style="width:auto;padding:12px 32px;font-size:15px;margin-top:8px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4)">
+        <button class="btn btn-primary" onclick="dismissCheatWarning()"
+            style="width:auto;padding:12px 32px;font-size:15px;margin-top:8px;background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4)">
             <i class="fas fa-arrow-left"></i> Quay lại làm bài
         </button>
     </div>
 
     <!-- ==================== OVERLAY BỊ ĐÁ PHIÊN ==================== -->
     <div class="session-overlay" id="sessionKickedOverlay">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:420px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
-            <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(239,68,68,0.35)">
+        <div
+            style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:420px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+            <div
+                style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(239,68,68,0.35)">
                 <i class="fas fa-user-slash" style="font-size:36px;color:#fff"></i>
             </div>
-            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">Phiên đăng nhập đã hết!</h2>
+            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">Phiên đăng
+                nhập đã hết!</h2>
             <p style="color:var(--text2);font-size:13px;line-height:1.7;margin:0 0 24px">
                 Tài khoản của bạn đã được đăng nhập trên <strong style="color:var(--text)">thiết bị khác</strong>.<br>
                 Mỗi tài khoản chỉ cho phép đăng nhập trên 1 thiết bị.
             </p>
-            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:12px 16px;margin:0 0 24px">
+            <div
+                style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:12px 16px;margin:0 0 24px">
                 <p style="color:var(--text2);font-size:12px;margin:0;line-height:1.7">
                     <i class="fas fa-info-circle" style="color:var(--danger);margin-right:4px"></i>
-                    Nếu bạn không đăng nhập ở thiết bị nào khác, hãy <strong style="color:var(--danger)">liên hệ thầy/cô giáo</strong> ngay.
+                    Nếu bạn không đăng nhập ở thiết bị nào khác, hãy <strong style="color:var(--danger)">liên hệ thầy/cô
+                        giáo</strong> ngay.
                 </p>
             </div>
-            <button class="btn btn-primary" onclick="location.reload()" style="width:100%;padding:14px;font-size:15px;font-weight:700;border-radius:12px;box-shadow:0 4px 15px rgba(99,102,241,0.3)">
+            <button class="btn btn-primary" onclick="location.reload()"
+                style="width:100%;padding:14px;font-size:15px;font-weight:700;border-radius:12px;box-shadow:0 4px 15px rgba(99,102,241,0.3)">
                 <i class="fas fa-home" style="margin-right:6px"></i> Về trang chủ
             </button>
         </div>
@@ -1812,34 +1976,46 @@
 
     <!-- ==================== OVERLAY CHỜ XUNG ĐỘT ĐĂNG NHẬP (Student B) ==================== -->
     <div class="session-overlay" id="loginConflictWaitOverlay">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:420px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+        <div
+            style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:420px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
             <!-- Icon -->
-            <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(245,158,11,0.35)">
+            <div
+                style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(245,158,11,0.35)">
                 <i class="fas fa-user-lock" style="font-size:36px;color:#fff"></i>
             </div>
             <!-- Title -->
-            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">Tài khoản đang được sử dụng</h2>
+            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">Tài khoản
+                đang được sử dụng</h2>
             <p style="color:var(--text2);font-size:13px;line-height:1.7;margin:0 0 24px">
                 Tài khoản này <strong style="color:var(--text)">đang đăng nhập trên thiết bị khác</strong>.<br>
                 Hệ thống đang gửi xác nhận đến thiết bị đó...
             </p>
             <!-- Status card -->
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:20px;margin:0 0 24px">
+            <div
+                style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:20px;margin:0 0 24px">
                 <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px">
-                    <div style="width:10px;height:10px;border-radius:50%;background:var(--warning);animation:livePulse 1.5s ease-in-out infinite;flex-shrink:0"></div>
-                    <span id="loginConflictWaitStatus" style="color:var(--warning);font-size:13px;font-weight:700">Đang chờ phản hồi...</span>
+                    <div
+                        style="width:10px;height:10px;border-radius:50%;background:var(--warning);animation:livePulse 1.5s ease-in-out infinite;flex-shrink:0">
+                    </div>
+                    <span id="loginConflictWaitStatus" style="color:var(--warning);font-size:13px;font-weight:700">Đang
+                        chờ phản hồi...</span>
                 </div>
-                <div id="loginConflictTimer" style="font-size:40px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;line-height:1">01:00</div>
+                <div id="loginConflictTimer"
+                    style="font-size:40px;font-weight:900;color:var(--text);font-variant-numeric:tabular-nums;line-height:1">
+                    01:00</div>
             </div>
             <!-- Help text -->
-            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px 16px;margin:0 0 24px">
+            <div
+                style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:12px 16px;margin:0 0 24px">
                 <p style="color:var(--text2);font-size:12px;margin:0;line-height:1.7">
-                    Nếu đây là tài khoản của em, hãy <strong style="color:var(--warning)">liên hệ thầy/cô giáo</strong> để được hỗ trợ.<br>
+                    Nếu đây là tài khoản của em, hãy <strong style="color:var(--warning)">liên hệ thầy/cô giáo</strong>
+                    để được hỗ trợ.<br>
                     Hệ thống sẽ tự động xử lý nếu không có phản hồi.
                 </p>
             </div>
             <!-- Button -->
-            <button class="btn" onclick="cancelLoginConflict()" style="width:100%;padding:13px;font-size:14px;font-weight:600;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:12px">
+            <button class="btn" onclick="cancelLoginConflict()"
+                style="width:100%;padding:13px;font-size:14px;font-weight:600;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:12px">
                 <i class="fas fa-arrow-left" style="margin-right:6px"></i> Quay lại đăng nhập
             </button>
         </div>
@@ -1847,31 +2023,40 @@
 
     <!-- ==================== OVERLAY CẢNH BÁO ĐĂNG NHẬP (Student A đang thi) ==================== -->
     <div class="session-overlay" id="loginConflictAlertOverlay">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:440px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+        <div
+            style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;max-width:440px;width:90%;text-align:center;animation:slideUp .4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
             <!-- Icon với pulse -->
-            <div style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(239,68,68,0.35);animation:livePulse 1.5s ease-in-out infinite">
+            <div
+                style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#b91c1c);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;box-shadow:0 8px 32px rgba(239,68,68,0.35);animation:livePulse 1.5s ease-in-out infinite">
                 <i class="fas fa-exclamation-triangle" style="font-size:36px;color:#fff"></i>
             </div>
             <!-- Title -->
-            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">⚠️ Phát hiện đăng nhập!</h2>
+            <h2 style="color:var(--text);font-size:20px;font-weight:800;margin:0 0 8px;letter-spacing:-0.3px">⚠️ Phát
+                hiện đăng nhập!</h2>
             <p style="color:var(--text2);font-size:13px;line-height:1.7;margin:0 0 20px">
-                Có người đang cố đăng nhập vào tài khoản này từ <strong style="color:var(--text)">thiết bị khác</strong>.
+                Có người đang cố đăng nhập vào tài khoản này từ <strong style="color:var(--text)">thiết bị
+                    khác</strong>.
             </p>
             <!-- Warning card -->
-            <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px;margin:0 0 20px">
+            <div
+                style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:16px;margin:0 0 20px">
                 <p style="color:var(--danger);font-size:13px;margin:0;font-weight:700;line-height:1.7">
                     <i class="fas fa-shield-alt" style="margin-right:4px"></i>
                     Nếu tài khoản <u>KHÔNG PHẢI</u> của em,<br>đề nghị <strong>Đăng xuất ngay</strong>!
                 </p>
             </div>
             <!-- Countdown -->
-            <div id="loginConflictAlertTimer" style="font-size:15px;font-weight:700;color:var(--warning);margin:0 0 24px;padding:10px;background:rgba(245,158,11,0.08);border-radius:10px"></div>
+            <div id="loginConflictAlertTimer"
+                style="font-size:15px;font-weight:700;color:var(--warning);margin:0 0 24px;padding:10px;background:rgba(245,158,11,0.08);border-radius:10px">
+            </div>
             <!-- Buttons -->
             <div style="display:flex;flex-direction:column;gap:10px">
-                <button class="btn" onclick="confirmMyAccount()" style="width:100%;padding:14px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:12px;box-shadow:0 4px 15px rgba(16,185,129,0.3)">
+                <button class="btn" onclick="confirmMyAccount()"
+                    style="width:100%;padding:14px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;border-radius:12px;box-shadow:0 4px 15px rgba(16,185,129,0.3)">
                     <i class="fas fa-check-circle" style="margin-right:6px"></i> Đúng, tài khoản của tôi
                 </button>
-                <button class="btn" onclick="denyMyAccount()" style="width:100%;padding:14px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:12px;box-shadow:0 4px 15px rgba(239,68,68,0.3)">
+                <button class="btn" onclick="denyMyAccount()"
+                    style="width:100%;padding:14px;font-size:15px;font-weight:700;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:12px;box-shadow:0 4px 15px rgba(239,68,68,0.3)">
                     <i class="fas fa-sign-out-alt" style="margin-right:6px"></i> Không phải, đăng xuất
                 </button>
             </div>
@@ -1943,7 +2128,8 @@
                     báo</button>
                 <button class="main-tab" onclick="switchMainTab('settings', event)"><i class="fas fa-cog"></i> Cài
                     đặt</button>
-                <button class="main-tab" onclick="switchMainTab('studymaterials', event)"><i class="fas fa-book-open"></i> Tài liệu</button>
+                <button class="main-tab" onclick="switchMainTab('studymaterials', event)"><i
+                        class="fas fa-book-open"></i> Tài liệu</button>
             </div>
 
             <!-- ===== TAB: Quản lý HS ===== -->
@@ -2023,7 +2209,8 @@
             <!-- ===== TAB: Kết quả ===== -->
             <div id="tabResults" style="display:none">
                 <!-- Sub-tabs: Thi thật vs Thi thử -->
-                <div style="display:flex;gap:6px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px">
+                <div
+                    style="display:flex;gap:6px;margin-bottom:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px">
                     <button class="btn btn-sm" id="subTabReal" onclick="switchResultsSubTab('real')"
                         style="flex:1;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;transition:.3s;border:none;cursor:pointer;background:var(--primary);color:#fff">
                         <i class="fas fa-file-alt"></i> Thi Thật
@@ -2153,34 +2340,53 @@
 
             <!-- ===== TAB: Tài liệu ôn tập ===== -->
             <div id="tabStudymaterials" style="display:none">
-                <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:800px;margin:0 auto">
-                    <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-book-open" style="color:var(--primary)"></i> Quản lý tài liệu ôn tập</h3>
-                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">📚 Tài liệu sẽ hiển thị cho học sinh khi ở chế độ <strong>Thi Thử</strong>. Khi thi thật, tài liệu bị ẩn hoàn toàn.</p>
+                <div
+                    style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:800px;margin:0 auto">
+                    <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i
+                            class="fas fa-book-open" style="color:var(--primary)"></i> Quản lý tài liệu ôn tập</h3>
+                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">📚 Tài liệu sẽ hiển thị cho học sinh
+                        khi ở chế độ <strong>Thi Thử</strong>. Khi thi thật, tài liệu bị ẩn hoàn toàn.</p>
 
                     <!-- Add new material -->
-                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
-                        <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i class="fas fa-plus-circle"></i> Thêm tài liệu mới</h4>
+                    <div
+                        style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+                        <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i
+                                class="fas fa-plus-circle"></i> Thêm tài liệu mới</h4>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu đề</label>
-                            <input type="text" id="smTitle" placeholder="VD: Bộ nhớ máy tính" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Danh mục</label>
-                            <input type="text" id="smCategory" placeholder="VD: Phần cứng" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu
+                                    đề</label>
+                                <input type="text" id="smTitle" placeholder="VD: Bộ nhớ máy tính"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            </div>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Danh
+                                    mục</label>
+                                <input type="text" id="smCategory" placeholder="VD: Phần cứng"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            </div>
                         </div>
-                        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nội dung kiến thức</label>
-                        <textarea id="smContent" rows="4" placeholder="Nhập nội dung kiến thức ôn tập cho học sinh..." style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+                        <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nội dung kiến
+                            thức</label>
+                        <textarea id="smContent" rows="4" placeholder="Nhập nội dung kiến thức ôn tập cho học sinh..."
+                            style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
                         <div style="margin-top:10px">
-                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">📎 Đính kèm file (Word/PDF, tối đa 10MB) — tùy chọn</label>
-                            <input type="file" id="smFile" accept=".doc,.docx,.pdf,.ppt,.pptx,.xls,.xlsx" style="font-size:12px;color:var(--text2)">
+                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">📎 Đính kèm
+                                file (Word/PDF, tối đa 10MB) — tùy chọn</label>
+                            <input type="file" id="smFile" accept=".doc,.docx,.pdf,.ppt,.pptx,.xls,.xlsx"
+                                style="font-size:12px;color:var(--text2)">
                         </div>
                         <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
-                            <button class="btn btn-primary" id="btnAddSM" onclick="addStudyMaterial()" style="width:auto;padding:8px 20px;font-size:13px"><i class="fas fa-plus"></i> Thêm tài liệu</button>
+                            <button class="btn btn-primary" id="btnAddSM" onclick="addStudyMaterial()"
+                                style="width:auto;padding:8px 20px;font-size:13px"><i class="fas fa-plus"></i> Thêm tài
+                                liệu</button>
                         </div>
-                        <div id="smMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
+                        <div id="smMsg"
+                            style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
                     </div>
 
                     <!-- Materials list -->
                     <div id="smListContainer">
-                        <div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                        <div style="text-align:center;padding:30px;color:var(--text2)"><i
+                                class="fas fa-spinner fa-spin"></i> Đang tải...</div>
                     </div>
                 </div>
             </div>
@@ -2215,7 +2421,8 @@
                         <div>
                             <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-shield-alt"
                                     style="color:var(--danger);margin-right:6px"></i> Chống gian lận</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Phát hiện HS chuyển tab/ẩn cửa sổ, cảnh báo + ghi log</p>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Phát hiện HS chuyển tab/ẩn cửa sổ,
+                                cảnh báo + ghi log</p>
                         </div>
                         <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
                             <input type="checkbox" id="toggleAntiCheat" onchange="toggleAntiCheatSetting()"
@@ -2233,7 +2440,8 @@
                         <div>
                             <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-poll"
                                     style="color:var(--success);margin-right:6px"></i> HS xem kết quả (thi thật)</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Cho phép HS xem kết quả sau khi nộp bài trong chế độ thi thật</p>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Cho phép HS xem kết quả sau khi nộp
+                                bài trong chế độ thi thật</p>
                         </div>
                         <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
                             <input type="checkbox" id="toggleViewResults" onchange="toggleViewResultsSetting()"
@@ -2251,7 +2459,8 @@
                         <div style="flex:1">
                             <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-clock"
                                     style="color:var(--primary);margin-right:6px"></i> Giới hạn thời gian</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Bật để giới hạn thời gian làm bài. Khi hết giờ, hệ thống tự động nộp bài.</p>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Bật để giới hạn thời gian làm bài. Khi
+                                hết giờ, hệ thống tự động nộp bài.</p>
                         </div>
                         <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
                             <input type="checkbox" id="toggleTimerMode" onchange="toggleTimerMode()"
@@ -2262,13 +2471,17 @@
                                 style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
                         </label>
                     </div>
-                    <div id="timerInputArea" style="display:none;margin-top:8px;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
-                        <label style="font-size:12px;color:var(--text2);margin-bottom:6px;display:block">Thời gian làm bài (phút):</label>
+                    <div id="timerInputArea"
+                        style="display:none;margin-top:8px;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border)">
+                        <label style="font-size:12px;color:var(--text2);margin-bottom:6px;display:block">Thời gian làm
+                            bài (phút):</label>
                         <div style="display:flex;align-items:center;gap:8px">
                             <input type="number" id="timerMinutesInput" value="45" min="1" max="180" step="1"
                                 style="width:100px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:16px;font-weight:700;text-align:center;font-family:inherit">
                             <span style="color:var(--text2);font-size:13px">phút</span>
-                            <button class="btn btn-primary btn-sm" onclick="saveTimerSettings()" style="width:auto;padding:8px 16px;font-size:12px;margin-left:auto"><i class="fas fa-save"></i> Lưu</button>
+                            <button class="btn btn-primary btn-sm" onclick="saveTimerSettings()"
+                                style="width:auto;padding:8px 16px;font-size:12px;margin-left:auto"><i
+                                    class="fas fa-save"></i> Lưu</button>
                         </div>
                     </div>
 
@@ -2428,7 +2641,8 @@
                         trắc nghiệm, không cần tải file. Được thi tối đa 5 lần và xem kết quả ngay!</p>
                 </div>
                 <div id="examGuideStudyBtn" style="display:none;margin-top:4px">
-                    <button class="btn" onclick="closeExamGuide();openStudyMaterials()" style="width:100%;padding:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:15px;font-weight:600;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px">
+                    <button class="btn" onclick="closeExamGuide();openStudyMaterials()"
+                        style="width:100%;padding:14px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;font-size:15px;font-weight:600;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px">
                         <i class="fas fa-book-reader" style="font-size:18px"></i> 📚 Ôn tập kiến thức trước khi thi
                     </button>
                 </div>
@@ -2446,14 +2660,22 @@
     </div>
 
     <!-- Modal Tài liệu ôn tập cho HS -->
-    <div id="studyMaterialsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10002;align-items:center;justify-content:center;padding:20px">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:28px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,0.5)">
+    <div id="studyMaterialsModal"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10002;align-items:center;justify-content:center;padding:20px">
+        <div
+            style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:28px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,0.5)">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-                <h2 style="margin:0;font-size:20px;display:flex;align-items:center;gap:10px"><span style="font-size:28px">📚</span> Tài liệu ôn tập</h2>
-                <button onclick="closeStudyMaterials()" style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer"><i class="fas fa-times"></i></button>
+                <h2 style="margin:0;font-size:20px;display:flex;align-items:center;gap:10px"><span
+                        style="font-size:28px">📚</span> Tài liệu ôn tập</h2>
+                <button onclick="closeStudyMaterials()"
+                    style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer"><i
+                        class="fas fa-times"></i></button>
             </div>
             <div id="studyMaterialsContent" style="margin-bottom:20px">
-                <div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải tài liệu...</p></div>
+                <div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"
+                        style="font-size:24px"></i>
+                    <p style="margin-top:8px">Đang tải tài liệu...</p>
+                </div>
             </div>
             <button class="btn btn-primary" onclick="closeStudyMaterials()" style="font-size:15px;padding:14px">
                 <i class="fas fa-play-circle"></i> Đóng & Bắt đầu làm bài
@@ -2644,7 +2866,7 @@
                         return;
                     } else {
                         // Stale lock (> 2h) → safe to auto-unlock
-                        try { await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                        try { await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null }); } catch (e) { }
                     }
                 }
 
@@ -2736,8 +2958,8 @@
                         showScreen('examScreen');
                         startStudentNotifListener();
                         startStudentHeartbeat();
-                        try { await startAntiCheat(); } catch(e) {}
-                        try { await startSessionManagement(); } catch(e) {}
+                        try { await startAntiCheat(); } catch (e) { }
+                        try { await startSessionManagement(); } catch (e) { }
                         initExamTimer();
                         showExamGuide();
                         // Load questions AFTER screen is shown (same as practice mode)
@@ -2803,7 +3025,7 @@
                 // ===== FIREBASE TEACHER LOGIN (SHA-256) =====
                 let settings = await firebaseRead('settings') || {};
                 let inputHash = await sha256(pass);
-                
+
                 // So sánh hash: nếu chưa có hash trong Firebase, tạo hash từ mật khẩu hiện tại và lưu lại
                 if (settings.teacherPasswordHash) {
                     // Đã có hash → so sánh
@@ -2819,7 +3041,7 @@
                     if (pass === oldPass) {
                         // Đăng nhập thành công → tự động chuyển sang hash
                         let newHash = await sha256(pass);
-                        await firebaseUpdate('settings', { 
+                        await firebaseUpdate('settings', {
                             teacherPasswordHash: newHash,
                             teacherPassword: null // Xóa mật khẩu plaintext
                         });
@@ -2842,7 +3064,7 @@
             showConfirmPopup('Thoát bài thi?', 'Bài thi chưa nộp sẽ không được lưu! Bạn có chắc muốn thoát?', async () => {
                 // Unlock session before logout
                 if (currentStudent && currentStudent.maHS) {
-                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch(e) {}
+                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch (e) { }
                 }
                 location.reload();
             }, 'Thoát', 'Tiếp tục thi');
@@ -2881,7 +3103,7 @@
                             let count = Math.min(8, questionsArr.length);
                             examQuestions = questionsArr.slice(0, count);
                             let newSTTs = examQuestions.map(q => q.stt);
-                            try { await firebaseUpdate('students/' + currentStudent.maHS, { assignedQuestions: newSTTs }); } catch (e) {}
+                            try { await firebaseUpdate('students/' + currentStudent.maHS, { assignedQuestions: newSTTs }); } catch (e) { }
                         }
                         // Khôi phục thứ tự đáp án đã lưu
                         let savedAnswerOrder = studentData.assignedAnswerOrder;
@@ -3241,14 +3463,14 @@
                             } else {
                                 updateSubmitOverlay('⚠️ Chưa xác nhận được file', 'Bài trắc nghiệm đã nộp OK. Liên hệ GV về file: ' + (uploadResult.error || ''), 95);
                                 // Log upload failure to Firebase
-                                try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: uploadResult.error }); } catch(e) {}
+                                try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: uploadResult.error }); } catch (e) { }
                             }
                             await new Promise(r => setTimeout(r, 800));
                         } catch (fe) {
                             clearInterval(progressInterval);
                             console.log('File upload error:', fe);
                             updateSubmitOverlay('⚠️ Lỗi tải file', 'Bài trắc nghiệm đã nộp thành công. Liên hệ GV về file thực hành.', 95);
-                            try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: fe.message }); } catch(e) {}
+                            try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: fe.message }); } catch (e) { }
                             await new Promise(r => setTimeout(r, 2500));
                         }
                     }
@@ -3261,7 +3483,7 @@
                     stopExamTimer();
                     clearExamBackup(currentStudent.maHS);
                     // Clear Firebase answer backup & unlock session after submit
-                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null, savedAnswers: null, savedAnswersTime: null }); } catch(e) {}
+                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null, savedAnswers: null, savedAnswersTime: null }); } catch (e) { }
 
                     if (isPracticeMode && resp.isPractice) {
                         showPracticeResults(resp);
@@ -3519,7 +3741,7 @@
                 // Read results from Firebase
                 let resultsObj = await firebaseRead('results') || {};
                 let myResults = Object.values(resultsObj).filter(r => r.maHS === currentStudent.maHS);
-                
+
                 // Also read questions for detail view
                 let questionsObj = await firebaseRead('questions') || {};
 
@@ -3808,7 +4030,7 @@
                     goToStep(1);
                 },
                 'Khôi phục', 'Bắt đầu mới', 'info',
-                () => { clearExamBackup(currentStudent.maHS); try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(()=>{}); } catch(e) {} }
+                () => { clearExamBackup(currentStudent.maHS); try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(() => { }); } catch (e) { } }
             );
         }
 
@@ -4778,7 +5000,7 @@
                     stopSessionManagement();
                     clearExamBackup(currentStudent.maHS);
                     // Clear Firebase answer backup too
-                    try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(()=>{}); } catch(e) {}
+                    try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(() => { }); } catch (e) { }
                     if (isPracticeMode && resp.isPractice) {
                         showPracticeResults(resp);
                     } else {
@@ -4912,16 +5134,16 @@
                             isLocked: false,
                             lockedAt: null
                         });
-                    } catch(e) {}
+                    } catch (e) { }
                 }
                 // Give Firebase enough time to flush the write before going offline
-                setTimeout(() => { try { db.goOffline(); } catch(e) {} }, 1500);
+                setTimeout(() => { try { db.goOffline(); } catch (e) { } }, 1500);
             });
         }
         function _sendHeartbeat() {
             if (!currentStudent || !currentStudent.maHS) return;
             try {
-                firebaseUpdate('students/' + currentStudent.maHS, { lastSeen: Date.now() }).catch(() => {});
+                firebaseUpdate('students/' + currentStudent.maHS, { lastSeen: Date.now() }).catch(() => { });
             } catch (e) { /* silent */ }
         }
         function stopStudentHeartbeat() {
@@ -5380,10 +5602,10 @@
                         type: type,
                         timestamp: Date.now(),
                         count: _cheatCount
-                    }).catch(() => {});
+                    }).catch(() => { });
                     firebaseUpdate('students/' + currentStudent.maHS, {
                         cheatingCount: _cheatCount
-                    }).catch(() => {});
+                    }).catch(() => { });
                 } catch (e) { /* silent */ }
             }
         }
@@ -5411,7 +5633,7 @@
                 await firebaseUpdate('students/' + currentStudent.maHS, {
                     sessionId: _currentSessionId
                 });
-            } catch(e) { console.warn('Session write error:', e); }
+            } catch (e) { console.warn('Session write error:', e); }
 
             // Listen for session changes (real-time)
             firebaseListen('students/' + currentStudent.maHS + '/sessionId', (newSessionId) => {
@@ -5452,7 +5674,7 @@
             _currentSessionId = null; // Prevent further checks
             // Unlock session
             if (currentStudent && currentStudent.maHS) {
-                firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }).catch(() => {});
+                firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }).catch(() => { });
             }
             // Show kicked overlay
             let overlay = document.getElementById('sessionKickedOverlay');
@@ -5535,7 +5757,7 @@
                 await firebaseUpdate('students/' + maHS, {
                     isLocked: false, lockedAt: null, loginRequest: null
                 });
-            } catch (e) {}
+            } catch (e) { }
 
             _cleanupConflictWait(maHS);
 
@@ -5551,7 +5773,7 @@
         function cancelLoginConflict() {
             if (_conflictWaitMaHS) {
                 // Cancel the login request
-                try { firebaseUpdate('students/' + _conflictWaitMaHS, { loginRequest: null }).catch(() => {}); } catch(e) {}
+                try { firebaseUpdate('students/' + _conflictWaitMaHS, { loginRequest: null }).catch(() => { }); } catch (e) { }
                 _cleanupConflictWait(_conflictWaitMaHS);
             }
             let overlay = document.getElementById('loginConflictWaitOverlay');
@@ -5589,7 +5811,7 @@
                     o3.frequency.value = 1100; o3.type = 'square';
                     o3.start(); o3.stop(ctx.currentTime + 0.3);
                 }, 500);
-            } catch(e) {}
+            } catch (e) { }
 
             // Countdown in the alert overlay
             let timerEl = document.getElementById('loginConflictAlertTimer');
@@ -5616,10 +5838,10 @@
             if (currentStudent && currentStudent.maHS) {
                 firebaseUpdate('students/' + currentStudent.maHS, {
                     'loginRequest/status': 'denied'
-                }).catch(() => {});
+                }).catch(() => { });
                 // Clean up loginRequest after a delay
                 setTimeout(() => {
-                    firebaseUpdate('students/' + currentStudent.maHS, { loginRequest: null }).catch(() => {});
+                    firebaseUpdate('students/' + currentStudent.maHS, { loginRequest: null }).catch(() => { });
                 }, 3000);
             }
             let overlay = document.getElementById('loginConflictAlertOverlay');
@@ -5633,7 +5855,7 @@
             if (currentStudent && currentStudent.maHS) {
                 firebaseUpdate('students/' + currentStudent.maHS, {
                     'loginRequest/status': 'approved'
-                }).catch(() => {});
+                }).catch(() => { });
             }
             let overlay = document.getElementById('loginConflictAlertOverlay');
             if (overlay) overlay.classList.remove('show');
