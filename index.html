@@ -2155,10 +2155,11 @@
                         <span id="manageCount"
                             style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></span>
                     </div>
-                    <!-- Nút Mở/Khóa cả lớp -->
-                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap" id="bulkMoThiBar">
+                    <!-- Nút Mở/Khóa cả lớp + Xuất Excel -->
+                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center" id="bulkMoThiBar">
                         <button class="btn btn-sm" onclick="toggleMoThiClass(true)" style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock-open"></i> Mở thi cả lớp</button>
                         <button class="btn btn-sm" onclick="toggleMoThiClass(false)" style="width:auto;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock"></i> Khóa thi cả lớp</button>
+                        <button class="btn btn-sm" onclick="exportStudentsExcel()" style="width:auto;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-file-excel"></i> Tải Excel</button>
                         <span id="moThiCountBadge" style="font-size:11px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"></span>
                     </div>
                 </div>
@@ -2373,16 +2374,23 @@
                         style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
                         <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i
                                 class="fas fa-plus-circle"></i> Thêm tài liệu mới</h4>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu
-                                    đề</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu đề</label>
                                 <input type="text" id="smTitle" placeholder="VD: Bộ nhớ máy tính"
                                     style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                             </div>
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Danh
-                                    mục</label>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Danh mục</label>
                                 <input type="text" id="smCategory" placeholder="VD: Phần cứng"
                                     style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            </div>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Khối</label>
+                                <select id="smKhoi" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                                    <option value="">Tất cả khối</option>
+                                    <option value="6">Khối 6</option>
+                                    <option value="7">Khối 7</option>
+                                    <option value="8">Khối 8</option>
+                                    <option value="9">Khối 9</option>
+                                </select>
                             </div>
                         </div>
                         <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Nội dung kiến
@@ -4764,6 +4772,53 @@
             }, value ? 'Mở cả lớp' : 'Khóa cả lớp', 'Hủy');
         }
 
+        function exportStudentsExcel() {
+            if (!dashboardData || !dashboardData.students || !dashboardData.students.length) {
+                showPopup('Chưa có dữ liệu', 'Chưa có dữ liệu học sinh để xuất!', 'warning');
+                return;
+            }
+            // Lấy danh sách đã lọc (giống renderManageTable)
+            let search = (document.getElementById('manageSearch').value || '').toLowerCase();
+            let classF = document.getElementById('manageClassFilter').value;
+            let statusF = document.getElementById('manageStatusFilter').value;
+            let students = dashboardData.students.filter(s => {
+                if (search && !s.hoTen.toLowerCase().includes(search) && !s.maHS.toLowerCase().includes(search)) return false;
+                if (classF && s.lop !== classF) return false;
+                if (statusF === 'tested_real' && !s.hasReal) return false;
+                if (statusF === 'tested_practice' && !s.hasPractice) return false;
+                if (statusF === 'tested_both' && (!s.hasReal || !s.hasPractice)) return false;
+                if (statusF === 'nottested' && (s.hasReal || s.hasPractice)) return false;
+                return true;
+            });
+            if (!students.length) {
+                showPopup('Không có dữ liệu', 'Không có học sinh phù hợp bộ lọc hiện tại!', 'warning');
+                return;
+            }
+            // Build data
+            let rows = [['STT', 'Mã HS', 'Họ tên', 'Lớp', 'Mở thi', 'Thi thật', 'Thi thử', 'Số lượt thử']];
+            students.forEach((s, idx) => {
+                rows.push([
+                    idx + 1,
+                    s.maHS,
+                    s.hoTen,
+                    s.lop,
+                    s.moThi ? 'Đã mở' : 'Chưa mở',
+                    s.hasReal ? 'Đã thi' : 'Chưa thi',
+                    s.hasPractice ? 'Đã thi' : 'Chưa thi',
+                    s.practiceCount || 0
+                ]);
+            });
+            let ws = XLSX.utils.aoa_to_sheet(rows);
+            // Column widths
+            ws['!cols'] = [{ wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 12 }];
+            let wb = XLSX.utils.book_new();
+            let sheetName = classF ? ('Lop_' + classF) : 'Tat_ca';
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            let fileName = 'DanhSach_HS' + (classF ? '_' + classF : '') + '.xlsx';
+            XLSX.writeFile(wb, fileName);
+            showPopup('Thành công', 'Đã tải file <strong>' + fileName + '</strong> (' + students.length + ' HS)', 'success');
+        }
+
         async function toggleExamStatus(maHS, value) {
             let msg = value === 'X' ? 'Đánh dấu học sinh này đã thi?' : 'Cho phép học sinh này thi lại?';
             showConfirmPopup('Xác nhận', msg, async () => {
@@ -5549,9 +5604,11 @@
             Object.keys(groups).sort().forEach(cat => {
                 html += `<div style="margin-bottom:12px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700">🔖 ${cat}</span><span style="font-size:11px;color:var(--text2)">${groups[cat].length} tài liệu</span></div>`;
                 groups[cat].forEach(m => {
+                    let khoiLabel = m.khoi ? ('Khối ' + m.khoi) : 'Chung';
+                    let khoiColor = m.khoi ? '#f59e0b' : '#6b7280';
                     html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px">`;
                     html += `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">`;
-                    html += `<div style="flex:1"><h4 style="margin:0 0 6px;font-size:14px;color:var(--text)">${m.title}</h4>`;
+                    html += `<div style="flex:1"><h4 style="margin:0 0 6px;font-size:14px;color:var(--text);display:flex;align-items:center;gap:8px">${m.title} <span style="background:rgba(${m.khoi ? '245,158,11' : '107,114,128'},0.15);color:${khoiColor};padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">${khoiLabel}</span></h4>`;
                     html += `<p style="margin:0;font-size:13px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${m.content}</p>`;
                     if (m.fileUrl) {
                         html += `<a href="${m.fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 12px;background:rgba(99,102,241,0.1);color:var(--primary);border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(99,102,241,0.2)"><i class="fas fa-file-download"></i> ${m.fileName || 'Tải file'}</a>`;
@@ -5582,10 +5639,12 @@
             let btn = document.getElementById('btnAddSM');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
             try {
+                let khoi = document.getElementById('smKhoi').value;
                 let materialData = {
                     title: title,
                     category: category || 'Chung',
                     content: content,
+                    khoi: khoi,
                     createdAt: Date.now()
                 };
 
@@ -5648,8 +5707,18 @@
                 <h3 style="margin:0 0 16px;font-size:16px"><i class="fas fa-edit" style="color:var(--primary)"></i> Sửa tài liệu</h3>
                 <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Tiêu đề:</label>
                 <input id="editSMTitle" value="${m.title}" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">
-                <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Danh mục:</label>
-                <input id="editSMCategory" value="${m.category || ''}" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;margin-bottom:10px">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                    <div><label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Danh mục:</label>
+                    <input id="editSMCategory" value="${m.category || ''}" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                    <div><label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Khối:</label>
+                    <select id="editSMKhoi" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                        <option value="" ${!m.khoi ? 'selected' : ''}>Tất cả khối</option>
+                        <option value="6" ${m.khoi==='6' ? 'selected' : ''}>Khối 6</option>
+                        <option value="7" ${m.khoi==='7' ? 'selected' : ''}>Khối 7</option>
+                        <option value="8" ${m.khoi==='8' ? 'selected' : ''}>Khối 8</option>
+                        <option value="9" ${m.khoi==='9' ? 'selected' : ''}>Khối 9</option>
+                    </select></div>
+                </div>
                 <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Nội dung:</label>
                 <textarea id="editSMContent" rows="6" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box">${m.content}</textarea>
                 <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
@@ -5666,7 +5735,8 @@
             let content = document.getElementById('editSMContent').value.trim();
             if (!title || !content) { showPopup('Thiếu thông tin', 'Vui lòng nhập tiêu đề và nội dung!', 'warning'); return; }
             try {
-                await firebaseUpdate('studyMaterials/' + key, { title, category: category || 'Chung', content });
+                let khoi = document.getElementById('editSMKhoi').value;
+                await firebaseUpdate('studyMaterials/' + key, { title, category: category || 'Chung', content, khoi });
                 document.getElementById('editStudentModal').style.display = 'none';
                 loadStudyMaterials();
             } catch (e) { showPopup('Lỗi', 'Lỗi lưu tài liệu: ' + e.message, 'error'); }
@@ -5689,9 +5759,20 @@
             container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải tài liệu...</p></div>';
             try {
                 let data = await firebaseRead('studyMaterials') || {};
-                let materials = Object.values(data);
+                let allMaterials = Object.values(data);
+                // Lọc tài liệu theo khối của học sinh
+                let studentGrade = '';
+                if (currentStudent && currentStudent.lop) {
+                    let lopStr = currentStudent.lop.toString();
+                    let match = lopStr.match(/^(\d+)/);
+                    if (match) studentGrade = match[1];
+                }
+                let materials = allMaterials.filter(m => {
+                    if (!m.khoi || m.khoi === '') return true; // Tài liệu chung
+                    return m.khoi === studentGrade;
+                });
                 if (!materials.length) {
-                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-book-open" style="font-size:40px;margin-bottom:12px;display:block;opacity:0.4"></i><h3 style="margin:0 0 8px;color:var(--text)">Chưa có tài liệu</h3><p style="font-size:13px;margin:0">Giáo viên chưa thêm tài liệu ôn tập.</p></div>';
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-book-open" style="font-size:40px;margin-bottom:12px;display:block;opacity:0.4"></i><h3 style="margin:0 0 8px;color:var(--text)">Chưa có tài liệu</h3><p style="font-size:13px;margin:0">Giáo viên chưa thêm tài liệu ôn tập cho khối của bạn.</p></div>';
                     return;
                 }
                 // Group by category
