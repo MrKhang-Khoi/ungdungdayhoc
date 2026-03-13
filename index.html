@@ -4498,7 +4498,8 @@
             try {
                 let questionsObj = {};
                 _importedQuestions.forEach(function (q) { questionsObj[q.stt] = q; });
-                await firebaseWrite('questions', questionsObj);
+                // Dùng firebaseUpdate (merge) thay vì firebaseWrite (replace) để không xóa câu hỏi cũ
+                await firebaseUpdate('questions', questionsObj);
                 showImportMsg('✅ Đã đồng bộ thành công <strong>' + _importedQuestions.length + '</strong> câu hỏi lên Firebase!', 'success');
                 btn.innerHTML = '<i class="fas fa-check"></i> Hoàn tất!';
                 try { await apiCall('syncFirebaseToSheet'); } catch (e) { }
