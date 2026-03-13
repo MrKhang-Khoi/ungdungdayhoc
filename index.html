@@ -2108,6 +2108,8 @@
                             class="fas fa-bolt"></i> ⚡ Cập nhật thời gian thực</span>
                     <button class="btn btn-primary btn-sm" onclick="loadDashboard()"
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sync-alt"></i> Làm mới</button>
+                    <button class="btn btn-sm" id="btnHeaderSync" onclick="doSyncSheetToFirebase()" style="display:none;font-size:12px;padding:6px 12px;background:var(--primary);color:#fff"><i class="fas fa-upload"></i> Push</button>
+                    <button class="btn btn-sm" id="btnHeaderPull" onclick="doSyncFirebaseToSheet()" style="display:none;font-size:12px;padding:6px 12px;background:#10b981;color:#fff"><i class="fas fa-download"></i> Pull</button>
                     <button class="btn btn-danger btn-sm" onclick="logoutTeacher()"
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sign-out-alt"></i> Thoát</button>
                 </div>
@@ -2131,6 +2133,8 @@
                     đặt</button>
                 <button class="main-tab" onclick="switchMainTab('studymaterials', event)"><i
                         class="fas fa-book-open"></i> Tài liệu</button>
+                <button class="main-tab" id="tabBtnTeachers" onclick="switchMainTab('teachers', event)" style="display:none"><i
+                        class="fas fa-chalkboard-teacher"></i> QL Giáo viên</button>
             </div>
 
             <!-- ===== TAB: Quản lý HS ===== -->
@@ -2418,6 +2422,39 @@
                         <div style="text-align:center;padding:30px;color:var(--text2)"><i
                                 class="fas fa-spinner fa-spin"></i> Đang tải...</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- ===== TAB: QL Giáo viên (Admin only) ===== -->
+            <div id="tabTeachers" style="display:none">
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:900px;margin:0 auto">
+                    <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-chalkboard-teacher" style="color:var(--primary)"></i> Quản lý Giáo viên</h3>
+                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">👨‍🏫 Thêm, sửa, xóa tài khoản giáo viên và phân công lớp phụ trách.</p>
+                    <!-- Add teacher form -->
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+                        <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i class="fas fa-plus-circle"></i> Thêm giáo viên mới</h4>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Mã GV</label>
+                                <input type="text" id="gvMaGV" placeholder="VD: GV001" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            </div>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Họ tên</label>
+                                <input type="text" id="gvHoTen" placeholder="Nguyễn Văn A" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            </div>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Mật khẩu</label>
+                                <input type="text" id="gvMatKhau" placeholder="abc123" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:10px">
+                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Lớp phụ trách (cách nhau bởi dấu phẩy)</label>
+                            <input type="text" id="gvLopPhuTrach" placeholder="VD: 7A1,7A2,7A3,6A1" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:flex-end">
+                            <button class="btn btn-primary" id="btnAddGV" onclick="saveTeacherFromForm()" style="width:auto;padding:8px 20px;font-size:13px"><i class="fas fa-save"></i> Lưu giáo viên</button>
+                        </div>
+                        <div id="gvMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
+                    </div>
+                    <!-- Teachers list -->
+                    <div id="teachersListContainer"><div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div></div>
                 </div>
             </div>
 
@@ -4147,7 +4184,16 @@
                     teacherNameEl.innerHTML = '<i class="fas fa-chalkboard-teacher"></i> ' + currentTeacher.hoTen;
                 }
             }
-            // Ẩn tab cho GV thường
+            // Hiển/ẩn tab + nút theo quyền
+            if (currentTeacher && currentTeacher.isAdmin) {
+                // Admin: hiển sync buttons + teacher tab
+                let syncBtn = document.getElementById('btnHeaderSync');
+                let pullBtn = document.getElementById('btnHeaderPull');
+                let teachersTab = document.getElementById('tabBtnTeachers');
+                if (syncBtn) syncBtn.style.display = '';
+                if (pullBtn) pullBtn.style.display = '';
+                if (teachersTab) teachersTab.style.display = '';
+            }
             if (currentTeacher && !currentTeacher.isAdmin) {
                 let tabBar = document.getElementById('mainTabBar');
                 if (tabBar) {
@@ -4345,11 +4391,11 @@
                 let btn = e.target.closest('.main-tab');
                 if (btn) btn.classList.add('active');
             }
-            ['tabManage', 'tabMonitor', 'tabResults', 'tabQuestions', 'tabNotify', 'tabSettings', 'tabStudymaterials'].forEach(id => {
+            ['tabManage', 'tabMonitor', 'tabResults', 'tabQuestions', 'tabNotify', 'tabSettings', 'tabStudymaterials', 'tabTeachers'].forEach(id => {
                 let el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
-            let targetMap = { manage: 'tabManage', monitor: 'tabMonitor', results: 'tabResults', questions: 'tabQuestions', notify: 'tabNotify', settings: 'tabSettings', studymaterials: 'tabStudymaterials' };
+            let targetMap = { manage: 'tabManage', monitor: 'tabMonitor', results: 'tabResults', questions: 'tabQuestions', notify: 'tabNotify', settings: 'tabSettings', studymaterials: 'tabStudymaterials', teachers: 'tabTeachers' };
             let target = document.getElementById(targetMap[tab]);
             if (target) target.style.display = 'block';
             if (tab === 'manage') renderManageTable();
@@ -4359,6 +4405,7 @@
             if (tab === 'notify') loadNotifyHistory();
             if (tab === 'settings') loadSettings();
             if (tab === 'studymaterials') loadStudyMaterials();
+            if (tab === 'teachers') loadTeachersList();
         }
 
         let allQuestionsData = [];
@@ -5079,13 +5126,16 @@
             let btn = document.getElementById('btnExportExcel');
             let originalHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Dang xuat...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đồng bộ dữ liệu...';
             try {
+                // Tự động sync Firebase → GGSheet trước khi xuất
+                try { await apiCall('syncFirebaseToSheet'); } catch (e) { console.log('Pre-sync warning:', e); }
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xuất Excel...';
                 let lop = document.getElementById('manageClassFilter')?.value || '';
                 let resp = await apiCall('exportResults', { lop });
                 if (resp.success && resp.downloadUrl) {
                     window.open(resp.downloadUrl, '_blank');
-                    btn.innerHTML = '<i class="fas fa-check"></i> Da xuat!';
+                    btn.innerHTML = '<i class="fas fa-check"></i> Đã xuất!';
                     setTimeout(() => { btn.innerHTML = originalHtml; }, 3000);
                 } else {
                     showPopup('Lỗi xuất Excel', resp.message || 'Không thể xuất kết quả!', 'error');
@@ -5860,6 +5910,113 @@
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi tải tài liệu: ' + e.message + '</div>';
             }
+        }
+
+        // ============== QUẢN LÝ GIÁO VIÊN (ADMIN) ==============
+        let teachersList = [];
+        async function loadTeachersList() {
+            let container = document.getElementById('teachersListContainer');
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+            try {
+                let data = await firebaseRead('teachers') || {};
+                teachersList = Object.entries(data).map(([maGV, t]) => ({
+                    maGV, hoTen: t.hoTen || '', matKhau: t.matKhau || '', lopPhuTrach: t.lopPhuTrach || ''
+                }));
+                renderTeachersList();
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi: ' + e.message + '</div>';
+            }
+        }
+
+        function renderTeachersList() {
+            let container = document.getElementById('teachersListContainer');
+            if (!teachersList.length) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-user-slash" style="font-size:24px;margin-bottom:8px;display:block;opacity:0.5"></i>Chưa có giáo viên nào</div>';
+                return;
+            }
+            let html = '<div style="display:flex;flex-direction:column;gap:8px">';
+            teachersList.forEach((t, idx) => {
+                let classes = t.lopPhuTrach ? t.lopPhuTrach.split(',').map(c => c.trim()).filter(c => c) : [];
+                let classBadges = classes.map(c => '<span style="display:inline-block;padding:2px 8px;background:rgba(99,102,241,0.15);color:#818cf8;border-radius:6px;font-size:11px;margin:2px">' + c + '</span>').join('');
+                html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    <div style="flex:0 0 60px;text-align:center">
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;margin:0 auto">${t.maGV.replace(/[^0-9]/g, '') || (idx+1)}</div>
+                        <div style="font-size:10px;color:var(--text2);margin-top:4px">${t.maGV}</div>
+                    </div>
+                    <div style="flex:1;min-width:200px">
+                        <div style="font-weight:600;font-size:14px;margin-bottom:4px">${t.hoTen}</div>
+                        <div style="font-size:11px;color:var(--text2);margin-bottom:4px"><i class="fas fa-key" style="margin-right:4px"></i> ${t.matKhau}</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:2px">${classBadges || '<span style="color:var(--text2);font-size:11px">Chưa phân lớp</span>'}</div>
+                    </div>
+                    <div style="display:flex;gap:6px">
+                        <button class="btn btn-sm" onclick="editTeacherForm('${t.maGV}')" style="width:auto;padding:6px 12px;background:rgba(99,102,241,0.15);color:#818cf8;font-size:12px;border:none;border-radius:8px;cursor:pointer"><i class="fas fa-edit"></i> Sửa</button>
+                        <button class="btn btn-sm" onclick="deleteTeacherById('${t.maGV}')" style="width:auto;padding:6px 12px;background:rgba(239,68,68,0.15);color:#ef4444;font-size:12px;border:none;border-radius:8px;cursor:pointer"><i class="fas fa-trash"></i> Xóa</button>
+                    </div>
+                </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function saveTeacherFromForm() {
+            let maGV = document.getElementById('gvMaGV').value.trim();
+            let hoTen = document.getElementById('gvHoTen').value.trim();
+            let matKhau = document.getElementById('gvMatKhau').value.trim();
+            let lopPhuTrach = document.getElementById('gvLopPhuTrach').value.trim();
+            let msgEl = document.getElementById('gvMsg');
+
+            if (!maGV || !hoTen || !matKhau) {
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = '#ef4444';
+                msgEl.textContent = '❌ Vui lòng nhập đầy đủ Mã GV, Họ tên và Mật khẩu!';
+                return;
+            }
+
+            let btn = document.getElementById('btnAddGV');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            try {
+                await firebaseUpdate('teachers/' + maGV, { hoTen, matKhau, lopPhuTrach });
+                // Sync to GGSheet
+                try { await apiCall('saveTeacher', { maGV, hoTen, matKhau, lopPhuTrach }); } catch(se) { console.log('GGSheet sync warning:', se); }
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = '#10b981';
+                msgEl.textContent = '✅ Đã lưu giáo viên ' + maGV + ' thành công!';
+                // Clear form
+                document.getElementById('gvMaGV').value = '';
+                document.getElementById('gvHoTen').value = '';
+                document.getElementById('gvMatKhau').value = '';
+                document.getElementById('gvLopPhuTrach').value = '';
+                await loadTeachersList();
+            } catch (e) {
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = '#ef4444';
+                msgEl.textContent = '❌ Lỗi: ' + e.message;
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu giáo viên';
+        }
+
+        function editTeacherForm(maGV) {
+            let t = teachersList.find(x => x.maGV === maGV);
+            if (!t) return;
+            document.getElementById('gvMaGV').value = t.maGV;
+            document.getElementById('gvHoTen').value = t.hoTen;
+            document.getElementById('gvMatKhau').value = t.matKhau;
+            document.getElementById('gvLopPhuTrach').value = t.lopPhuTrach;
+            let msgEl = document.getElementById('gvMsg');
+            msgEl.style.display = 'block'; msgEl.style.background = 'rgba(99,102,241,0.15)'; msgEl.style.color = '#818cf8';
+            msgEl.textContent = '📝 Đang chỉnh sửa ' + maGV + ' — nhấn "Lưu giáo viên" để cập nhật.';
+            // Scroll to form
+            document.getElementById('gvMaGV').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function deleteTeacherById(maGV) {
+            showConfirmPopup('Xóa giáo viên', 'Bạn có chắc muốn xóa <strong>' + maGV + '</strong>?', async () => {
+                try {
+                    await firebaseDelete('teachers/' + maGV);
+                    try { await apiCall('deleteTeacher', { maGV }); } catch(se) { console.log('GGSheet sync warning:', se); }
+                    showPopup('Thành công', 'Đã xóa giáo viên ' + maGV, 'success');
+                    await loadTeachersList();
+                } catch (e) {
+                    showPopup('Lỗi', 'Lỗi: ' + e.message, 'error');
+                }
+            }, 'Xóa', 'Hủy');
         }
 
         function logoutTeacher() {
