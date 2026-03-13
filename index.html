@@ -2272,6 +2272,19 @@
                                 style="font-size:12px;padding:6px 14px"><i class="fas fa-sync-alt"></i> Tải lại</button>
                         </div>
                     </div>
+                    <!-- Bộ lọc khối lớp -->
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
+                        <span style="font-size:12px;color:var(--text2)"><i class="fas fa-filter"></i> Lọc theo khối:</span>
+                        <select id="questionGradeFilter" onchange="renderQuestionsList()" style="padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit">
+                            <option value="">Tất cả</option>
+                            <option value="6">Khối 6</option>
+                            <option value="7">Khối 7</option>
+                            <option value="8">Khối 8</option>
+                            <option value="9">Khối 9</option>
+                            <option value="chung">Chung (không gắn lớp)</option>
+                        </select>
+                        <span id="questionCountBadge" style="font-size:11px;color:var(--text2)"></span>
+                    </div>
                     <!-- Import preview area -->
                     <div id="importPreviewArea" style="display:none;margin-top:16px">
                         <div id="importMsg"
@@ -2695,6 +2708,13 @@
         let isPracticeMode = false;
         let practiceAttempts = 0;
 
+        // ============== TRÍCH XUẤT KHỐI LỚP ==============
+        function extractGradeLevel(lop) {
+            if (!lop) return null;
+            let match = lop.toString().match(/^(\d+)/);
+            return match ? parseInt(match[1]) : null;
+        }
+
         // ============== POPUP UTILITIES ==============
         function showPopup(title, message, type = 'warning') {
             let existing = document.getElementById('globalPopupModal');
@@ -3082,12 +3102,30 @@
                 let questionsArr = Object.values(allQuestions).map(q => ({
                     stt: q.stt,
                     noiDung: q.noiDung,
-                    dapAn: [q.dapAn1, q.dapAn2, q.dapAn3, q.dapAn4]
+                    dapAn: [q.dapAn1, q.dapAn2, q.dapAn3, q.dapAn4],
+                    lop: q.lop || ''
                 }));
 
-                // Build lookup by STT
+                // Build lookup by STT (dùng TOÀN BỘ câu hỏi — để khôi phục bộ đề cũ)
                 let questionMap = {};
                 questionsArr.forEach(q => { questionMap[q.stt] = q; });
+
+                // ===== LỌC CÂU HỎI THEO KHỐI LỚP CỦA HỌC SINH =====
+                if (currentStudent && currentStudent.lop) {
+                    let studentGrade = extractGradeLevel(currentStudent.lop);
+                    if (studentGrade) {
+                        let filtered = questionsArr.filter(q => {
+                            if (!q.lop) return true; // Câu hỏi chung → hiện cho tất cả
+                            return parseInt(q.lop) === studentGrade;
+                        });
+                        // Chỉ dùng filtered nếu có đủ câu, nếu không lấy tất cả
+                        if (filtered.length >= 8) {
+                            questionsArr = filtered;
+                        } else {
+                            console.log('Không đủ câu hỏi cho khối ' + studentGrade + ', dùng tất cả.');
+                        }
+                    }
+                }
 
                 if (!isPracticeMode && currentStudent) {
                     // ===== THI THẬT: Giữ bộ đề cố định =====
@@ -4255,15 +4293,37 @@
         function renderQuestionsList() {
             let container = document.getElementById('questionsListContainer');
             if (!allQuestionsData.length) { container.innerHTML = '<div class="empty-state"><p style="color:var(--text2)">Chưa có câu hỏi</p></div>'; return; }
+
+            // Lọc theo khối lớp
+            let gradeFilter = '';
+            let filterEl = document.getElementById('questionGradeFilter');
+            if (filterEl) gradeFilter = filterEl.value;
+
+            let displayQuestions = allQuestionsData;
+            if (gradeFilter === 'chung') {
+                displayQuestions = allQuestionsData.filter(q => !q.lop);
+            } else if (gradeFilter) {
+                displayQuestions = allQuestionsData.filter(q => q.lop && q.lop.toString() === gradeFilter);
+            }
+
+            // Cập nhật badge số lượng
+            let badge = document.getElementById('questionCountBadge');
+            if (badge) badge.textContent = '(' + displayQuestions.length + '/' + allQuestionsData.length + ' câu)';
+
+            if (!displayQuestions.length) { container.innerHTML = '<div class="empty-state"><p style="color:var(--text2)">Không có câu hỏi nào cho bộ lọc này</p></div>'; return; }
+
             let html = '';
-            allQuestionsData.forEach(q => {
+            displayQuestions.forEach(q => {
                 let correctLabel = (q.dapAnDung || '').toUpperCase();
+                let lopBadge = q.lop
+                    ? `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(245,158,11,0.15);color:var(--warning);border:1px solid rgba(245,158,11,0.25)"><i class="fas fa-layer-group" style="font-size:8px"></i> Khối ${q.lop}</span>`
+                    : `<span style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;background:rgba(148,163,184,0.1);color:var(--text2);border:1px solid var(--border)">Chung</span>`;
                 html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px"><div style="display:flex;align-items:flex-start;gap:12px;justify-content:space-between"><div style="flex:1">`;
                 html += `
-
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
                                 <span style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${q.stt}</span>
                                 <span style="font-size:14px;font-weight:600;line-height:1.5">${q.noiDung}</span>
+                                ${lopBadge}
                             </div>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-left:36px">
                                 <div style="font-size:12px;padding:6px 10px;border-radius:8px;border:1px solid ${correctLabel === 'A' ? 'var(--success)' : 'var(--border)'};background:${correctLabel === 'A' ? 'rgba(16,185,129,0.1)' : 'var(--bg)'}"><strong>A.</strong> ${q.dapAn1}</div>
@@ -4283,6 +4343,7 @@
         function editQuestion(stt) {
             let q = allQuestionsData.find(x => x.stt == stt);
             if (!q) return;
+            let currentLop = q.lop || '';
             let modal = document.getElementById('editStudentModal');
             modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:600px;width:95%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease">
                 <h3 style="margin:0 0 16px;font-size:16px"><i class="fas fa-edit" style="color:var(--primary)"></i> Sửa câu hỏi #${stt}</h3>
@@ -4294,13 +4355,24 @@
                     <div><label style="font-size:11px;color:var(--text2)">C:</label><input id="editQC" value="${q.dapAn3}" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
                     <div><label style="font-size:11px;color:var(--text2)">D:</label><input id="editQD" value="${q.dapAn4}" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
                 </div>
-                <div style="margin-top:10px"><label style="font-size:12px;color:var(--text2)">Đáp án đúng:</label>
-                    <select id="editQCorrect" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
-                        <option value="a" ${q.dapAnDung === 'a' ? 'selected' : ''}>A</option>
-                        <option value="b" ${q.dapAnDung === 'b' ? 'selected' : ''}>B</option>
-                        <option value="c" ${q.dapAnDung === 'c' ? 'selected' : ''}>C</option>
-                        <option value="d" ${q.dapAnDung === 'd' ? 'selected' : ''}>D</option>
-                    </select>
+                <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
+                    <div><label style="font-size:12px;color:var(--text2)">Đáp án đúng:</label>
+                        <select id="editQCorrect" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
+                            <option value="a" ${q.dapAnDung === 'a' ? 'selected' : ''}>A</option>
+                            <option value="b" ${q.dapAnDung === 'b' ? 'selected' : ''}>B</option>
+                            <option value="c" ${q.dapAnDung === 'c' ? 'selected' : ''}>C</option>
+                            <option value="d" ${q.dapAnDung === 'd' ? 'selected' : ''}>D</option>
+                        </select>
+                    </div>
+                    <div><label style="font-size:12px;color:var(--text2)"><i class="fas fa-layer-group" style="color:var(--warning)"></i> Khối lớp:</label>
+                        <select id="editQLop" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
+                            <option value="" ${currentLop === '' ? 'selected' : ''}>Chung (tất cả)</option>
+                            <option value="6" ${currentLop === '6' ? 'selected' : ''}>Khối 6</option>
+                            <option value="7" ${currentLop === '7' ? 'selected' : ''}>Khối 7</option>
+                            <option value="8" ${currentLop === '8' ? 'selected' : ''}>Khối 8</option>
+                            <option value="9" ${currentLop === '9' ? 'selected' : ''}>Khối 9</option>
+                        </select>
+                    </div>
                 </div>
                 <div style="display:flex;gap:8px;margin-top:16px">
                     <button class="btn btn-primary btn-sm" id="btnSaveQ" onclick="saveQuestionEdit(${stt})" style="flex:1"><i class="fas fa-save"></i> Lưu</button>
@@ -4324,7 +4396,8 @@
                     dapAn2: document.getElementById('editQB').value.trim(),
                     dapAn3: document.getElementById('editQC').value.trim(),
                     dapAn4: document.getElementById('editQD').value.trim(),
-                    dapAnDung: document.getElementById('editQCorrect').value
+                    dapAnDung: document.getElementById('editQCorrect').value,
+                    lop: document.getElementById('editQLop').value
                 };
                 await firebaseWrite('questions/' + stt, qData);
                 msgEl.innerHTML = '✅ Cập nhật câu ' + stt + ' thành công!'; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
@@ -4339,14 +4412,14 @@
         let _importedQuestions = [];
 
         function downloadQuestionTemplate() {
-            let header = ['STT', 'Nội dung câu hỏi', 'Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D', 'Đáp án đúng'];
+            let header = ['STT', 'Nội dung câu hỏi', 'Đáp án A', 'Đáp án B', 'Đáp án C', 'Đáp án D', 'Đáp án đúng', 'Lớp (6/7/8/9 hoặc trống)'];
             let sample = [
-                [1, 'RAM là bộ nhớ gì?', 'Bộ nhớ ngoài', 'Bộ nhớ vĩnh viễn', 'Bộ nhớ chỉ đọc', 'Bộ nhớ trong (tạm thời)', 'D'],
-                [2, 'CPU là viết tắt của?', 'Central Processing Unit', 'Computer Personal Unit', 'Central Program Unit', 'Computer Processing Unit', 'A'],
-                [3, 'Hệ điều hành nào do Microsoft phát triển?', 'macOS', 'Linux', 'Windows', 'Android', 'C']
+                [1, 'RAM là bộ nhớ gì?', 'Bộ nhớ ngoài', 'Bộ nhớ vĩnh viễn', 'Bộ nhớ chỉ đọc', 'Bộ nhớ trong (tạm thời)', 'D', '7'],
+                [2, 'CPU là viết tắt của?', 'Central Processing Unit', 'Computer Personal Unit', 'Central Program Unit', 'Computer Processing Unit', 'A', '8'],
+                [3, 'Hệ điều hành nào do Microsoft phát triển?', 'macOS', 'Linux', 'Windows', 'Android', 'C', '']
             ];
             let ws = XLSX.utils.aoa_to_sheet([header, ...sample]);
-            ws['!cols'] = [{ wch: 5 }, { wch: 40 }, { wch: 25 }, { wch: 25 }, { wch: 25 }, { wch: 25 }, { wch: 12 }];
+            ws['!cols'] = [{ wch: 5 }, { wch: 40 }, { wch: 25 }, { wch: 25 }, { wch: 25 }, { wch: 25 }, { wch: 12 }, { wch: 18 }];
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'CauHoi');
             XLSX.writeFile(wb, 'Mau_Cau_Hoi.xlsx');
@@ -4378,7 +4451,8 @@
                             dapAn2: (row[3] || '').toString().trim(),
                             dapAn3: (row[4] || '').toString().trim(),
                             dapAn4: (row[5] || '').toString().trim(),
-                            dapAnDung: correct.toLowerCase()
+                            dapAnDung: correct.toLowerCase(),
+                            lop: (row[7] || '').toString().trim()
                         });
                     }
                     if (!_importedQuestions.length) { showImportMsg('❌ Không tìm thấy câu hỏi hợp lệ!', 'error'); return; }
@@ -4386,7 +4460,7 @@
                     previewArea.style.display = 'block';
                     showImportMsg('📋 Đã đọc <strong>' + _importedQuestions.length + '</strong> câu hỏi từ file <strong>' + file.name + '</strong>', 'info');
                     let html = '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;max-height:350px;overflow-y:auto">';
-                    html += '<table style="width:100%;font-size:12px"><thead><tr><th style="width:40px">STT</th><th>Nội dung</th><th>A</th><th>B</th><th>C</th><th>D</th><th style="width:50px">Đ.A</th></tr></thead><tbody>';
+                    html += '<table style="width:100%;font-size:12px"><thead><tr><th style="width:40px">STT</th><th>Nội dung</th><th>A</th><th>B</th><th>C</th><th>D</th><th style="width:50px">Đ.A</th><th style="width:50px">Lớp</th></tr></thead><tbody>';
                     _importedQuestions.forEach(function (q, i) {
                         html += '<tr style="background:' + (i % 2 === 0 ? '' : 'var(--bg3)') + '">';
                         html += '<td style="text-align:center;font-weight:700">' + q.stt + '</td>';
@@ -4395,7 +4469,8 @@
                         html += '<td style="font-size:11px">' + q.dapAn2.substring(0, 20) + (q.dapAn2.length > 20 ? '...' : '') + '</td>';
                         html += '<td style="font-size:11px">' + q.dapAn3.substring(0, 20) + (q.dapAn3.length > 20 ? '...' : '') + '</td>';
                         html += '<td style="font-size:11px">' + q.dapAn4.substring(0, 20) + (q.dapAn4.length > 20 ? '...' : '') + '</td>';
-                        html += '<td style="text-align:center;font-weight:700;color:var(--success)">' + q.dapAnDung.toUpperCase() + '</td></tr>';
+                        html += '<td style="text-align:center;font-weight:700;color:var(--success)">' + q.dapAnDung.toUpperCase() + '</td>';
+                        html += '<td style="text-align:center;font-weight:600;color:var(--warning)">' + (q.lop || 'Chung') + '</td></tr>';
                     });
                     html += '</tbody></table></div>';
                     html += '<div style="display:flex;gap:8px;justify-content:flex-end">';
