@@ -5039,14 +5039,20 @@
         // ===== MỞ/KHÓA KỲ THI (tách thi thật / thi thử) =====
         async function toggleMoThi(maHS, type, value) {
             let field = type === 'real' ? 'moThiThat' : 'moThiThu';
+            let otherField = type === 'real' ? 'moThiThu' : 'moThiThat';
             let label = type === 'real' ? 'thi thật' : 'thi thử';
-            let msg = value ? 'Mở <strong>' + label + '</strong> cho học sinh <strong>' + maHS + '</strong>?' : 'Khóa <strong>' + label + '</strong> cho học sinh <strong>' + maHS + '</strong>?';
+            let otherLabel = type === 'real' ? 'thi thử' : 'thi thật';
+            let msg = value
+                ? 'Mở <strong>' + label + '</strong> cho <strong>' + maHS + '</strong>?<br><small style="color:var(--warning)">⚠️ ' + otherLabel.charAt(0).toUpperCase() + otherLabel.slice(1) + ' sẽ tự động bị khóa</small>'
+                : 'Khóa <strong>' + label + '</strong> cho <strong>' + maHS + '</strong>?';
             showConfirmPopup('Xác nhận', msg, async () => {
                 try {
-                    await firebaseUpdate('students/' + maHS, { [field]: value });
-                    // Update local data immediately
+                    let updateData = { [field]: value };
+                    // Mutual exclusivity: mở thi thật → khóa thi thử, và ngược lại
+                    if (value) updateData[otherField] = false;
+                    await firebaseUpdate('students/' + maHS, updateData);
                     let s = dashboardData.students.find(x => x.maHS === maHS);
-                    if (s) s[field] = value;
+                    if (s) { s[field] = value; if (value) s[otherField] = false; }
                     renderManageTable();
                 } catch (e) { showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
             }, value ? 'Mở ' + label : 'Khóa ' + label, 'Hủy');
@@ -5059,23 +5065,27 @@
                 return;
             }
             let field = type === 'real' ? 'moThiThat' : 'moThiThu';
+            let otherField = type === 'real' ? 'moThiThu' : 'moThiThat';
             let label = type === 'real' ? 'thi thật' : 'thi thử';
+            let otherLabel = type === 'real' ? 'thi thử' : 'thi thật';
             let targetStudents = dashboardData.students.filter(s => s.lop === classF);
             let msg = value
-                ? 'Mở <strong>' + label + '</strong> cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?'
-                : 'Khóa <strong>' + label + '</strong> cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?';
+                ? 'Mở <strong>' + label + '</strong> cho <strong>tất cả ' + targetStudents.length + ' HS</strong> lớp <strong>' + classF + '</strong>?<br><small style="color:var(--warning)">⚠️ ' + otherLabel.charAt(0).toUpperCase() + otherLabel.slice(1) + ' sẽ tự động bị khóa cho cả lớp</small>'
+                : 'Khóa <strong>' + label + '</strong> cho <strong>tất cả ' + targetStudents.length + ' HS</strong> lớp <strong>' + classF + '</strong>?';
             showConfirmPopup('Xác nhận', msg, async () => {
                 try {
                     showLoading();
                     let updates = {};
                     targetStudents.forEach(s => {
                         updates['students/' + s.maHS + '/' + field] = value;
+                        // Mutual exclusivity: mở thi thật → khóa thi thử, và ngược lại
+                        if (value) updates['students/' + s.maHS + '/' + otherField] = false;
                     });
                     await db.ref().update(updates);
-                    // Update local data
-                    targetStudents.forEach(s => { s[field] = value; });
+                    targetStudents.forEach(s => { s[field] = value; if (value) s[otherField] = false; });
                     hideLoading();
-                    showPopup('Thành công', (value ? 'Đã mở' : 'Đã khóa') + ' ' + label + ' cho ' + targetStudents.length + ' HS lớp ' + classF, 'success');
+                    let extraMsg = value ? '<br><small>Đã tự động khóa ' + otherLabel + '</small>' : '';
+                    showPopup('Thành công', (value ? 'Đã mở' : 'Đã khóa') + ' ' + label + ' cho ' + targetStudents.length + ' HS lớp ' + classF + extraMsg, 'success');
                     renderManageTable();
                 } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
             }, value ? 'Mở cả lớp' : 'Khóa cả lớp', 'Hủy');
