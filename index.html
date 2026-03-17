@@ -3032,6 +3032,14 @@
                 let canReal = student.moThiThat !== undefined ? !!student.moThiThat : (!!student.moThi);
                 let canPractice = student.moThiThu !== undefined ? !!student.moThiThu : (!!student.moThi);
 
+                // Auto-switch: nếu chế độ chính bị khóa nhưng chế độ còn lại đang mở → tự chuyển
+                if (!isPractice && !canReal && canPractice) {
+                    isPractice = true; // Thi thật bị khóa, thi thử đang mở → chuyển sang thi thử
+                }
+                if (isPractice && !canPractice && canReal) {
+                    isPractice = false; // Thi thử bị khóa, thi thật đang mở → chuyển sang thi thật
+                }
+
                 if (isPractice && !canPractice) {
                     hideLoginLoading();
                     showAlert('loginWarning', '⏳ Giáo viên chưa mở THI THỬ cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
@@ -3040,7 +3048,7 @@
                 }
                 if (!isPractice && !canReal) {
                     hideLoginLoading();
-                    showAlert('loginWarning', '⏳ Giáo viên chưa mở THI THẬT cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
+                    showAlert('loginWarning', '⏳ Giáo viên chưa mở kỳ thi cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
                     btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
                     return;
                 }
