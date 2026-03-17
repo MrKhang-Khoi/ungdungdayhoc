@@ -6811,7 +6811,7 @@
                     </div>
                     <div style="flex:1;min-width:200px">
                         <div style="font-weight:600;font-size:14px;margin-bottom:4px">${t.hoTen}</div>
-                        <div style="font-size:11px;color:var(--text2);margin-bottom:4px"><i class="fas fa-key" style="margin-right:4px"></i> ${t.matKhau}</div>
+                        <div style="font-size:11px;color:var(--text2);margin-bottom:4px;display:flex;align-items:center;gap:4px"><i class="fas fa-key" style="margin-right:2px"></i> <span id="gvPw_${idx}">••••••</span> <button onclick="toggleGvPw(${idx})" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:11px;padding:2px 4px" title="Hiện/ẩn mật khẩu"><i class="fas fa-eye" id="gvPwIcon_${idx}"></i></button></div>
                         <div style="display:flex;flex-wrap:wrap;gap:2px">${classBadges || '<span style="color:var(--text2);font-size:11px">Chưa phân lớp</span>'}</div>
                     </div>
                     <div style="display:flex;gap:6px">
@@ -6822,6 +6822,15 @@
             });
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        function toggleGvPw(idx) {
+            let span = document.getElementById('gvPw_' + idx);
+            let icon = document.getElementById('gvPwIcon_' + idx);
+            if (!span || !teachersList[idx]) return;
+            let isHidden = span.textContent === '••••••';
+            span.textContent = isHidden ? teachersList[idx].matKhau : '••••••';
+            if (icon) icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
         }
 
         async function saveTeacherFromForm() {
