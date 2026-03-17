@@ -3029,8 +3029,15 @@
                 }
 
                 // ===== CHECK MỞ KỲ THI (tách thi thật / thi thử) =====
-                let canReal = student.moThiThat !== undefined ? !!student.moThiThat : (!!student.moThi);
-                let canPractice = student.moThiThu !== undefined ? !!student.moThiThu : (!!student.moThi);
+                // Inline migration: nếu HS cũ chưa có moThiThat/moThiThu → tạo từ moThi
+                if (student.moThiThat === undefined || student.moThiThu === undefined) {
+                    let migrateData = {};
+                    if (student.moThiThat === undefined) { student.moThiThat = !!student.moThi; migrateData.moThiThat = student.moThiThat; }
+                    if (student.moThiThu === undefined) { student.moThiThu = false; migrateData.moThiThu = false; }
+                    try { await firebaseUpdate('students/' + maHS, migrateData); } catch (e) { }
+                }
+                let canReal = !!student.moThiThat;
+                let canPractice = !!student.moThiThu;
 
                 // Auto-switch: nếu chế độ chính bị khóa nhưng chế độ còn lại đang mở → tự chuyển
                 if (!isPractice && !canReal && canPractice) {
@@ -4353,6 +4360,25 @@
                     if (!practiceByStudent[maHS]) practiceByStudent[maHS] = 0;
                     practiceByStudent[maHS]++;
                 });
+
+                // === AUTO-MIGRATE: nếu HS cũ chưa có moThiThat/moThiThu → tạo từ moThi ===
+                let migrateUpdates = {};
+                Object.entries(studentsObj).forEach(([maHS, s]) => {
+                    if (s.moThiThat === undefined || s.moThiThu === undefined) {
+                        let val = !!s.moThi;
+                        if (s.moThiThat === undefined) {
+                            migrateUpdates['students/' + maHS + '/moThiThat'] = val;
+                            s.moThiThat = val;
+                        }
+                        if (s.moThiThu === undefined) {
+                            migrateUpdates['students/' + maHS + '/moThiThu'] = false;
+                            s.moThiThu = false;
+                        }
+                    }
+                });
+                if (Object.keys(migrateUpdates).length > 0) {
+                    try { await db.ref().update(migrateUpdates); console.log('Migrated moThiThat/moThiThu for legacy students'); } catch (e) { console.warn('Migration error:', e); }
+                }
 
                 let students = Object.entries(studentsObj).map(([maHS, s]) => {
                     let trangThaiRaw = (s.trangThai || '').toString().trim().toUpperCase();
