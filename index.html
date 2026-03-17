@@ -2110,6 +2110,7 @@
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sync-alt"></i> Làm mới</button>
                     <button class="btn btn-sm" id="btnHeaderSync" onclick="doSyncSheetToFirebase()" style="display:none;font-size:12px;padding:6px 12px;background:var(--primary);color:#fff"><i class="fas fa-upload"></i> Push</button>
                     <button class="btn btn-sm" id="btnHeaderPull" onclick="doSyncFirebaseToSheet()" style="display:none;font-size:12px;padding:6px 12px;background:#10b981;color:#fff"><i class="fas fa-download"></i> Pull</button>
+                    <button class="btn btn-sm" id="btnTrash" onclick="openTrashModal()" style="font-size:12px;padding:6px 12px;background:var(--bg3);color:var(--text);position:relative" title="Thùng rác"><i class="fas fa-trash-alt"></i> <span id="trashBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px">0</span></button>
                     <button class="btn btn-danger btn-sm" onclick="logoutTeacher()"
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sign-out-alt"></i> Thoát</button>
                 </div>
@@ -2162,16 +2163,77 @@
                     </div>
                     <!-- Nút Mở/Khóa cả lớp + Xuất Excel -->
                     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center" id="bulkMoThiBar">
-                        <button class="btn btn-sm" onclick="toggleMoThiClass(true)" style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock-open"></i> Mở thi cả lớp</button>
-                        <button class="btn btn-sm" onclick="toggleMoThiClass(false)" style="width:auto;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock"></i> Khóa thi cả lớp</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('real',true)" style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock-open"></i> Mở thi thật</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('real',false)" style="width:auto;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock"></i> Khóa thi thật</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('practice',true)" style="width:auto;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-flask"></i> Mở thi thử</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('practice',false)" style="width:auto;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-flask"></i> Khóa thi thử</button>
                         <button class="btn btn-sm" onclick="exportStudentsExcel()" style="width:auto;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-file-excel"></i> Tải Excel</button>
                         <button class="btn btn-sm" id="btnDownloadClassFiles" onclick="downloadClassFiles()" style="width:auto;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-download"></i> Tải Bài làm HS</button>
+                        <button class="btn btn-sm" onclick="openUploadStudentsModal()" style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-upload"></i> Tải DS lên</button>
+                        <button class="btn btn-sm" onclick="downloadStudentTemplate()" style="width:auto;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-file-download"></i> File mẫu</button>
+                        <button class="btn btn-sm" onclick="deleteEntireClass()" style="width:auto;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-trash-alt"></i> Xóa cả lớp</button>
                         <span id="moThiCountBadge" style="font-size:11px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"></span>
                     </div>
                 </div>
                 <!-- Dòng thống kê chi tiết -->
                 <div id="manageStatsBar" style="display:none;margin-bottom:16px"></div>
                 <div class="table-container" id="manageTableContainer"></div>
+            </div>
+
+            <!-- ===== MODAL: Upload Danh sách HS ===== -->
+            <div id="uploadStudentsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:700px;width:95%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+                        <h3 style="margin:0;font-size:17px;display:flex;align-items:center;gap:8px"><i class="fas fa-upload" style="color:var(--warning)"></i> Tải danh sách học sinh</h3>
+                        <button onclick="closeUploadStudentsModal()" style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer"><i class="fas fa-times"></i></button>
+                    </div>
+
+                    <!-- Hướng dẫn -->
+                    <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px">
+                        <p style="font-size:12px;color:var(--text2);margin:0;line-height:1.7">
+                            📋 <strong>File Excel cần có các cột:</strong> Mã HS, Họ tên, Lớp, Mật khẩu (tùy chọn).<br>
+                            💡 Nhấn <strong>"File mẫu"</strong> trên toolbar để tải file Excel mẫu.
+                        </p>
+                    </div>
+
+                    <!-- Chọn file -->
+                    <div style="margin-bottom:16px">
+                        <label style="display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600">Chọn file Excel (.xlsx, .xls)</label>
+                        <input type="file" id="uploadStudentFile" accept=".xlsx,.xls" onchange="previewStudentFile(event)"
+                            style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                    </div>
+
+                    <!-- Chế độ import -->
+                    <div style="display:flex;gap:10px;margin-bottom:16px">
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;flex:1">
+                            <input type="radio" name="importMode" value="add" checked style="accent-color:var(--primary)"> <i class="fas fa-plus-circle" style="color:var(--success)"></i> Thêm mới (giữ HS cũ)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;flex:1">
+                            <input type="radio" name="importMode" value="overwrite" style="accent-color:var(--danger)"> <i class="fas fa-sync-alt" style="color:var(--warning)"></i> Ghi đè (xóa HS cũ cùng lớp)
+                        </label>
+                    </div>
+
+                    <!-- Preview -->
+                    <div id="uploadPreviewArea" style="display:none">
+                        <div id="uploadPreviewStats" style="font-size:12px;color:var(--text2);margin-bottom:8px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></div>
+                        <div id="uploadPreviewTable" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;margin-bottom:12px"></div>
+                    </div>
+
+                    <!-- Nút Import -->
+                    <div style="display:flex;gap:8px">
+                        <button id="btnConfirmImport" onclick="confirmImportStudents()" disabled
+                            style="flex:1;padding:12px;font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:inherit;opacity:0.5">
+                            <i class="fas fa-cloud-upload-alt"></i> Import vào Firebase
+                        </button>
+                        <button onclick="closeUploadStudentsModal()"
+                            style="padding:12px 20px;font-size:14px;font-weight:600;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-family:inherit">
+                            Hủy
+                        </button>
+                    </div>
+
+                    <!-- Status -->
+                    <div id="uploadStatusMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:12px"></div>
+                </div>
             </div>
 
             <!-- ===== TAB: Theo dõi ===== -->
@@ -2257,14 +2319,35 @@
                     style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                     <input type="text" id="resultsSearch" placeholder="🔍 Tìm kết quả..." oninput="renderResultsTable()"
                         style="flex:1;min-width:200px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+                    <select id="resultsClassFilter" onchange="buildResultsFromFirebase()" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;min-width:100px">
+                        <option value="">📋 Tất cả lớp</option>
+                    </select>
                     <button class="btn btn-sm" onclick="exportExcel()" id="btnExportExcel"
                         style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 16px;font-size:13px;white-space:nowrap">
                         <i class="fas fa-file-excel"></i> Xuất Excel
+                    </button>
+                    <button class="btn btn-sm" id="btnDeleteResults" onclick="softDeleteResultsUI()"
+                        style="width:auto;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;padding:8px 16px;font-size:13px;white-space:nowrap">
+                        <i class="fas fa-trash-alt"></i> Xóa kết quả
                     </button>
                 </div>
                 <div class="table-container" id="resultsTableContainer"></div>
             </div>
 
+            <!-- ===== MODAL: Thùng rác ===== -->
+            <div id="trashModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px">
+                <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:750px;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <h3 style="margin:0;display:flex;align-items:center;gap:8px"><i class="fas fa-trash-alt" style="color:var(--danger)"></i> Thùng rác <span id="trashModalBadge" style="font-size:12px;font-weight:400;color:var(--text2)"></span></h3>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <button id="btnEmptyTrash" onclick="emptyAllTrash()" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger);padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit"><i class="fas fa-trash"></i> Xóa toàn bộ</button>
+                            <button onclick="closeTrashModal()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                    <p style="color:var(--text2);font-size:12px;margin:0 0 16px"><i class="fas fa-info-circle"></i> Dữ liệu đã xóa được giữ <strong>30 ngày</strong> trước khi bị xóa vĩnh viễn. Bạn có thể khôi phục hoặc xóa vĩnh viễn bất cứ lúc nào.</p>
+                    <div id="trashListContainer"><div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div></div>
+                </div>
+            </div>
             <!-- ===== TAB: Câu hỏi ===== -->
             <div id="tabQuestions" style="display:none">
                 <div
@@ -2945,10 +3028,19 @@
                     }
                 }
 
-                // ===== CHECK MỞ KỲ THI =====
-                if (!student.moThi) {
+                // ===== CHECK MỞ KỲ THI (tách thi thật / thi thử) =====
+                let canReal = student.moThiThat !== undefined ? !!student.moThiThat : (!!student.moThi);
+                let canPractice = student.moThiThu !== undefined ? !!student.moThiThu : (!!student.moThi);
+
+                if (isPractice && !canPractice) {
                     hideLoginLoading();
-                    showAlert('loginWarning', '⏳ Giáo viên chưa mở kỳ thi cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
+                    showAlert('loginWarning', '⏳ Giáo viên chưa mở THI THỬ cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
+                    return;
+                }
+                if (!isPractice && !canReal) {
+                    hideLoginLoading();
+                    showAlert('loginWarning', '⏳ Giáo viên chưa mở THI THẬT cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
                     btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
                     return;
                 }
@@ -4201,13 +4293,15 @@
                     let tabs = tabBar.querySelectorAll('.main-tab');
                     tabs.forEach(t => {
                         let onclick = t.getAttribute('onclick') || '';
-                        if (onclick.includes("'questions'") || onclick.includes("'settings'") || onclick.includes("'studymaterials'")) {
+                        if (onclick.includes("'settings'")) {
                             t.style.display = 'none';
                         }
                     });
                 }
             }
             startFirebaseListeners();
+            updateTrashBadge();
+            autoPurgeTrash();
         }
 
         function startFirebaseListeners() {
@@ -4330,7 +4424,7 @@
             try {
                 let resultsObj = await firebaseRead('results') || {};
                 let practiceObj = await firebaseRead('practiceResults') || {};
-                let lop = document.getElementById('manageClassFilter')?.value || '';
+                let lop = document.getElementById('resultsClassFilter')?.value || document.getElementById('manageClassFilter')?.value || '';
 
                 // Real exam results
                 let realResults = [];
@@ -4382,6 +4476,7 @@
                 if (subP) subP.innerHTML = '<i class="fas fa-flask"></i> Thi Th\u1eed <span style="background:rgba(255,255,255,0.2);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">' + practiceBadge + '</span>';
 
                 if (currentMainTab === 'results') renderResultsTable();
+                populateResultsClassFilter();
             } catch (e) { console.log('Build results error:', e); }
         }
 
@@ -4405,11 +4500,23 @@
             if (tab === 'questions') loadAllQuestions();
             if (tab === 'notify') loadNotifyHistory();
             if (tab === 'settings') loadSettings();
-            if (tab === 'studymaterials') loadStudyMaterials();
+            if (tab === 'studymaterials') { populateSmKhoiDropdown(); loadStudyMaterials(); }
             if (tab === 'teachers') loadTeachersList();
         }
 
         let allQuestionsData = [];
+
+        // Helper: trích danh sách khối (6,7,8,9) từ lớp phụ trách của GV
+        function getTeacherAllowedGrades() {
+            if (!currentTeacher || currentTeacher.isAdmin || !currentTeacher.allowedClasses || !currentTeacher.allowedClasses.length) return null;
+            let grades = new Set();
+            currentTeacher.allowedClasses.forEach(c => {
+                let match = c.match(/^(\d+)/);
+                if (match) grades.add(match[1]);
+            });
+            return grades.size > 0 ? [...grades] : null;
+        }
+
         async function loadAllQuestions() {
             let container = document.getElementById('questionsListContainer');
             container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải câu hỏi...</div>';
@@ -4420,6 +4527,20 @@
                     q.lop = q.lop || '';
                     return q;
                 });
+                // GV thường: chỉ hiện câu hỏi thuộc khối phụ trách + câu chung
+                let teacherGrades = getTeacherAllowedGrades();
+                if (teacherGrades) {
+                    allQuestionsData = allQuestionsData.filter(q => !q.lop || teacherGrades.includes(q.lop.toString()));
+                    // Giới hạn filter dropdown theo khối GV
+                    let filterEl = document.getElementById('questionGradeFilter');
+                    if (filterEl) {
+                        filterEl.innerHTML = '<option value="">Tất cả (khối phụ trách)</option>';
+                        teacherGrades.sort().forEach(g => {
+                            filterEl.innerHTML += '<option value="' + g + '">Khối ' + g + '</option>';
+                        });
+                        filterEl.innerHTML += '<option value="chung">Chung (không gắn lớp)</option>';
+                    }
+                }
                 renderQuestionsList();
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)">❌ Lỗi: ' + e.message + '</div>';
@@ -4502,11 +4623,13 @@
                     </div>
                     <div><label style="font-size:12px;color:var(--text2)"><i class="fas fa-layer-group" style="color:var(--warning)"></i> Khối lớp:</label>
                         <select id="editQLop" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
-                            <option value="" ${currentLop === '' ? 'selected' : ''}>Chung (tất cả)</option>
-                            <option value="6" ${currentLop === '6' ? 'selected' : ''}>Khối 6</option>
-                            <option value="7" ${currentLop === '7' ? 'selected' : ''}>Khối 7</option>
-                            <option value="8" ${currentLop === '8' ? 'selected' : ''}>Khối 8</option>
-                            <option value="9" ${currentLop === '9' ? 'selected' : ''}>Khối 9</option>
+                            ${(function(){
+                                let tg = getTeacherAllowedGrades();
+                                let grades = tg ? tg.sort() : ['6','7','8','9'];
+                                let opts = '<option value="" ' + (currentLop === '' ? 'selected' : '') + '>Chung (tất cả)</option>';
+                                grades.forEach(g => { opts += '<option value="' + g + '" ' + (currentLop === g ? 'selected' : '') + '>Khối ' + g + '</option>'; });
+                                return opts;
+                            })()}
                         </select>
                     </div>
                 </div>
@@ -4524,6 +4647,14 @@
             let msgEl = document.getElementById('editQMsg');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
             msgEl.style.display = 'none';
+            // === KIỂM TRA QUYỀN KHỐI LỚP ===
+            let newQLop = document.getElementById('editQLop').value;
+            let teacherGrades = getTeacherAllowedGrades();
+            if (teacherGrades && newQLop && !teacherGrades.includes(newQLop)) {
+                msgEl.innerHTML = '⛔ Bạn không có quyền gán câu hỏi cho khối <strong>' + newQLop + '</strong>! Khối phụ trách: <strong>' + teacherGrades.join(', ') + '</strong>';
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu'; return;
+            }
             try {
                 let qData = {
                     stt: stt,
@@ -4533,7 +4664,7 @@
                     dapAn3: document.getElementById('editQC').value.trim(),
                     dapAn4: document.getElementById('editQD').value.trim(),
                     dapAnDung: document.getElementById('editQCorrect').value,
-                    lop: document.getElementById('editQLop').value
+                    lop: newQLop
                 };
                 await firebaseWrite('questions/' + stt, qData);
                 msgEl.innerHTML = '✅ Cập nhật câu ' + stt + ' thành công!'; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
@@ -4592,13 +4723,32 @@
                         });
                     }
                     if (!_importedQuestions.length) { showImportMsg('❌ Không tìm thấy câu hỏi hợp lệ!', 'error'); return; }
+
+                    // === KIỂM TRA QUYỀN KHỐI LỚP ===
+                    let _tGrades = getTeacherAllowedGrades();
+                    let _blockedQ = [];
+                    let _blockedGrades = [];
+                    let _hasBlocked = false;
+                    if (_tGrades) {
+                        _blockedQ = _importedQuestions.filter(q => q.lop && !_tGrades.includes(q.lop.toString()));
+                        _blockedGrades = [...new Set(_blockedQ.map(q => q.lop))];
+                        _hasBlocked = _blockedQ.length > 0;
+                    }
+
                     let previewArea = document.getElementById('importPreviewArea');
                     previewArea.style.display = 'block';
-                    showImportMsg('📋 Đã đọc <strong>' + _importedQuestions.length + '</strong> câu hỏi từ file <strong>' + file.name + '</strong>', 'info');
+                    let previewMsg = '📋 Đã đọc <strong>' + _importedQuestions.length + '</strong> câu hỏi từ file <strong>' + file.name + '</strong>';
+                    if (_hasBlocked) {
+                        previewMsg += '<br>⛔ <span style="color:var(--danger);font-weight:700">' + _blockedQ.length + ' câu thuộc khối ngoài quyền (' + _blockedGrades.join(', ') + ')</span>';
+                        previewMsg += '<br><span style="color:var(--danger);font-size:12px">Khối phụ trách: <strong>' + _tGrades.join(', ') + '</strong>. Vui lòng xóa các câu ngoài khối rồi import lại.</span>';
+                    }
+                    showImportMsg(previewMsg, _hasBlocked ? 'error' : 'info');
                     let html = '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;max-height:350px;overflow-y:auto">';
                     html += '<table style="width:100%;font-size:12px"><thead><tr><th style="width:40px">STT</th><th>Nội dung</th><th>A</th><th>B</th><th>C</th><th>D</th><th style="width:50px">Đ.A</th><th style="width:50px">Lớp</th></tr></thead><tbody>';
                     _importedQuestions.forEach(function (q, i) {
-                        html += '<tr style="background:' + (i % 2 === 0 ? '' : 'var(--bg3)') + '">';
+                        let isQBlocked = _hasBlocked && _blockedQ.some(b => b.stt === q.stt);
+                        let rowBg = isQBlocked ? 'background:rgba(239,68,68,0.08)' : (i % 2 === 0 ? '' : 'background:var(--bg3)');
+                        html += '<tr style="' + rowBg + '">';
                         html += '<td style="text-align:center;font-weight:700">' + q.stt + '</td>';
                         html += '<td style="font-weight:500">' + q.noiDung.substring(0, 60) + (q.noiDung.length > 60 ? '...' : '') + '</td>';
                         html += '<td style="font-size:11px">' + q.dapAn1.substring(0, 20) + (q.dapAn1.length > 20 ? '...' : '') + '</td>';
@@ -4606,12 +4756,20 @@
                         html += '<td style="font-size:11px">' + q.dapAn3.substring(0, 20) + (q.dapAn3.length > 20 ? '...' : '') + '</td>';
                         html += '<td style="font-size:11px">' + q.dapAn4.substring(0, 20) + (q.dapAn4.length > 20 ? '...' : '') + '</td>';
                         html += '<td style="text-align:center;font-weight:700;color:var(--success)">' + q.dapAnDung.toUpperCase() + '</td>';
-                        html += '<td style="text-align:center;font-weight:600;color:var(--warning)">' + (q.lop || 'Chung') + '</td></tr>';
+                        if (isQBlocked) {
+                            html += '<td style="text-align:center;font-weight:700;color:var(--danger)"><i class="fas fa-ban"></i> ' + (q.lop || 'Chung') + '</td></tr>';
+                        } else {
+                            html += '<td style="text-align:center;font-weight:600;color:var(--warning)">' + (q.lop || 'Chung') + '</td></tr>';
+                        }
                     });
                     html += '</tbody></table></div>';
                     html += '<div style="display:flex;gap:8px;justify-content:flex-end">';
                     html += '<button class="btn btn-sm" onclick="cancelImport()" style="width:auto;background:var(--bg3);color:var(--text);padding:8px 16px;font-size:13px"><i class="fas fa-times"></i> Hủy</button>';
-                    html += '<button class="btn btn-sm" id="btnConfirmImport" onclick="confirmImportQuestions()" style="width:auto;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:8px 20px;font-size:13px;font-weight:600"><i class="fas fa-cloud-upload-alt"></i> Đồng bộ ' + _importedQuestions.length + ' câu lên hệ thống</button>';
+                    if (_hasBlocked) {
+                        html += '<button class="btn btn-sm" disabled style="width:auto;background:var(--bg3);color:var(--text2);padding:8px 20px;font-size:13px;font-weight:600;opacity:0.5;cursor:not-allowed"><i class="fas fa-ban"></i> Không thể import</button>';
+                    } else {
+                        html += '<button class="btn btn-sm" id="btnConfirmImport" onclick="confirmImportQuestions()" style="width:auto;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;padding:8px 20px;font-size:13px;font-weight:600"><i class="fas fa-cloud-upload-alt"></i> Đồng bộ ' + _importedQuestions.length + ' câu lên hệ thống</button>';
+                    }
                     html += '</div>';
                     document.getElementById('importPreviewContent').innerHTML = html;
                 } catch (err) {
@@ -4623,6 +4781,16 @@
         }
 
         async function confirmImportQuestions() {
+            // === KIỂM TRA QUYỀN KHỐI LỚP (double-check) ===
+            let _tgCheck = getTeacherAllowedGrades();
+            if (_tgCheck) {
+                let blocked = _importedQuestions.filter(q => q.lop && !_tgCheck.includes(q.lop.toString()));
+                if (blocked.length > 0) {
+                    let bg = [...new Set(blocked.map(q => q.lop))];
+                    showImportMsg('⛔ Không thể import! Có ' + blocked.length + ' câu thuộc khối ngoài quyền (' + bg.join(', ') + '). Khối phụ trách: ' + _tgCheck.join(', '), 'error');
+                    return;
+                }
+            }
             let btn = document.getElementById('btnConfirmImport');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đồng bộ...';
             try {
@@ -4741,20 +4909,30 @@
                         </div>
                     </div>`;
             }
-            // Cập nhật badge mở thi
+            // Cập nhật badge mở thi (tách thi thật / thi thử)
             let moThiBadge = document.getElementById('moThiCountBadge');
             if (moThiBadge && dashboardData.students) {
                 let targetStudents = classF ? dashboardData.students.filter(s => s.lop === classF) : dashboardData.students;
-                let opened = targetStudents.filter(s => s.moThi).length;
-                let closed = targetStudents.length - opened;
-                moThiBadge.innerHTML = `<i class="fas fa-info-circle"></i> Đã mở: <strong style="color:var(--success)">${opened}</strong> | Chưa mở: <strong style="color:var(--danger)">${closed}</strong>`;
+                let _moTT = s => s.moThiThat !== undefined ? !!s.moThiThat : !!s.moThi;
+                let _moTThu = s => s.moThiThu !== undefined ? !!s.moThiThu : !!s.moThi;
+                let openReal = targetStudents.filter(_moTT).length;
+                let openPrac = targetStudents.filter(_moTThu).length;
+                let total = targetStudents.length;
+                moThiBadge.innerHTML = `<i class="fas fa-info-circle"></i> Thi thật: <strong style="color:var(--success)">${openReal}</strong>/<strong>${total}</strong> mở | Thi thử: <strong style="color:var(--primary)">${openPrac}</strong>/<strong>${total}</strong> mở`;
             }
-            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mở thi</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:150px">Thao tác</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mở thi thật</th><th>Mở thi thử</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:180px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
-                // moThi badge
-                let moThiB = s.moThi
+                // Backward compat: dùng moThi cũ nếu chưa có moThiThat/moThiThu
+                let isRealOpen = s.moThiThat !== undefined ? !!s.moThiThat : !!s.moThi;
+                let isPracOpen = s.moThiThu !== undefined ? !!s.moThiThu : !!s.moThi;
+                // moThiThat badge
+                let moThiThatB = isRealOpen
                     ? '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-lock-open"></i> Đã mở</span>'
                     : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(239,68,68,0.15);color:var(--danger);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-lock"></i> Chưa mở</span>';
+                // moThiThu badge
+                let moThiThuB = isPracOpen
+                    ? '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(139,92,246,0.15);color:#8b5cf6;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-flask"></i> Đã mở</span>'
+                    : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(100,116,139,0.15);color:var(--text2);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-flask"></i> Chưa mở</span>';
                 // Real exam badge
                 let realBadge = s.hasReal
                     ? '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check-circle"></i> Đã thi</span>'
@@ -4768,15 +4946,22 @@
                 html += `<td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">${s.maHS}</code></td>`;
                 html += `<td><strong style="font-size:13px">${s.hoTen}</strong></td>`;
                 html += `<td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>`;
-                html += `<td>${moThiB}</td>`;
+                html += `<td>${moThiThatB}</td>`;
+                html += `<td>${moThiThuB}</td>`;
                 html += `<td>${realBadge}</td>`;
                 html += `<td>${practiceBadge}</td>`;
                 html += `<td style="white-space:nowrap">`;
-                // Nút Mở/Khóa thi
-                if (s.moThi) {
-                    html += `<button onclick="toggleMoThi('${s.maHS}',false)" style="background:var(--danger);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Khóa thi"><i class="fas fa-lock"></i></button>`;
+                // Nút Mở/Khóa thi thật
+                if (isRealOpen) {
+                    html += `<button onclick="toggleMoThi('${s.maHS}','real',false)" style="background:var(--danger);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Khóa thi thật"><i class="fas fa-lock"></i></button>`;
                 } else {
-                    html += `<button onclick="toggleMoThi('${s.maHS}',true)" style="background:#10b981;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Mở thi"><i class="fas fa-lock-open"></i></button>`;
+                    html += `<button onclick="toggleMoThi('${s.maHS}','real',true)" style="background:#10b981;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Mở thi thật"><i class="fas fa-lock-open"></i></button>`;
+                }
+                // Nút Mở/Khóa thi thử
+                if (isPracOpen) {
+                    html += `<button onclick="toggleMoThi('${s.maHS}','practice',false)" style="background:#7c3aed;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Khóa thi thử"><i class="fas fa-flask"></i></button>`;
+                } else {
+                    html += `<button onclick="toggleMoThi('${s.maHS}','practice',true)" style="background:#8b5cf6;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Mở thi thử"><i class="fas fa-flask"></i></button>`;
                 }
                 html += `<button onclick="openEditModal('${s.maHS}')" style="background:var(--primary);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>`;
                 if (s.hasReal) {
@@ -4788,9 +4973,11 @@
                     html += `<button onclick="unlockStudent('${s.maHS}')" style="background:#7c3aed;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Mở khóa tài khoản"><i class="fas fa-lock-open"></i></button> `;
                 }
                 if (s.hasReal) {
-                    html += `<button onclick="downloadStudentFile('${s.maHS}','${s.lop.replace(/'/g,"\\'")}')"
+                    html += `<button onclick="downloadStudentFile('${s.maHS}','${s.lop.replace(/'/g,"\\\\'")}')"
                         style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Tải bài làm"><i class="fas fa-download"></i></button> `;
                 }
+                // Nút xóa HS
+                html += `<button onclick="deleteStudent('${s.maHS}')" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Xóa HS"><i class="fas fa-trash-alt"></i></button> `;
                 html += `</td></tr>`;
             });
             html += '</tbody></table>';
@@ -4823,6 +5010,14 @@
             let newName = document.getElementById('editHoTen').value.trim();
             let newLop = document.getElementById('editLop').value.trim();
             let newPass = document.getElementById('editPass').value.trim();
+            // === KIỂM TRA QUYỀN LỚP PHỤ TRÁCH ===
+            if (newLop && newLop !== editingStudent.lop && currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                if (!currentTeacher.allowedClasses.includes(newLop)) {
+                    msgEl.innerHTML = '⛔ Bạn không có quyền chuyển HS sang lớp <strong>' + newLop + '</strong>!<br>Lớp phụ trách của bạn: <strong>' + currentTeacher.allowedClasses.join(', ') + '</strong>';
+                    msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu'; return;
+                }
+            }
             let updates = {};
             if (newName && newName !== editingStudent.hoTen) updates.hoTen = newName;
             if (newLop && newLop !== editingStudent.lop) updates.lop = newLop;
@@ -4841,42 +5036,46 @@
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu';
         }
 
-        // ===== MỞ/KHÓA KỲ THI =====
-        async function toggleMoThi(maHS, value) {
-            let msg = value ? 'Mở kỳ thi cho học sinh <strong>' + maHS + '</strong>?' : 'Khóa kỳ thi cho học sinh <strong>' + maHS + '</strong>?';
+        // ===== MỞ/KHÓA KỲ THI (tách thi thật / thi thử) =====
+        async function toggleMoThi(maHS, type, value) {
+            let field = type === 'real' ? 'moThiThat' : 'moThiThu';
+            let label = type === 'real' ? 'thi thật' : 'thi thử';
+            let msg = value ? 'Mở <strong>' + label + '</strong> cho học sinh <strong>' + maHS + '</strong>?' : 'Khóa <strong>' + label + '</strong> cho học sinh <strong>' + maHS + '</strong>?';
             showConfirmPopup('Xác nhận', msg, async () => {
                 try {
-                    await firebaseUpdate('students/' + maHS, { moThi: value });
+                    await firebaseUpdate('students/' + maHS, { [field]: value });
                     // Update local data immediately
                     let s = dashboardData.students.find(x => x.maHS === maHS);
-                    if (s) s.moThi = value;
+                    if (s) s[field] = value;
                     renderManageTable();
                 } catch (e) { showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
-            }, value ? 'Mở thi' : 'Khóa thi', 'Hủy');
+            }, value ? 'Mở ' + label : 'Khóa ' + label, 'Hủy');
         }
 
-        async function toggleMoThiClass(value) {
+        async function toggleMoThiClass(type, value) {
             let classF = document.getElementById('manageClassFilter').value;
             if (!classF) {
                 showPopup('Cảnh báo', 'Vui lòng chọn một lớp cụ thể trước khi mở/khóa cả lớp!', 'warning');
                 return;
             }
+            let field = type === 'real' ? 'moThiThat' : 'moThiThu';
+            let label = type === 'real' ? 'thi thật' : 'thi thử';
             let targetStudents = dashboardData.students.filter(s => s.lop === classF);
             let msg = value
-                ? 'Mở kỳ thi cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?'
-                : 'Khóa kỳ thi cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?';
+                ? 'Mở <strong>' + label + '</strong> cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?'
+                : 'Khóa <strong>' + label + '</strong> cho <strong>tất cả ' + targetStudents.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?';
             showConfirmPopup('Xác nhận', msg, async () => {
                 try {
                     showLoading();
                     let updates = {};
                     targetStudents.forEach(s => {
-                        updates['students/' + s.maHS + '/moThi'] = value;
+                        updates['students/' + s.maHS + '/' + field] = value;
                     });
                     await db.ref().update(updates);
                     // Update local data
-                    targetStudents.forEach(s => { s.moThi = value; });
+                    targetStudents.forEach(s => { s[field] = value; });
                     hideLoading();
-                    showPopup('Thành công', (value ? 'Đã mở' : 'Đã khóa') + ' kỳ thi cho ' + targetStudents.length + ' HS lớp ' + classF, 'success');
+                    showPopup('Thành công', (value ? 'Đã mở' : 'Đã khóa') + ' ' + label + ' cho ' + targetStudents.length + ' HS lớp ' + classF, 'success');
                     renderManageTable();
                 } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
             }, value ? 'Mở cả lớp' : 'Khóa cả lớp', 'Hủy');
@@ -4905,14 +5104,17 @@
                 return;
             }
             // Build data
-            let rows = [['STT', 'Mã HS', 'Họ tên', 'Lớp', 'Mở thi', 'Thi thật', 'Thi thử', 'Số lượt thử']];
+            let rows = [['STT', 'Mã HS', 'Họ tên', 'Lớp', 'Mở thi thật', 'Mở thi thử', 'Thi thật', 'Thi thử', 'Số lượt thử']];
             students.forEach((s, idx) => {
+                let isRealOpen = s.moThiThat !== undefined ? !!s.moThiThat : !!s.moThi;
+                let isPracOpen = s.moThiThu !== undefined ? !!s.moThiThu : !!s.moThi;
                 rows.push([
                     idx + 1,
                     s.maHS,
                     s.hoTen,
                     s.lop,
-                    s.moThi ? 'Đã mở' : 'Chưa mở',
+                    isRealOpen ? 'Đã mở' : 'Chưa mở',
+                    isPracOpen ? 'Đã mở' : 'Chưa mở',
                     s.hasReal ? 'Đã thi' : 'Chưa thi',
                     s.hasPractice ? 'Đã thi' : 'Chưa thi',
                     s.practiceCount || 0
@@ -4920,13 +5122,277 @@
             });
             let ws = XLSX.utils.aoa_to_sheet(rows);
             // Column widths
-            ws['!cols'] = [{ wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 8 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 12 }];
+            ws['!cols'] = [{ wch: 5 }, { wch: 12 }, { wch: 25 }, { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 12 }];
             let wb = XLSX.utils.book_new();
             let sheetName = classF ? ('Lop_' + classF) : 'Tat_ca';
             XLSX.utils.book_append_sheet(wb, ws, sheetName);
             let fileName = 'DanhSach_HS' + (classF ? '_' + classF : '') + '.xlsx';
             XLSX.writeFile(wb, fileName);
             showPopup('Thành công', 'Đã tải file <strong>' + fileName + '</strong> (' + students.length + ' HS)', 'success');
+        }
+
+        // ============== QUẢN LÝ DANH SÁCH HỌC SINH ==============
+        let pendingImportData = []; // Dữ liệu chờ import
+
+        function openUploadStudentsModal() {
+            document.getElementById('uploadStudentsModal').style.display = 'flex';
+            document.getElementById('uploadStudentFile').value = '';
+            document.getElementById('uploadPreviewArea').style.display = 'none';
+            document.getElementById('uploadStatusMsg').style.display = 'none';
+            document.getElementById('btnConfirmImport').disabled = true;
+            document.getElementById('btnConfirmImport').style.opacity = '0.5';
+            pendingImportData = [];
+        }
+
+        function closeUploadStudentsModal() {
+            document.getElementById('uploadStudentsModal').style.display = 'none';
+            pendingImportData = [];
+        }
+
+        function previewStudentFile(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    let data = new Uint8Array(e.target.result);
+                    let workbook = XLSX.read(data, { type: 'array' });
+                    let sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let json = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+                    if (!json.length) {
+                        showUploadMsg('❌ File trống hoặc không đọc được dữ liệu!', 'error');
+                        return;
+                    }
+                    // Tìm cột: linh hoạt tên cột
+                    let cols = Object.keys(json[0]);
+                    let colMap = {};
+                    cols.forEach(c => {
+                        let cl = c.toLowerCase().replace(/\s+/g, '');
+                        if (cl.includes('mahs') || cl.includes('mã') || cl === 'ma') colMap.maHS = c;
+                        else if (cl.includes('hoten') || cl.includes('họtên') || cl.includes('ten') || cl.includes('tên') || cl.includes('hovaten')) colMap.hoTen = c;
+                        else if (cl.includes('lop') || cl.includes('lớp') || cl === 'class') colMap.lop = c;
+                        else if (cl.includes('matkhau') || cl.includes('mậtkhẩu') || cl.includes('pass') || cl.includes('mk')) colMap.matKhau = c;
+                    });
+                    if (!colMap.maHS || !colMap.hoTen || !colMap.lop) {
+                        showUploadMsg('❌ Không tìm thấy đủ cột: <strong>Mã HS, Họ tên, Lớp</strong>. Các cột tìm thấy: ' + cols.join(', '), 'error');
+                        return;
+                    }
+                    // Parse data
+                    pendingImportData = [];
+                    let errors = [];
+                    json.forEach((row, idx) => {
+                        let maHS = String(row[colMap.maHS] || '').trim();
+                        let hoTen = String(row[colMap.hoTen] || '').trim();
+                        let lop = String(row[colMap.lop] || '').trim();
+                        let matKhau = colMap.matKhau ? String(row[colMap.matKhau] || '123456').trim() : '123456';
+                        if (!maHS || !hoTen || !lop) {
+                            errors.push('Dòng ' + (idx + 2) + ': thiếu Mã HS, Họ tên hoặc Lớp');
+                            return;
+                        }
+                        if (!matKhau) matKhau = '123456';
+                        pendingImportData.push({ maHS, hoTen, lop, matKhau });
+                    });
+                    // Thống kê
+                    let classes = [...new Set(pendingImportData.map(s => s.lop))];
+                    let dupes = pendingImportData.filter((s, i, arr) => arr.findIndex(x => x.maHS === s.maHS) !== i);
+                    let existingDupes = dashboardData.students ? pendingImportData.filter(s => dashboardData.students.some(x => x.maHS === s.maHS)) : [];
+
+                    // === KIỂM TRA QUYỀN LỚP PHỤ TRÁCH ===
+                    let blockedStudents = [];
+                    let blockedClasses = [];
+                    let hasBlockedStudents = false;
+                    if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                        blockedStudents = pendingImportData.filter(s => !currentTeacher.allowedClasses.includes(s.lop));
+                        blockedClasses = [...new Set(blockedStudents.map(s => s.lop))];
+                        hasBlockedStudents = blockedStudents.length > 0;
+                    }
+
+                    let statsHtml = `📊 <strong>${pendingImportData.length}</strong> học sinh | <strong>${classes.length}</strong> lớp (${classes.join(', ')})`;
+                    if (dupes.length) statsHtml += ` | ⚠️ <span style="color:var(--warning)">${dupes.length} mã trùng trong file</span>`;
+                    if (existingDupes.length) statsHtml += ` | 🔄 <span style="color:var(--primary)">${existingDupes.length} mã đã tồn tại</span>`;
+                    if (errors.length) statsHtml += `<br>⚠️ <span style="color:var(--danger)">${errors.length} dòng bị bỏ qua</span>`;
+                    if (hasBlockedStudents) {
+                        statsHtml += `<br>⛔ <span style="color:var(--danger);font-weight:700">${blockedStudents.length} HS thuộc lớp ngoài quyền (${blockedClasses.join(', ')})</span>`;
+                        statsHtml += `<br><span style="color:var(--danger);font-size:12px">Lớp phụ trách của bạn: <strong>${currentTeacher.allowedClasses.join(', ')}</strong>. Vui lòng xóa các HS không thuộc lớp phụ trách rồi import lại.</span>`;
+                    }
+
+                    document.getElementById('uploadPreviewStats').innerHTML = statsHtml;
+
+                    // Preview table
+                    let tHtml = '<table><thead><tr><th>#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mật khẩu</th><th>Trạng thái</th></tr></thead><tbody>';
+                    pendingImportData.slice(0, 50).forEach((s, i) => {
+                        let exists = dashboardData.students && dashboardData.students.some(x => x.maHS === s.maHS);
+                        let isBlocked = hasBlockedStudents && blockedStudents.some(b => b.maHS === s.maHS);
+                        let statusB;
+                        if (isBlocked) {
+                            statusB = '<span style="color:var(--danger);font-size:11px;font-weight:700"><i class="fas fa-ban"></i> Ngoài quyền</span>';
+                        } else if (exists) {
+                            statusB = '<span style="color:var(--warning);font-size:11px"><i class="fas fa-exclamation-circle"></i> Đã tồn tại</span>';
+                        } else {
+                            statusB = '<span style="color:var(--success);font-size:11px"><i class="fas fa-check"></i> Mới</span>';
+                        }
+                        let rowBg = isBlocked ? 'background:rgba(239,68,68,0.08);' : '';
+                        tHtml += `<tr style="${rowBg}"><td>${i + 1}</td><td><code style="font-size:11px">${s.maHS}</code></td><td>${s.hoTen}</td><td>${s.lop}</td><td style="font-size:11px">${s.matKhau}</td><td>${statusB}</td></tr>`;
+                    });
+                    if (pendingImportData.length > 50) tHtml += `<tr><td colspan="6" style="text-align:center;color:var(--text2)">... và ${pendingImportData.length - 50} HS nữa</td></tr>`;
+                    tHtml += '</tbody></table>';
+                    document.getElementById('uploadPreviewTable').innerHTML = tHtml;
+                    document.getElementById('uploadPreviewArea').style.display = 'block';
+                    // Nếu có HS ngoài quyền → disable nút Import
+                    if (hasBlockedStudents) {
+                        document.getElementById('btnConfirmImport').disabled = true;
+                        document.getElementById('btnConfirmImport').style.opacity = '0.5';
+                        showUploadMsg('⛔ Không thể import! File chứa ' + blockedStudents.length + ' HS thuộc lớp ngoài quyền phụ trách (' + blockedClasses.join(', ') + '). Vui lòng xóa các HS này khỏi file rồi thử lại.', 'error');
+                    } else {
+                        document.getElementById('btnConfirmImport').disabled = false;
+                        document.getElementById('btnConfirmImport').style.opacity = '1';
+                        showUploadMsg('✅ Đã đọc file thành công! Kiểm tra preview rồi nhấn Import.', 'success');
+                    }
+                } catch (ex) {
+                    showUploadMsg('❌ Lỗi đọc file: ' + ex.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function showUploadMsg(msg, type) {
+            let el = document.getElementById('uploadStatusMsg');
+            el.innerHTML = msg; el.style.display = 'block';
+            if (type === 'error') { el.style.background = 'rgba(239,68,68,0.15)'; el.style.color = 'var(--danger)'; }
+            else if (type === 'success') { el.style.background = 'rgba(16,185,129,0.15)'; el.style.color = 'var(--success)'; }
+            else { el.style.background = 'rgba(99,102,241,0.12)'; el.style.color = 'var(--primary)'; }
+        }
+
+        async function confirmImportStudents() {
+            if (!pendingImportData.length) { showUploadMsg('❌ Không có dữ liệu để import!', 'error'); return; }
+            // === KIỂM TRA QUYỀN LỚP PHỤ TRÁCH (double-check) ===
+            if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                let invalidStudents = pendingImportData.filter(s => !currentTeacher.allowedClasses.includes(s.lop));
+                if (invalidStudents.length > 0) {
+                    let invalidClasses = [...new Set(invalidStudents.map(s => s.lop))];
+                    showUploadMsg('⛔ Không thể import! File chứa ' + invalidStudents.length + ' HS thuộc lớp ngoài quyền phụ trách (' + invalidClasses.join(', ') + '). Lớp phụ trách: ' + currentTeacher.allowedClasses.join(', '), 'error');
+                    return;
+                }
+            }
+            let mode = document.querySelector('input[name="importMode"]:checked').value;
+            let btn = document.getElementById('btnConfirmImport');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang import...';
+
+            try {
+                let updates = {};
+
+                // Nếu mode overwrite: xóa HS cũ cùng lớp
+                if (mode === 'overwrite' && dashboardData.students) {
+                    let classesInFile = [...new Set(pendingImportData.map(s => s.lop))];
+                    dashboardData.students.forEach(s => {
+                        if (classesInFile.includes(s.lop)) {
+                            updates['students/' + s.maHS] = null;
+                        }
+                    });
+                }
+
+                // Thêm HS mới
+                pendingImportData.forEach(s => {
+                    updates['students/' + s.maHS] = {
+                        maHS: s.maHS,
+                        hoTen: s.hoTen,
+                        lop: s.lop,
+                        matKhau: s.matKhau,
+                        moThiThat: false,
+                        moThiThu: false
+                    };
+                });
+
+                await db.ref().update(updates);
+                showUploadMsg('✅ Import thành công <strong>' + pendingImportData.length + '</strong> học sinh!', 'success');
+                btn.innerHTML = '<i class="fas fa-check"></i> Hoàn tất!';
+                setTimeout(() => { closeUploadStudentsModal(); }, 1500);
+            } catch (e) {
+                showUploadMsg('❌ Lỗi import: ' + e.message, 'error');
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Import vào Firebase';
+            }
+        }
+
+        // ===== XÓA HỌC SINH =====
+        async function deleteStudent(maHS) {
+            let s = dashboardData.students ? dashboardData.students.find(x => x.maHS === maHS) : null;
+            let name = s ? s.hoTen : maHS;
+            showConfirmPopup('⚠️ Xóa học sinh',
+                'Xóa HS <strong>' + name + '</strong> (' + maHS + ')?<br><span style="color:var(--danger)">Dữ liệu thi + kết quả sẽ bị xóa vĩnh viễn!</span>',
+                async () => {
+                    try {
+                        showLoading();
+                        let updates = {};
+                        updates['students/' + maHS] = null;
+                        updates['results/' + maHS] = null;
+                        updates['practiceResults/' + maHS] = null;
+                        updates['examProgress/' + maHS] = null;
+                        await db.ref().update(updates);
+                        if (dashboardData.students) {
+                            dashboardData.students = dashboardData.students.filter(x => x.maHS !== maHS);
+                        }
+                        hideLoading();
+                        renderManageTable();
+                        showPopup('Đã xóa', 'Đã xóa HS <strong>' + name + '</strong>', 'success');
+                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+                }, 'Xóa', 'Hủy');
+        }
+
+        async function deleteEntireClass() {
+            let classF = document.getElementById('manageClassFilter').value;
+            if (!classF) {
+                showPopup('Cảnh báo', 'Vui lòng chọn một lớp cụ thể trước khi xóa!', 'warning');
+                return;
+            }
+            let targets = dashboardData.students ? dashboardData.students.filter(s => s.lop === classF) : [];
+            if (!targets.length) {
+                showPopup('Không có dữ liệu', 'Không tìm thấy HS nào trong lớp ' + classF, 'warning');
+                return;
+            }
+            showConfirmPopup('⛔ Xóa cả lớp ' + classF,
+                'Xóa <strong>tất cả ' + targets.length + ' học sinh</strong> lớp <strong>' + classF + '</strong>?<br><span style="color:var(--danger)">Hành động này <strong>KHÔNG THỂ HOÀN TÁC</strong>! Tất cả dữ liệu thi + kết quả sẽ bị xóa.</span>',
+                async () => {
+                    let confirm2 = prompt('Nhập "' + classF + '" để xác nhận xóa:');
+                    if (confirm2 !== classF) {
+                        showPopup('Đã hủy', 'Nhập sai tên lớp — đã hủy thao tác.', 'warning');
+                        return;
+                    }
+                    try {
+                        showLoading();
+                        let updates = {};
+                        targets.forEach(s => {
+                            updates['students/' + s.maHS] = null;
+                            updates['results/' + s.maHS] = null;
+                            updates['practiceResults/' + s.maHS] = null;
+                            updates['examProgress/' + s.maHS] = null;
+                        });
+                        await db.ref().update(updates);
+                        if (dashboardData.students) {
+                            dashboardData.students = dashboardData.students.filter(s => s.lop !== classF);
+                        }
+                        hideLoading();
+                        renderManageTable();
+                        showPopup('Đã xóa', 'Đã xóa <strong>' + targets.length + ' HS</strong> lớp <strong>' + classF + '</strong>', 'success');
+                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+                }, 'Xóa cả lớp', 'Hủy');
+        }
+
+        // ===== TẢI FILE MẪU EXCEL =====
+        function downloadStudentTemplate() {
+            let sampleData = [
+                ['Mã HS', 'Họ tên', 'Lớp', 'Mật khẩu'],
+                ['HS001', 'Nguyễn Văn A', '7A1', '123456'],
+                ['HS002', 'Trần Thị B', '7A1', '123456'],
+                ['HS003', 'Lê Văn C', '7A2', 'abc123'],
+                ['HS004', 'Phạm Thị D', '7A2', ''],
+                ['HS005', 'Hoàng Văn E', '8A1', '']
+            ];
+            let ws = XLSX.utils.aoa_to_sheet(sampleData);
+            ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 8 }, { wch: 12 }];
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'DanhSach_HS');
+            XLSX.writeFile(wb, 'Mau_DanhSach_HocSinh.xlsx');
+            showPopup('Thành công', 'Đã tải file mẫu <strong>Mau_DanhSach_HocSinh.xlsx</strong>. Điền dữ liệu rồi import lại!', 'success');
         }
 
         // ============== TẢI BÀI LÀM HỌC SINH ==============
@@ -5111,6 +5577,248 @@
                 subP.style.color = tab === 'practice' ? '#fff' : 'var(--text2)';
             }
             renderResultsTable();
+        }
+
+        // ===== THÙNG RÁC — SOFT DELETE + RESTORE =====
+        const TRASH_RETENTION_DAYS = 30;
+
+        function softDeleteResultsUI() {
+            let type = _resultsSubTab;
+            let typeName = type === 'real' ? 'thi thật' : 'thi thử';
+            let classFilter = document.getElementById('resultsClassFilter');
+            let lop = classFilter ? classFilter.value : '';
+            if (!lop) {
+                showPopup('Chọn lớp', 'Vui lòng chọn một <strong>lớp cụ thể</strong> trong bộ lọc trước khi xóa kết quả!', 'warning');
+                return;
+            }
+            if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
+                if (!currentTeacher.allowedClasses.includes(lop)) {
+                    showPopup('⛔ Ngoài quyền', 'Bạn không phụ trách lớp <strong>' + lop + '</strong>!<br>Lớp phụ trách: <strong>' + currentTeacher.allowedClasses.join(', ') + '</strong>', 'error');
+                    return;
+                }
+            }
+            let rs = dashboardData && dashboardData.results;
+            let targetResults = type === 'real' ? (rs ? rs.realResults : []) : (rs ? rs.practiceResults : []);
+            let count = targetResults ? targetResults.filter(r => r.lop === lop).length : 0;
+            if (count === 0) {
+                showPopup('Không có dữ liệu', 'Không có kết quả ' + typeName + ' nào của lớp <strong>' + lop + '</strong> để xóa.', 'warning');
+                return;
+            }
+            showConfirmPopup(
+                '🗑️ Xóa kết quả ' + typeName + ' lớp ' + lop + '?',
+                'Sẽ xóa <strong>' + count + ' kết quả ' + typeName + '</strong> của lớp <strong>' + lop + '</strong>.<br><br>' +
+                '<div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:10px 14px;margin:8px 0">' +
+                '<i class="fas fa-info-circle" style="color:var(--primary)"></i> Dữ liệu sẽ được lưu trong <strong>Thùng rác 30 ngày</strong>. Bạn có thể khôi phục trước khi hết hạn.</div>',
+                () => {
+                    let confirm2 = prompt('🔐 Nhập "' + lop + '" để xác nhận xóa:');
+                    if (confirm2 !== lop) {
+                        showPopup('Đã hủy', 'Nhập sai tên lớp — đã hủy thao tác.', 'warning');
+                        return;
+                    }
+                    softDeleteResults(type, lop);
+                },
+                'Xóa vào Thùng rác', 'Hủy'
+            );
+        }
+
+        async function softDeleteResults(type, lop) {
+            showLoading();
+            try {
+                let fbPath = type === 'real' ? 'results' : 'practiceResults';
+                let typeName = type === 'real' ? 'thi thật' : 'thi thử';
+                let allData = await firebaseRead(fbPath) || {};
+                let toDelete = {};
+                let toDeleteKeys = [];
+                Object.keys(allData).forEach(key => {
+                    if (allData[key].lop === lop) {
+                        toDelete[key] = allData[key];
+                        toDeleteKeys.push(key);
+                    }
+                });
+                if (!toDeleteKeys.length) {
+                    hideLoading();
+                    showPopup('Không có dữ liệu', 'Không tìm thấy kết quả ' + typeName + ' lớp ' + lop, 'warning');
+                    return;
+                }
+                let trashId = 'trash_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                let trashEntry = {
+                    type: fbPath,
+                    typeName: typeName,
+                    lop: lop,
+                    deletedBy: currentTeacher ? currentTeacher.maGV : 'unknown',
+                    deletedByName: currentTeacher ? currentTeacher.hoTen : 'Unknown',
+                    deletedAt: Date.now(),
+                    autoDeleteAt: Date.now() + (TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000),
+                    itemCount: toDeleteKeys.length,
+                    data: toDelete
+                };
+                let updates = {};
+                updates['trash/' + trashId] = trashEntry;
+                toDeleteKeys.forEach(key => { updates[fbPath + '/' + key] = null; });
+                await db.ref().update(updates);
+                hideLoading();
+                await buildResultsFromFirebase();
+                updateTrashBadge();
+                showPopup('✅ Đã xóa', 'Đã chuyển <strong>' + toDeleteKeys.length + ' kết quả ' + typeName + '</strong> lớp <strong>' + lop + '</strong> vào Thùng rác.<br><br><span style="font-size:12px;color:var(--text2)">Tự xóa vĩnh viễn sau ' + TRASH_RETENTION_DAYS + ' ngày. Mở <strong>Thùng rác</strong> để khôi phục.</span>', 'success');
+            } catch (e) {
+                hideLoading();
+                showPopup('Lỗi', 'Lỗi xóa: ' + e.message, 'error');
+            }
+        }
+
+        function openTrashModal() {
+            document.getElementById('trashModal').style.display = 'flex';
+            autoPurgeTrash().then(() => renderTrashList());
+        }
+        function closeTrashModal() { document.getElementById('trashModal').style.display = 'none'; }
+
+        async function renderTrashList() {
+            let container = document.getElementById('trashListContainer');
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+            try {
+                let trashData = await firebaseRead('trash') || {};
+                let items = Object.keys(trashData).map(id => ({ id, ...trashData[id] }));
+                if (currentTeacher && !currentTeacher.isAdmin) {
+                    items = items.filter(t => t.deletedBy === currentTeacher.maGV);
+                }
+                items.sort((a, b) => (b.deletedAt || 0) - (a.deletedAt || 0));
+                let badge = document.getElementById('trashModalBadge');
+                if (badge) badge.textContent = '(' + items.length + ' mục)';
+                let btnEmpty = document.getElementById('btnEmptyTrash');
+                if (btnEmpty) btnEmpty.style.display = (currentTeacher && currentTeacher.isAdmin && items.length > 0) ? '' : 'none';
+                if (!items.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px"><i class="fas fa-trash" style="font-size:36px;color:var(--text2);opacity:.3"></i><p style="color:var(--text2)">Thùng rác trống</p></div>';
+                    return;
+                }
+                let html = '<div style="display:flex;flex-direction:column;gap:10px">';
+                items.forEach(t => {
+                    let deletedDate = new Date(t.deletedAt).toLocaleString('vi-VN');
+                    let daysLeft = Math.max(0, Math.ceil((t.autoDeleteAt - Date.now()) / (24*60*60*1000)));
+                    let urgColor = daysLeft <= 3 ? 'var(--danger)' : daysLeft <= 7 ? 'var(--warning)' : 'var(--text2)';
+                    let tIcon = t.type === 'results' ? 'fa-file-alt' : 'fa-flask';
+                    let tColor = t.type === 'results' ? 'var(--primary)' : 'var(--warning)';
+                    html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px">';
+                    html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">';
+                    html += '<div style="flex:1;min-width:200px">';
+                    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+                    html += '<i class="fas ' + tIcon + '" style="color:' + tColor + '"></i>';
+                    html += '<strong style="font-size:14px">Kết quả ' + (t.typeName || t.type) + '</strong>';
+                    html += '<span style="background:' + tColor + ';color:#fff;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">' + t.lop + '</span>';
+                    html += '<span style="background:var(--bg3);padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600">' + t.itemCount + ' mục</span>';
+                    html += '</div>';
+                    html += '<div style="font-size:11px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap">';
+                    html += '<span><i class="fas fa-user"></i> ' + (t.deletedByName || t.deletedBy) + '</span>';
+                    html += '<span><i class="fas fa-clock"></i> ' + deletedDate + '</span>';
+                    html += '<span style="color:' + urgColor + ';font-weight:600"><i class="fas fa-hourglass-half"></i> Còn ' + daysLeft + ' ngày</span>';
+                    html += '</div></div>';
+                    html += '<div style="display:flex;gap:6px;flex-shrink:0">';
+                    html += '<button onclick="restoreFromTrash(\'' + t.id + '\')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:var(--success);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"><i class="fas fa-undo"></i> Khôi phục</button>';
+                    html += '<button onclick="permanentDeleteTrash(\'' + t.id + '\')" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"><i class="fas fa-trash"></i> Xóa vĩnh viễn</button>';
+                    html += '</div></div></div>';
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi: ' + e.message + '</div>';
+            }
+        }
+
+        async function restoreFromTrash(trashId) {
+            showConfirmPopup('♻️ Khôi phục dữ liệu?', 'Dữ liệu sẽ được đưa trở lại hệ thống. Tiếp tục?', async () => {
+                showLoading();
+                try {
+                    let trashEntry = await firebaseRead('trash/' + trashId);
+                    if (!trashEntry) { hideLoading(); showPopup('Lỗi', 'Không tìm thấy dữ liệu!', 'error'); return; }
+                    let updates = {};
+                    Object.keys(trashEntry.data).forEach(key => { updates[trashEntry.type + '/' + key] = trashEntry.data[key]; });
+                    updates['trash/' + trashId] = null;
+                    await db.ref().update(updates);
+                    hideLoading();
+                    renderTrashList();
+                    updateTrashBadge();
+                    showPopup('✅ Khôi phục thành công', 'Đã khôi phục <strong>' + trashEntry.itemCount + ' kết quả ' + (trashEntry.typeName || '') + '</strong> lớp <strong>' + trashEntry.lop + '</strong>.', 'success');
+                } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi khôi phục: ' + e.message, 'error'); }
+            }, 'Khôi phục', 'Hủy');
+        }
+
+        function permanentDeleteTrash(trashId) {
+            showConfirmPopup('⛔ Xóa vĩnh viễn?',
+                '<span style="color:var(--danger);font-weight:700">Hành động này KHÔNG THỂ HOÀN TÁC!</span><br>Dữ liệu sẽ bị xóa hoàn toàn.',
+                async () => {
+                    try {
+                        showLoading();
+                        await firebaseWrite('trash/' + trashId, null);
+                        hideLoading();
+                        renderTrashList();
+                        updateTrashBadge();
+                        showPopup('Đã xóa', 'Đã xóa vĩnh viễn khỏi thùng rác.', 'success');
+                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+                }, 'Xóa vĩnh viễn', 'Hủy');
+        }
+
+        function emptyAllTrash() {
+            if (!currentTeacher || !currentTeacher.isAdmin) return;
+            showConfirmPopup('⛔ Xóa TOÀN BỘ thùng rác?',
+                '<span style="color:var(--danger);font-weight:700">Tất cả dữ liệu sẽ bị xóa VĨNH VIỄN!</span>',
+                async () => {
+                    try {
+                        showLoading();
+                        await firebaseWrite('trash', null);
+                        hideLoading();
+                        renderTrashList();
+                        updateTrashBadge();
+                        showPopup('Đã xóa', 'Đã xóa toàn bộ thùng rác.', 'success');
+                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+                }, 'Xóa toàn bộ', 'Hủy');
+        }
+
+        async function autoPurgeTrash() {
+            try {
+                let trashData = await firebaseRead('trash') || {};
+                let now = Date.now();
+                let updates = {};
+                let purged = 0;
+                Object.keys(trashData).forEach(id => {
+                    if (trashData[id].autoDeleteAt && now > trashData[id].autoDeleteAt) {
+                        updates['trash/' + id] = null;
+                        purged++;
+                    }
+                });
+                if (purged > 0) {
+                    await db.ref().update(updates);
+                    console.log('Auto-purged ' + purged + ' expired trash items.');
+                }
+            } catch (e) { console.log('Auto-purge error:', e); }
+        }
+
+        async function updateTrashBadge() {
+            try {
+                let trashData = await firebaseRead('trash') || {};
+                let items = Object.keys(trashData);
+                if (currentTeacher && !currentTeacher.isAdmin) {
+                    items = items.filter(id => trashData[id].deletedBy === currentTeacher.maGV);
+                }
+                let badge = document.getElementById('trashBadge');
+                if (badge) {
+                    if (items.length > 0) {
+                        badge.textContent = items.length;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch (e) { /* silent */ }
+        }
+
+        function populateResultsClassFilter() {
+            let filterEl = document.getElementById('resultsClassFilter');
+            if (!filterEl || !dashboardData || !dashboardData.students) return;
+            let classes = [...new Set(dashboardData.students.map(s => s.lop))].sort();
+            let current = filterEl.value;
+            filterEl.innerHTML = '<option value="">📋 Tất cả lớp</option>';
+            classes.forEach(c => {
+                filterEl.innerHTML += '<option value="' + c + '"' + (c === current ? ' selected' : '') + '>' + c + '</option>';
+            });
         }
 
 
@@ -5799,6 +6507,23 @@
         }
 
         // ===== TÀI LIỆU ÔN TẬP =====
+        // Populate dropdown Khối theo quyền GV
+        function populateSmKhoiDropdown(selectId) {
+            let sel = document.getElementById(selectId || 'smKhoi');
+            if (!sel) return;
+            let allGrades = ['6', '7', '8', '9'];
+            let allowed = allGrades;
+            if (currentTeacher && !currentTeacher.isAdmin) {
+                let tg = getTeacherAllowedGrades();
+                if (tg && tg.length > 0) allowed = tg;
+            }
+            let current = sel.value;
+            sel.innerHTML = '<option value="">Tất cả khối</option>';
+            allowed.forEach(g => {
+                sel.innerHTML += '<option value="' + g + '"' + (g === current ? ' selected' : '') + '>Khối ' + g + '</option>';
+            });
+        }
+
         let _studyMaterials = [];
 
         async function loadStudyMaterials() {
@@ -5819,9 +6544,17 @@
                 container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-book" style="font-size:30px;margin-bottom:8px;display:block;opacity:0.4"></i>Chưa có tài liệu nào.<br><span style="font-size:12px">Hãy thêm tài liệu ôn tập ở form bên trên.</span></div>';
                 return;
             }
+            // Lọc tài liệu theo khối GV phụ trách
+            let filteredMaterials = _studyMaterials;
+            if (currentTeacher && !currentTeacher.isAdmin) {
+                let allowedGrades = getTeacherAllowedGrades();
+                if (allowedGrades) {
+                    filteredMaterials = _studyMaterials.filter(m => !m.khoi || allowedGrades.includes(m.khoi));
+                }
+            }
             // Group by category
             let groups = {};
-            _studyMaterials.forEach(m => {
+            filteredMaterials.forEach(m => {
                 let cat = m.category || 'Chưa phân loại';
                 if (!groups[cat]) groups[cat] = [];
                 groups[cat].push(m);
@@ -5840,10 +6573,14 @@
                         html += `<a href="${m.fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 12px;background:rgba(99,102,241,0.1);color:var(--primary);border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;border:1px solid rgba(99,102,241,0.2)"><i class="fas fa-file-download"></i> ${m.fileName || 'Tải file'}</a>`;
                     }
                     html += `</div>`;
-                    html += `<div style="display:flex;gap:4px;flex-shrink:0">`;
-                    html += `<button onclick="editStudyMaterial('${m._key}')" style="background:var(--bg3);border:none;color:var(--accent);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Sửa"><i class="fas fa-edit"></i></button>`;
-                    html += `<button onclick="deleteStudyMaterial('${m._key}')" style="background:rgba(239,68,68,0.1);border:none;color:var(--danger);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Xóa"><i class="fas fa-trash"></i></button>`;
-                    html += `</div></div></div>`;
+                    let canEdit = !currentTeacher || currentTeacher.isAdmin || (m.createdBy && m.createdBy === currentTeacher.maGV);
+                    if (canEdit) {
+                        html += `<div style="display:flex;gap:4px;flex-shrink:0">`;
+                        html += `<button onclick="editStudyMaterial('${m._key}')" style="background:var(--bg3);border:none;color:var(--accent);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Sửa"><i class="fas fa-edit"></i></button>`;
+                        html += `<button onclick="deleteStudyMaterial('${m._key}')" style="background:rgba(239,68,68,0.1);border:none;color:var(--danger);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:12px" title="Xóa"><i class="fas fa-trash"></i></button>`;
+                        html += `</div>`;
+                    }
+                    html += `</div></div>`;
                 });
                 html += '</div>';
             });
@@ -5866,11 +6603,24 @@
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
             try {
                 let khoi = document.getElementById('smKhoi').value;
+                // Kiểm tra quyền khối cho GV thường
+                if (currentTeacher && !currentTeacher.isAdmin) {
+                    let allowedGrades = getTeacherAllowedGrades();
+                    if (allowedGrades && khoi && !allowedGrades.includes(khoi)) {
+                        msgEl.innerHTML = '⛔ Bạn không phụ trách khối ' + khoi + '!';
+                        msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm tài liệu';
+                        setTimeout(() => { msgEl.style.display = 'none'; }, 3000);
+                        return;
+                    }
+                }
                 let materialData = {
                     title: title,
                     category: category || 'Chung',
                     content: content,
                     khoi: khoi,
+                    createdBy: currentTeacher ? currentTeacher.maGV : 'ADMIN',
+                    createdByName: currentTeacher ? currentTeacher.hoTen : 'Admin',
                     createdAt: Date.now()
                 };
 
@@ -5919,7 +6669,7 @@
         async function deleteStudyMaterial(key) {
             showConfirmPopup('Xóa tài liệu?', 'Bạn có chắc muốn xóa tài liệu này?', async () => {
                 try {
-                    await firebaseDelete('studyMaterials/' + key);
+                    await firebaseWrite('studyMaterials/' + key, null);
                     loadStudyMaterials();
                 } catch (e) { showPopup('Lỗi xóa', 'Lỗi xóa tài liệu: ' + e.message, 'error'); }
             }, 'Xóa', 'Hủy', 'danger');
@@ -5938,11 +6688,6 @@
                     <input id="editSMCategory" value="${m.category || ''}" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
                     <div><label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Khối:</label>
                     <select id="editSMKhoi" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
-                        <option value="" ${!m.khoi ? 'selected' : ''}>Tất cả khối</option>
-                        <option value="6" ${m.khoi==='6' ? 'selected' : ''}>Khối 6</option>
-                        <option value="7" ${m.khoi==='7' ? 'selected' : ''}>Khối 7</option>
-                        <option value="8" ${m.khoi==='8' ? 'selected' : ''}>Khối 8</option>
-                        <option value="9" ${m.khoi==='9' ? 'selected' : ''}>Khối 9</option>
                     </select></div>
                 </div>
                 <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Nội dung:</label>
@@ -5953,6 +6698,9 @@
                 </div>
             </div>`;
             modal.style.display = 'flex';
+            // Populate khối dropdown with teacher restrictions
+            populateSmKhoiDropdown('editSMKhoi');
+            document.getElementById('editSMKhoi').value = m.khoi || '';
         }
 
         async function saveEditStudyMaterial(key) {
