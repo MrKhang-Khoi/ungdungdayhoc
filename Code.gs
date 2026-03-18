@@ -103,7 +103,7 @@ function setupSheets() {
   } else {
     chSheet.clear();
   }
-  var chHeaders = ['STT', 'Noi_Dung', 'Dap_An_1', 'Dap_An_2', 'Dap_An_3', 'Dap_An_4', 'Dap_An_Dung'];
+  var chHeaders = ['STT', 'Noi_Dung', 'Dap_An_1', 'Dap_An_2', 'Dap_An_3', 'Dap_An_4', 'Dap_An_Dung', 'Lop'];
   chSheet.getRange(1, 1, 1, chHeaders.length).setValues([chHeaders]);
   chSheet.getRange(1, 1, 1, chHeaders.length)
     .setFontWeight('bold')
@@ -118,27 +118,28 @@ function setupSheets() {
   chSheet.setColumnWidth(5, 200);
   chSheet.setColumnWidth(6, 200);
   chSheet.setColumnWidth(7, 100);
+  chSheet.setColumnWidth(8, 60);
 
-  // Thêm 16 câu hỏi mẫu (Tin học)
+  // Thêm 16 câu hỏi mẫu (Tin học) — cột Lop = khối lớp (6, 7, 8, 9 hoặc để trống = chung)
   var sampleQuestions = [
-    [1, 'Đơn vị nhỏ nhất của thông tin trong máy tính là gì?', 'Byte', 'Bit', 'KB', 'MB', 'b'],
-    [2, '1 Byte bằng bao nhiêu Bit?', '4 Bit', '8 Bit', '16 Bit', '32 Bit', 'b'],
-    [3, 'CPU là viết tắt của từ gì?', 'Central Processing Unit', 'Computer Personal Unit', 'Central Program Utility', 'Computer Processing Unit', 'a'],
-    [4, 'Phần mềm nào dùng để soạn thảo văn bản?', 'Excel', 'PowerPoint', 'Word', 'Access', 'c'],
-    [5, 'RAM là bộ nhớ gì?', 'Bộ nhớ ngoài', 'Bộ nhớ trong (tạm thời)', 'Bộ nhớ chỉ đọc', 'Bộ nhớ vĩnh viễn', 'b'],
-    [6, 'Phím tắt Ctrl+C dùng để làm gì?', 'Cắt', 'Sao chép', 'Dán', 'In', 'b'],
-    [7, 'Phím tắt Ctrl+V dùng để làm gì?', 'Sao chép', 'Cắt', 'Dán', 'Lưu', 'c'],
-    [8, 'Hệ điều hành nào phổ biến nhất trên máy tính cá nhân?', 'Linux', 'MacOS', 'Windows', 'Android', 'c'],
-    [9, 'Thiết bị nào là thiết bị đầu vào?', 'Máy in', 'Loa', 'Bàn phím', 'Màn hình', 'c'],
-    [10, 'Thiết bị nào là thiết bị đầu ra?', 'Chuột', 'Bàn phím', 'Máy quét', 'Máy in', 'd'],
-    [11, 'Đuôi file .docx thuộc phần mềm nào?', 'Excel', 'Word', 'PowerPoint', 'Access', 'b'],
-    [12, 'Đuôi file .xlsx thuộc phần mềm nào?', 'Word', 'Excel', 'PowerPoint', 'Notepad', 'b'],
-    [13, 'Phím tắt Ctrl+Z dùng để làm gì?', 'Lưu file', 'Hoàn tác', 'Làm lại', 'Đóng file', 'b'],
-    [14, 'Internet là gì?', 'Phần mềm máy tính', 'Mạng máy tính toàn cầu', 'Hệ điều hành', 'Thiết bị phần cứng', 'b'],
-    [15, 'Virus máy tính là gì?', 'Phần cứng hỏng', 'Chương trình gây hại', 'Lỗi hệ điều hành', 'File bị xóa', 'b'],
-    [16, 'Phím tắt Ctrl+S dùng để làm gì?', 'Sao chép', 'Lưu file', 'Tìm kiếm', 'Chọn tất cả', 'b']
+    [1, 'Đơn vị nhỏ nhất của thông tin trong máy tính là gì?', 'Byte', 'Bit', 'KB', 'MB', 'b', '6'],
+    [2, '1 Byte bằng bao nhiêu Bit?', '4 Bit', '8 Bit', '16 Bit', '32 Bit', 'b', '6'],
+    [3, 'CPU là viết tắt của từ gì?', 'Central Processing Unit', 'Computer Personal Unit', 'Central Program Utility', 'Computer Processing Unit', 'a', '7'],
+    [4, 'Phần mềm nào dùng để soạn thảo văn bản?', 'Excel', 'PowerPoint', 'Word', 'Access', 'c', '7'],
+    [5, 'RAM là bộ nhớ gì?', 'Bộ nhớ ngoài', 'Bộ nhớ trong (tạm thời)', 'Bộ nhớ chỉ đọc', 'Bộ nhớ vĩnh viễn', 'b', '7'],
+    [6, 'Phím tắt Ctrl+C dùng để làm gì?', 'Cắt', 'Sao chép', 'Dán', 'In', 'b', '8'],
+    [7, 'Phím tắt Ctrl+V dùng để làm gì?', 'Sao chép', 'Cắt', 'Dán', 'Lưu', 'c', '8'],
+    [8, 'Hệ điều hành nào phổ biến nhất trên máy tính cá nhân?', 'Linux', 'MacOS', 'Windows', 'Android', 'c', '8'],
+    [9, 'Thiết bị nào là thiết bị đầu vào?', 'Máy in', 'Loa', 'Bàn phím', 'Màn hình', 'c', '9'],
+    [10, 'Thiết bị nào là thiết bị đầu ra?', 'Chuột', 'Bàn phím', 'Máy quét', 'Máy in', 'd', '9'],
+    [11, 'Đuôi file .docx thuộc phần mềm nào?', 'Excel', 'Word', 'PowerPoint', 'Access', 'b', ''],
+    [12, 'Đuôi file .xlsx thuộc phần mềm nào?', 'Word', 'Excel', 'PowerPoint', 'Notepad', 'b', ''],
+    [13, 'Phím tắt Ctrl+Z dùng để làm gì?', 'Lưu file', 'Hoàn tác', 'Làm lại', 'Đóng file', 'b', ''],
+    [14, 'Internet là gì?', 'Phần mềm máy tính', 'Mạng máy tính toàn cầu', 'Hệ điều hành', 'Thiết bị phần cứng', 'b', ''],
+    [15, 'Virus máy tính là gì?', 'Phần cứng hỏng', 'Chương trình gây hại', 'Lỗi hệ điều hành', 'File bị xóa', 'b', '6'],
+    [16, 'Phím tắt Ctrl+S dùng để làm gì?', 'Sao chép', 'Lưu file', 'Tìm kiếm', 'Chọn tất cả', 'b', '9']
   ];
-  chSheet.getRange(2, 1, sampleQuestions.length, 7).setValues(sampleQuestions);
+  chSheet.getRange(2, 1, sampleQuestions.length, 8).setValues(sampleQuestions);
 
   // ===== Sheet 3: Ket_Qua =====
   var kqSheet = ss.getSheetByName('Ket_Qua');
@@ -352,6 +353,37 @@ function handleRequest(e) {
           result = { success: false, message: 'Missing POST data' };
         }
         break;
+      case 'downloadClassFiles':
+        result = downloadClassFiles(params.lop, params.maGV, params.isAdmin);
+        break;
+      case 'downloadStudentFiles':
+        result = downloadStudentFiles(params.lop, params.maHS, params.maGV, params.isAdmin);
+        break;
+      case 'cleanupDownloadZip':
+        result = cleanupDownloadZip(params.fileId);
+        break;
+      case 'addStudentWithSync':
+        if (e.postData && e.postData.contents) {
+          var asPost = JSON.parse(e.postData.contents);
+          result = addStudentWithSync(asPost);
+        } else {
+          result = addStudentWithSync(params);
+        }
+        break;
+      case 'deleteStudentWithSync':
+        result = deleteStudentWithSync(params.maHS, params.maGV, params.isAdmin);
+        break;
+      case 'importStudentsWithSync':
+        if (e.postData && e.postData.contents) {
+          var isPost = JSON.parse(e.postData.contents);
+          result = importStudentsWithSync(isPost);
+        } else {
+          result = { success: false, message: 'Cần POST data!' };
+        }
+        break;
+      case 'deleteClassWithSync':
+        result = deleteClassWithSync(params.lop, params.maGV, params.isAdmin);
+        break;
       default:
         result = { success: false, message: 'Action không hợp lệ' };
     }
@@ -375,7 +407,7 @@ function studentLogin(maHS, password) {
 
   // Kiểm tra chế độ thi thử
   var settingsResult = getSettings();
-  var isPractice = settingsResult.settings.practiceMode === 'true';
+  var isPractice = settingsResult.settings.practiceMode === true || settingsResult.settings.practiceMode === 'true';
 
   for (var i = 1; i < data.length; i++) {
     var sheetMaHS = data[i][1].toString().trim();
@@ -390,6 +422,27 @@ function studentLogin(maHS, password) {
 
       // Kiểm tra trạng thái thi (cột F = index 5)
       var trangThai = data[i][5].toString().trim().toUpperCase();
+
+      // Kiểm tra giáo viên đã mở kỳ thi chưa (hỗ trợ moThiThat/moThiThu mới + moThi cũ)
+      var studentFb = firebaseGet('students/' + maHS.trim());
+      if (!studentFb) {
+        return { success: false, message: '⏳ Giáo viên chưa mở kỳ thi cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!' };
+      }
+      var canReal = studentFb.moThiThat !== undefined ? !!studentFb.moThiThat : !!studentFb.moThi;
+      var canPractice = studentFb.moThiThu !== undefined ? !!studentFb.moThiThu : !!studentFb.moThi;
+      // Auto-switch: nếu chế độ chính bị khóa nhưng chế độ còn lại đang mở → tự chuyển
+      if (!isPractice && !canReal && canPractice) {
+        isPractice = true; // Thi thật bị khóa, thi thử đang mở → chuyển sang thi thử
+      }
+      if (isPractice && !canPractice && canReal) {
+        isPractice = false; // Thi thử bị khóa, thi thật đang mở → chuyển sang thi thật
+      }
+      if (isPractice && !canPractice) {
+        return { success: false, message: '⏳ Giáo viên chưa mở THI THỬ cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!' };
+      }
+      if (!isPractice && !canReal) {
+        return { success: false, message: '⏳ Giáo viên chưa mở kỳ thi cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!' };
+      }
 
       if (isPractice) {
         // Chế độ thi thử: đếm số lần đã thi
@@ -439,15 +492,27 @@ function studentLogin(maHS, password) {
   return { success: false, message: '❌ Mã học sinh không tồn tại! Vui lòng kiểm tra lại.' };
 }
 
-// Đếm số lần thi thử của HS
+// Đếm số lần thi thử của HS (đọc từ Firebase — đồng bộ với reset)
 function countPracticeAttempts(ss, maHS) {
-  var sheet = getOrCreatePracticeSheet(ss);
-  var data = sheet.getDataRange().getValues();
-  var count = 0;
-  for (var i = 1; i < data.length; i++) {
-    if (data[i][1] && data[i][1].toString().trim() === maHS) count++;
+  // Đếm từ Firebase (nguồn chính, đồng bộ với reset trên client)
+  try {
+    var practiceData = firebaseGet('practiceResults') || {};
+    var count = 0;
+    for (var key in practiceData) {
+      if (practiceData[key] && practiceData[key].maHS === maHS) count++;
+    }
+    return count;
+  } catch (e) {
+    // Fallback: đếm từ GGSheet nếu Firebase lỗi
+    Logger.log('Firebase read error, fallback to GGSheet: ' + e);
+    var sheet = getOrCreatePracticeSheet(ss);
+    var data = sheet.getDataRange().getValues();
+    var count = 0;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][1] && data[i][1].toString().trim() === maHS) count++;
+    }
+    return count;
   }
-  return count;
 }
 
 // Tạo sheet Ket_Qua_Thu nếu chưa có
@@ -611,13 +676,17 @@ function getClasses() {
 
 // ============== NỘP BÀI THI ==============
 function submitExam(data) {
-  // Race condition protection: chỉ 1 HS nộp bài tại 1 thời điểm
+  // Race condition protection — chỉ lock phần ghi GGSheet
   var lock = LockService.getScriptLock();
   try {
-    lock.waitLock(15000); // chờ tối đa 15 giây
+    lock.waitLock(30000); // tăng lên 30 giây để hỗ trợ nhiều HS nộp cùng lúc
   } catch (e) {
     return { success: false, message: '⏳ Hệ thống đang bận, vui lòng thử lại sau vài giây!' };
   }
+
+  var result; // kết quả trả về
+  var needDriveSave = false; // flag để lưu Drive sau khi release lock
+  var driveData = null;
 
   try {
   var ss = SpreadsheetApp.openById(SHEET_ID);
@@ -675,33 +744,34 @@ function submitExam(data) {
     var attempts = countPracticeAttempts(ss, data.maHS.trim());
     // Server-side validation: prevent bypassing max attempts
     if (attempts >= 5) {
-      return { success: false, message: '⚠️ Bạn đã hết 5 lượt thi thử! Không thể nộp thêm.' };
-    }
-    pSheet.appendRow([pLastRow, data.maHS, data.hoTen, data.lop, attempts + 1, score, new Date()]);
+      result = { success: false, message: '⚠️ Bạn đã hết 5 lượt thi thử! Không thể nộp thêm.' };
+    } else {
+      pSheet.appendRow([pLastRow, data.maHS, data.hoTen, data.lop, attempts + 1, score, new Date()]);
 
-    // Write to Firebase
-    try {
-      firebasePush('practiceResults', {
-        maHS: data.maHS,
-        hoTen: data.hoTen,
-        lop: data.lop,
-        lanThu: attempts + 1,
+      // Write to Firebase
+      try {
+        firebasePush('practiceResults', {
+          maHS: data.maHS,
+          hoTen: data.hoTen,
+          lop: data.lop,
+          lanThu: attempts + 1,
+          score: score,
+          thoiGian: Date.now(),
+          synced: true
+        });
+      } catch (fe) { Logger.log('Firebase practice write error: ' + fe); }
+
+      result = {
+        success: true,
+        message: '🎯 Nộp bài thi thử thành công!',
         score: score,
-        thoiGian: Date.now(),
-        synced: true
-      });
-    } catch (fe) { Logger.log('Firebase practice write error: ' + fe); }
-
-    return {
-      success: true,
-      message: '🎯 Nộp bài thi thử thành công!',
-      score: score,
-      totalQuestions: totalQ,
-      details: details,
-      attempt: attempts + 1,
-      maxAttempts: 5,
-      isPractice: true
-    };
+        totalQuestions: totalQ,
+        details: details,
+        attempt: attempts + 1,
+        maxAttempts: 5,
+        isPractice: true
+      };
+    }
   } else {
     // ===== THI THẬT =====
     // 3. Ghi vào sheet Ket_Qua
@@ -767,22 +837,11 @@ function submitExam(data) {
       });
     } catch (fe) { Logger.log('Firebase result write error: ' + fe); }
 
-    // 6. Lưu file lên Google Drive
-    var driveFolderUrl = '';
-    try {
-      driveFolderUrl = saveFilesToDrive(data, details, score);
-    } catch (err) {
-      Logger.log('Lỗi lưu Drive: ' + err.toString());
-    }
+    // Đánh dấu cần lưu Drive — sẽ thực hiện SAU KHI release lock
+    needDriveSave = true;
+    driveData = { data: data, details: details, score: score };
 
-    // 6b. Save Drive folder URL to Firebase for teacher access
-    if (driveFolderUrl) {
-      try {
-        firebaseUpdate('students/' + data.maHS, { driveFolder: driveFolderUrl });
-      } catch (fe2) { Logger.log('Save driveFolder error: ' + fe2); }
-    }
-
-    return {
+    result = {
       success: true,
       message: '🎉 Nộp bài thành công!',
       score: score,
@@ -791,8 +850,24 @@ function submitExam(data) {
   }
 
   } finally {
-    lock.releaseLock();
+    lock.releaseLock(); // ← Release lock SỚM, trước khi lưu Drive
   }
+
+  // 6. Lưu file lên Google Drive — NGOÀI lock (tốn 3-5s, không cần chiếm lock)
+  if (needDriveSave && driveData) {
+    try {
+      var driveFolderUrl = saveFilesToDrive(driveData.data, driveData.details, driveData.score);
+      if (driveFolderUrl) {
+        try {
+          firebaseUpdate('students/' + driveData.data.maHS, { driveFolder: driveFolderUrl });
+        } catch (fe2) { Logger.log('Save driveFolder error: ' + fe2); }
+      }
+    } catch (err) {
+      Logger.log('Lỗi lưu Drive: ' + err.toString());
+    }
+  }
+
+  return result;
 }
 
 // ============== CẬP NHẬT THÔNG TIN HỌC SINH ==============
@@ -808,6 +883,16 @@ function updateStudent(maHS, field, value) {
   for (var i = 1; i < data.length; i++) {
     if (data[i][1].toString().trim() === maHS.trim()) {
       sheet.getRange(i + 1, col).setValue(value || '');
+      // AUTO-SYNC: cập nhật Firebase tương ứng
+      var fbFieldMap = { 'Ho_Ten': 'hoTen', 'Lop': 'lop', 'Mat_Khau': 'matKhau', 'Trang_Thai': 'trangThai' };
+      var fbField = fbFieldMap[field];
+      if (fbField) {
+        try {
+          var fbUpdate = {};
+          fbUpdate[fbField] = value || '';
+          firebaseUpdate('students/' + maHS.trim(), fbUpdate);
+        } catch(fe) { Logger.log('Auto-sync FB updateStudent error: ' + fe); }
+      }
       return { success: true, message: 'Cập nhật thành công!' };
     }
   }
@@ -1362,6 +1447,245 @@ function clearAllData() {
   }
 }
 
+// ============== TẢI FILE HỌC SINH (GIÁO VIÊN) ==============
+
+/**
+ * Kiểm tra quyền GV với lớp — trả true nếu có quyền
+ */
+function _checkTeacherPermission(lop, maGV, isAdmin) {
+  if (isAdmin === 'true' || isAdmin === true) return true;
+  if (!maGV) return false;
+  var teacher = firebaseGet('teachers/' + maGV.toString().trim());
+  if (!teacher || !teacher.lopPhuTrach) return false;
+  var allowed = teacher.lopPhuTrach.split(',').map(function(c) { return c.trim(); });
+  return allowed.indexOf(lop.toString().trim()) >= 0;
+}
+
+/**
+ * Thu thập tất cả file Blob từ 1 folder (đệ quy 1 cấp — student folder)
+ * Trả về mảng Blob, mỗi blob đặt tên = subFolderName/fileName
+ */
+function _collectFilesFromFolder(folder, prefix) {
+  var blobs = [];
+  var files = folder.getFiles();
+  while (files.hasNext()) {
+    var file = files.next();
+    var blob = file.getBlob();
+    blob.setName(prefix ? (prefix + '/' + file.getName()) : file.getName());
+    blobs.push(blob);
+  }
+  return blobs;
+}
+
+/**
+ * Tải tất cả file của cả lớp — nén ZIP
+ * @param {string} lop - Tên lớp (vd: '7A1')
+ * @param {string} maGV - Mã giáo viên (để kiểm tra quyền)
+ * @param {string|boolean} isAdmin - Có phải admin không
+ */
+function downloadClassFiles(lop, maGV, isAdmin) {
+  if (!lop) return { success: false, message: 'Vui lòng chọn lớp!' };
+  
+  // Kiểm tra quyền
+  if (!_checkTeacherPermission(lop, maGV, isAdmin)) {
+    return { success: false, message: 'Bạn không có quyền tải file lớp ' + lop + '!' };
+  }
+  
+  try {
+    // Tìm folder lớp: KET_QUA_THI/{lop}/
+    var rootFolders = DriveApp.getRootFolder().getFoldersByName(ROOT_FOLDER_NAME);
+    if (!rootFolders.hasNext()) {
+      return { success: false, message: 'Chưa có thư mục kết quả thi trên Drive!' };
+    }
+    var rootFolder = rootFolders.next();
+    var classFolders = rootFolder.getFoldersByName(lop);
+    if (!classFolders.hasNext()) {
+      return { success: false, message: 'Chưa có thư mục lớp ' + lop + ' trên Drive!' };
+    }
+    var classFolder = classFolders.next();
+    
+    // Thu thập file từ tất cả sub-folder (mỗi HS 1 folder)
+    var allBlobs = [];
+    var studentCount = 0;
+    var fileCount = 0;
+    var studentFolders = classFolder.getFolders();
+    
+    while (studentFolders.hasNext()) {
+      var sFolder = studentFolders.next();
+      var sName = sFolder.getName(); // VD: NguyenVanA_HS001
+      var sFiles = sFolder.getFiles();
+      var hasFiles = false;
+      
+      while (sFiles.hasNext()) {
+        var f = sFiles.next();
+        var blob = f.getBlob();
+        // Đặt tên: TênHSFolder/TênFile để giữ cấu trúc thư mục trong ZIP
+        blob.setName(sName + '/' + f.getName());
+        allBlobs.push(blob);
+        fileCount++;
+        hasFiles = true;
+      }
+      if (hasFiles) studentCount++;
+    }
+    
+    if (allBlobs.length === 0) {
+      // Không có file — trả folder URL cho GV xem
+      classFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      return { success: false, message: 'Lớp ' + lop + ' chưa có file bài làm nào!', folderUrl: classFolder.getUrl() };
+    }
+    
+    // Nén ZIP
+    var zipName = 'BaiLam_' + lop + '_' + Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'yyyyMMdd_HHmm') + '.zip';
+    var zipBlob = Utilities.zip(allBlobs, zipName);
+    
+    // Lưu ZIP lên folder gốc KET_QUA_THI
+    var zipFile = rootFolder.createFile(zipBlob);
+    zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return {
+      success: true,
+      message: 'Đã nén ' + fileCount + ' file của ' + studentCount + ' học sinh lớp ' + lop,
+      downloadUrl: zipFile.getDownloadUrl(),
+      zipFileId: zipFile.getId(),
+      fileName: zipName,
+      studentCount: studentCount,
+      fileCount: fileCount
+    };
+  } catch (err) {
+    // Fallback: trả URL folder nếu ZIP thất bại (quá lớn / timeout)
+    try {
+      var rootF = DriveApp.getRootFolder().getFoldersByName(ROOT_FOLDER_NAME);
+      if (rootF.hasNext()) {
+        var rf = rootF.next();
+        var cf = rf.getFoldersByName(lop);
+        if (cf.hasNext()) {
+          var cFolder = cf.next();
+          cFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          return {
+            success: false,
+            message: 'Không thể nén file (quá lớn hoặc timeout). Mở Google Drive để tải thủ công.',
+            folderUrl: cFolder.getUrl(),
+            fallback: true
+          };
+        }
+      }
+    } catch (e2) { /* silent */ }
+    return { success: false, message: 'Lỗi tải file: ' + err.toString() };
+  }
+}
+
+/**
+ * Tải file của 1 học sinh cụ thể
+ * @param {string} lop - Tên lớp
+ * @param {string} maHS - Mã học sinh
+ * @param {string} maGV - Mã giáo viên
+ * @param {string|boolean} isAdmin - Có phải admin không
+ */
+function downloadStudentFiles(lop, maHS, maGV, isAdmin) {
+  if (!lop || !maHS) return { success: false, message: 'Thiếu thông tin lớp hoặc mã HS!' };
+  
+  // Kiểm tra quyền
+  if (!_checkTeacherPermission(lop, maGV, isAdmin)) {
+    return { success: false, message: 'Bạn không có quyền tải file lớp ' + lop + '!' };
+  }
+  
+  try {
+    // Tìm folder học sinh
+    var rootFolders = DriveApp.getRootFolder().getFoldersByName(ROOT_FOLDER_NAME);
+    if (!rootFolders.hasNext()) return { success: false, message: 'Chưa có thư mục kết quả trên Drive!' };
+    var rootFolder = rootFolders.next();
+    
+    var classFolders = rootFolder.getFoldersByName(lop);
+    if (!classFolders.hasNext()) return { success: false, message: 'Chưa có thư mục lớp ' + lop + '!' };
+    var classFolder = classFolders.next();
+    
+    // Tìm folder HS: tìm folder có chứa _MãHS trong tên
+    var studentFolder = null;
+    var subFolders = classFolder.getFolders();
+    while (subFolders.hasNext()) {
+      var sf = subFolders.next();
+      if (sf.getName().indexOf('_' + maHS.trim()) >= 0) {
+        studentFolder = sf;
+        break;
+      }
+    }
+    
+    if (!studentFolder) {
+      return { success: false, message: 'Chưa có thư mục bài làm của HS ' + maHS + '!' };
+    }
+    
+    // Thu thập file
+    var blobs = [];
+    var files = studentFolder.getFiles();
+    while (files.hasNext()) {
+      var f = files.next();
+      blobs.push(f.getBlob());
+    }
+    
+    if (blobs.length === 0) {
+      return { success: false, message: 'HS ' + maHS + ' chưa có file bài làm!' };
+    }
+    
+    // Nếu chỉ 1 file → trả link tải trực tiếp
+    if (blobs.length === 1) {
+      var singleFile = studentFolder.getFiles().next();
+      singleFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      return {
+        success: true,
+        message: 'Tải file: ' + singleFile.getName(),
+        downloadUrl: singleFile.getDownloadUrl(),
+        fileName: singleFile.getName(),
+        fileCount: 1,
+        isDirect: true
+      };
+    }
+    
+    // Nhiều file → nén ZIP
+    var zipName = maHS.trim() + '_' + Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'yyyyMMdd_HHmm') + '.zip';
+    var zipBlob = Utilities.zip(blobs, zipName);
+    var zipFile = rootFolder.createFile(zipBlob);
+    zipFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return {
+      success: true,
+      message: 'Đã nén ' + blobs.length + ' file của HS ' + maHS,
+      downloadUrl: zipFile.getDownloadUrl(),
+      zipFileId: zipFile.getId(),
+      fileName: zipName,
+      fileCount: blobs.length
+    };
+  } catch (err) {
+    // Fallback: mở folder HS trên Drive
+    try {
+      var student = firebaseGet('students/' + maHS.trim());
+      if (student && student.driveFolder) {
+        return {
+          success: false,
+          message: 'Không thể nén, mở Google Drive để tải thủ công.',
+          folderUrl: student.driveFolder,
+          fallback: true
+        };
+      }
+    } catch (e2) { /* silent */ }
+    return { success: false, message: 'Lỗi tải file: ' + err.toString() };
+  }
+}
+
+/**
+ * Xóa file ZIP tạm sau khi đã tải
+ * @param {string} fileId - ID file ZIP cần xóa
+ */
+function cleanupDownloadZip(fileId) {
+  if (!fileId) return { success: false, message: 'Thiếu fileId!' };
+  try {
+    var file = DriveApp.getFileById(fileId);
+    file.setTrashed(true);
+    return { success: true, message: 'Đã xóa file ZIP tạm.' };
+  } catch (err) {
+    return { success: false, message: 'Lỗi xóa file: ' + err.toString() };
+  }
+}
+
 // ============== HÀM HỖ TRỢ ==============
 function shuffleArray(arr) {
   for (var i = arr.length - 1; i > 0; i--) {
@@ -1394,18 +1718,28 @@ function formatTime(dateValue) {
   }
 }
 
-// ============== ĐỒNG BỘ GGSHEET → FIREBASE ==============
+// ============== ĐỒNG BỘ GGSHEET → FIREBASE (MERGE — BẢO TOÀN RUNTIME STATE) ==============
 function syncSheetToFirebase() {
   var ss = SpreadsheetApp.openById(SHEET_ID);
 
-  // 1. Sync Hoc_Sinh
+  // Danh sách field runtime cần bảo toàn khi merge (KHÔNG ghi đè)
+  var RUNTIME_FIELDS = ['moThiThat', 'moThiThu', 'moThi', 'isLocked', 'lockedAt',
+    'assignedQuestions', 'assignedAnswerOrder', 'savedAnswers', 'savedAnswersTime',
+    'driveFolder', 'uploadFailed', 'uploadError'];
+
+  // 1. Sync Hoc_Sinh — MERGE (giữ nguyên runtime state)
   var hSheet = ss.getSheetByName('Hoc_Sinh');
   var hData = hSheet.getDataRange().getValues();
-  var students = {};
+  var existingStudents = firebaseGet('students') || {};
+  var mergedStudents = {};
+  var sheetMaHSSet = {};
   for (var i = 1; i < hData.length; i++) {
     var maHS = hData[i][1].toString().trim();
     if (!maHS) continue;
-    students[maHS] = {
+    sheetMaHSSet[maHS] = true;
+    var existing = existingStudents[maHS] || {};
+    // Bắt đầu từ dữ liệu Sheet
+    mergedStudents[maHS] = {
       stt: hData[i][0],
       hoTen: hData[i][2].toString(),
       lop: hData[i][3].toString(),
@@ -1414,10 +1748,23 @@ function syncSheetToFirebase() {
       thoiGianDN: hData[i][6] ? new Date(hData[i][6]).getTime() : null,
       thoiGianNB: hData[i][7] ? new Date(hData[i][7]).getTime() : null
     };
+    // Giữ nguyên runtime fields từ Firebase
+    for (var r = 0; r < RUNTIME_FIELDS.length; r++) {
+      var rf = RUNTIME_FIELDS[r];
+      if (existing[rf] !== undefined && existing[rf] !== null) {
+        mergedStudents[maHS][rf] = existing[rf];
+      }
+    }
   }
-  firebaseSet('students', students);
+  // Giữ lại HS chỉ có trên Firebase (đã import qua web, chưa có trên Sheet)
+  for (var fbMaHS in existingStudents) {
+    if (!sheetMaHSSet[fbMaHS]) {
+      mergedStudents[fbMaHS] = existingStudents[fbMaHS];
+    }
+  }
+  firebaseSet('students', mergedStudents);
 
-  // 2. Sync Cau_Hoi
+  // 2. Sync Cau_Hoi — dùng multi-path update
   var qSheet = ss.getSheetByName('Cau_Hoi');
   var qData = qSheet.getDataRange().getValues();
   var questions = {};
@@ -1430,13 +1777,15 @@ function syncSheetToFirebase() {
       dapAn2: qData[j][3].toString(),
       dapAn3: qData[j][4].toString(),
       dapAn4: qData[j][5].toString(),
-      dapAnDung: qData[j][6].toString().trim().toLowerCase()
+      dapAnDung: qData[j][6].toString().trim().toLowerCase(),
+      lop: qData[j][7] ? qData[j][7].toString().trim() : ''
     };
   }
   firebaseSet('questions', questions);
 
-  // 3. Sync Giao_Vien
+  // 3. Sync Giao_Vien — dùng PATCH (giữ field bổ sung nếu có)
   var gvSheet = ss.getSheetByName('Giao_Vien');
+  var teacherCount = 0;
   if (gvSheet) {
     var gvData = gvSheet.getDataRange().getValues();
     var teachers = {};
@@ -1449,6 +1798,7 @@ function syncSheetToFirebase() {
         lopPhuTrach: gvData[g][3].toString()
       };
     }
+    teacherCount = Object.keys(teachers).length;
     firebaseSet('teachers', teachers);
   }
 
@@ -1459,7 +1809,6 @@ function syncSheetToFirebase() {
     for (var d = 1; d < dtData.length; d++) {
       var examId = dtData[d][0].toString().trim();
       if (!examId) continue;
-      // Only sync exam metadata, not questions (questions are managed separately)
       firebaseUpdate('exams/' + examId, {
         tenDe: dtData[d][1].toString(),
         maGV: dtData[d][2].toString().trim(),
@@ -1490,17 +1839,16 @@ function syncSheetToFirebase() {
   firebaseUpdate('admin', { password: ADMIN_PASSWORD });
 
   // 7. Update meta
-  var teacherCount = gvSheet ? Object.keys(teachers).length : 0;
   firebaseUpdate('meta', {
     lastSyncFromSheet: Date.now(),
-    totalStudents: Object.keys(students).length,
+    totalStudents: Object.keys(mergedStudents).length,
     totalQuestions: Object.keys(questions).length,
     totalTeachers: teacherCount
   });
 
   return {
     success: true,
-    message: '✅ Đồng bộ thành công! ' + Object.keys(students).length + ' HS, ' + Object.keys(questions).length + ' câu hỏi, ' + teacherCount + ' GV đã được push lên Firebase.'
+    message: '✅ Đồng bộ thành công (MERGE)! ' + Object.keys(mergedStudents).length + ' HS, ' + Object.keys(questions).length + ' câu hỏi, ' + teacherCount + ' GV. Runtime state đã được bảo toàn.'
   };
 }
 
@@ -1590,7 +1938,8 @@ function getAllQuestions() {
       dapAn2: data[i][3].toString(),
       dapAn3: data[i][4].toString(),
       dapAn4: data[i][5].toString(),
-      dapAnDung: data[i][6].toString().trim().toLowerCase()
+      dapAnDung: data[i][6].toString().trim().toLowerCase(),
+      lop: data[i][7] ? data[i][7].toString().trim() : ''
     });
   }
 
@@ -1611,9 +1960,277 @@ function updateQuestion(params) {
       if (params.dapAn3 !== undefined) sheet.getRange(i + 1, 5).setValue(params.dapAn3);
       if (params.dapAn4 !== undefined) sheet.getRange(i + 1, 6).setValue(params.dapAn4);
       if (params.dapAnDung !== undefined) sheet.getRange(i + 1, 7).setValue(params.dapAnDung.toLowerCase());
+      if (params.lop !== undefined) sheet.getRange(i + 1, 8).setValue(params.lop);
+      // AUTO-SYNC: cập nhật Firebase
+      try {
+        var fbQ = {};
+        if (params.noiDung !== undefined) fbQ.noiDung = params.noiDung;
+        if (params.dapAn1 !== undefined) fbQ.dapAn1 = params.dapAn1;
+        if (params.dapAn2 !== undefined) fbQ.dapAn2 = params.dapAn2;
+        if (params.dapAn3 !== undefined) fbQ.dapAn3 = params.dapAn3;
+        if (params.dapAn4 !== undefined) fbQ.dapAn4 = params.dapAn4;
+        if (params.dapAnDung !== undefined) fbQ.dapAnDung = params.dapAnDung.toLowerCase();
+        if (params.lop !== undefined) fbQ.lop = params.lop;
+        if (Object.keys(fbQ).length > 0) {
+          firebaseUpdate('questions/' + params.stt, fbQ);
+        }
+      } catch(fe) { Logger.log('Auto-sync FB updateQuestion error: ' + fe); }
       return { success: true, message: 'Cập nhật câu ' + params.stt + ' thành công!' };
     }
   }
 
   return { success: false, message: 'Không tìm thấy câu hỏi STT ' + params.stt };
+}
+
+// ============== AUTO-SYNC CRUD: HỌC SINH ==============
+
+/**
+ * Thêm 1 HS mới vào Sheet + Firebase (auto-sync)
+ * @param {Object} data - { maHS, hoTen, lop, matKhau, maGV, isAdmin }
+ */
+function addStudentWithSync(data) {
+  if (!data.maHS || !data.hoTen || !data.lop) {
+    return { success: false, message: 'Thiếu thông tin: Mã HS, Họ tên, Lớp!' };
+  }
+  var maHS = data.maHS.toString().trim();
+  var hoTen = data.hoTen.toString().trim();
+  var lop = data.lop.toString().trim();
+  var matKhau = data.matKhau ? data.matKhau.toString().trim() : '123456';
+
+  // 1. Kiểm tra quyền GV
+  if (!_checkTeacherPermission(lop, data.maGV, data.isAdmin)) {
+    return { success: false, message: '⛔ Bạn không có quyền thêm HS vào lớp ' + lop + '!' };
+  }
+
+  // 2. Kiểm tra trùng mã HS trên Sheet
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('Hoc_Sinh');
+  var sheetData = sheet.getDataRange().getValues();
+  for (var i = 1; i < sheetData.length; i++) {
+    if (sheetData[i][1].toString().trim() === maHS) {
+      return { success: false, message: '⚠️ Mã HS "' + maHS + '" đã tồn tại trên Google Sheet (HS: ' + sheetData[i][2] + ', Lớp: ' + sheetData[i][3] + ')!' };
+    }
+  }
+
+  // 3. Kiểm tra trùng mã HS trên Firebase
+  var existingFb = firebaseGet('students/' + maHS);
+  if (existingFb) {
+    return { success: false, message: '⚠️ Mã HS "' + maHS + '" đã tồn tại trên Firebase (HS: ' + (existingFb.hoTen || '') + ', Lớp: ' + (existingFb.lop || '') + ')!' };
+  }
+
+  // 4. Ghi vào Sheet
+  var newSTT = sheetData.length; // STT mới = số dòng hiện tại (đã trừ header)
+  sheet.appendRow([newSTT, maHS, hoTen, lop, matKhau, '', '', '']);
+
+  // 5. Ghi vào Firebase (PATCH — không ảnh hưởng HS khác)
+  try {
+    firebaseUpdate('students/' + maHS, {
+      stt: newSTT,
+      hoTen: hoTen,
+      lop: lop,
+      matKhau: matKhau,
+      trangThai: '',
+      moThiThat: false,
+      moThiThu: false
+    });
+  } catch(fe) { Logger.log('addStudentWithSync Firebase error: ' + fe); }
+
+  return { success: true, message: '✅ Đã thêm HS ' + hoTen + ' (' + maHS + ') vào lớp ' + lop + ' + đồng bộ Firebase!' };
+}
+
+/**
+ * Xóa 1 HS khỏi Sheet + Firebase (auto-sync)
+ * @param {string} maHS - Mã HS cần xóa
+ * @param {string} maGV - Mã GV (kiểm tra quyền)
+ * @param {string|boolean} isAdmin - Có phải admin không
+ */
+function deleteStudentWithSync(maHS, maGV, isAdmin) {
+  if (!maHS) return { success: false, message: 'Thiếu mã HS!' };
+  maHS = maHS.toString().trim();
+
+  // 1. Tìm HS trên Sheet để lấy lớp (kiểm tra quyền)
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('Hoc_Sinh');
+  var data = sheet.getDataRange().getValues();
+  var foundRow = -1;
+  var studentLop = '';
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][1].toString().trim() === maHS) {
+      foundRow = i + 1;
+      studentLop = data[i][3].toString().trim();
+      break;
+    }
+  }
+
+  // Nếu không có trên Sheet, thử lấy từ Firebase
+  if (foundRow === -1) {
+    var fbStudent = firebaseGet('students/' + maHS);
+    if (fbStudent) {
+      studentLop = fbStudent.lop || '';
+    }
+  }
+
+  // 2. Kiểm tra quyền GV
+  if (studentLop && !_checkTeacherPermission(studentLop, maGV, isAdmin)) {
+    return { success: false, message: '⛔ Bạn không có quyền xóa HS lớp ' + studentLop + '!' };
+  }
+
+  // 3. Xóa khỏi Sheet
+  if (foundRow > 0) {
+    sheet.deleteRow(foundRow);
+  }
+
+  // 4. Xóa khỏi Firebase
+  try {
+    firebaseDelete('students/' + maHS);
+  } catch(fe) { Logger.log('deleteStudentWithSync Firebase error: ' + fe); }
+
+  return { success: true, message: '✅ Đã xóa HS ' + maHS + ' khỏi Sheet + Firebase!' };
+}
+
+/**
+ * Import nhiều HS vào Sheet + Firebase (auto-sync)
+ * @param {Object} data - { students: [{maHS, hoTen, lop, matKhau}], mode: 'add'|'overwrite', maGV, isAdmin }
+ */
+function importStudentsWithSync(data) {
+  if (!data.students || !data.students.length) {
+    return { success: false, message: 'Không có dữ liệu HS để import!' };
+  }
+  var mode = data.mode || 'add';
+  var importList = data.students;
+
+  // 1. Kiểm tra quyền GV cho tất cả lớp
+  var classesInImport = {};
+  for (var c = 0; c < importList.length; c++) {
+    classesInImport[importList[c].lop.toString().trim()] = true;
+  }
+  var blockedClasses = [];
+  for (var cls in classesInImport) {
+    if (!_checkTeacherPermission(cls, data.maGV, data.isAdmin)) {
+      blockedClasses.push(cls);
+    }
+  }
+  if (blockedClasses.length > 0) {
+    return { success: false, message: '⛔ Bạn không có quyền import HS vào lớp: ' + blockedClasses.join(', ') + '!' };
+  }
+
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('Hoc_Sinh');
+  var sheetData = sheet.getDataRange().getValues();
+
+  // 2. Kiểm tra trùng mã HS (chỉ ở mode 'add')
+  if (mode === 'add') {
+    var duplicates = [];
+    for (var d = 0; d < importList.length; d++) {
+      var checkMa = importList[d].maHS.toString().trim();
+      for (var s = 1; s < sheetData.length; s++) {
+        if (sheetData[s][1].toString().trim() === checkMa) {
+          duplicates.push(checkMa + ' (' + sheetData[s][2] + ')');
+          break;
+        }
+      }
+    }
+    if (duplicates.length > 0) {
+      return { success: false, message: '⚠️ Các mã HS đã tồn tại trên Sheet: ' + duplicates.slice(0, 10).join(', ') + (duplicates.length > 10 ? '... và ' + (duplicates.length - 10) + ' mã khác' : ''), duplicates: duplicates };
+    }
+  }
+
+  // 3. Nếu mode overwrite: xóa HS cũ cùng lớp khỏi Sheet
+  if (mode === 'overwrite') {
+    var classesToOverwrite = Object.keys(classesInImport);
+    // Xóa từ dưới lên để không bị shift index
+    for (var del = sheetData.length - 1; del >= 1; del--) {
+      var delLop = sheetData[del][3].toString().trim();
+      if (classesToOverwrite.indexOf(delLop) >= 0) {
+        sheet.deleteRow(del + 1);
+      }
+    }
+  }
+
+  // 4. Ghi vào Sheet + Firebase
+  var fbUpdates = {};
+  var currentLastRow = sheet.getLastRow();
+  for (var imp = 0; imp < importList.length; imp++) {
+    var student = importList[imp];
+    var maHS = student.maHS.toString().trim();
+    var hoTen = student.hoTen.toString().trim();
+    var lop = student.lop.toString().trim();
+    var matKhau = student.matKhau ? student.matKhau.toString().trim() : '123456';
+    if (!matKhau) matKhau = '123456';
+
+    // Ghi Sheet
+    currentLastRow++;
+    sheet.appendRow([currentLastRow - 1, maHS, hoTen, lop, matKhau, '', '', '']);
+
+    // Chuẩn bị Firebase batch update
+    fbUpdates['students/' + maHS + '/stt'] = currentLastRow - 1;
+    fbUpdates['students/' + maHS + '/hoTen'] = hoTen;
+    fbUpdates['students/' + maHS + '/lop'] = lop;
+    fbUpdates['students/' + maHS + '/matKhau'] = matKhau;
+    fbUpdates['students/' + maHS + '/trangThai'] = '';
+    // Chỉ set moThiThat/moThiThu nếu chưa có (bảo toàn nếu đã tồn tại)
+    var existingFb = firebaseGet('students/' + maHS);
+    if (!existingFb) {
+      fbUpdates['students/' + maHS + '/moThiThat'] = false;
+      fbUpdates['students/' + maHS + '/moThiThu'] = false;
+    }
+  }
+
+  // 5. Batch ghi Firebase (1 request duy nhất — nhanh + atomic)
+  try {
+    firebaseUpdate('', fbUpdates);
+  } catch(fe) { Logger.log('importStudentsWithSync Firebase error: ' + fe); }
+
+  return {
+    success: true,
+    message: '✅ Đã import ' + importList.length + ' HS vào Sheet + Firebase!' + (mode === 'overwrite' ? ' (Chế độ ghi đè)' : ''),
+    count: importList.length
+  };
+}
+
+/**
+ * Xóa toàn bộ HS 1 lớp khỏi Sheet + Firebase (auto-sync)
+ * @param {string} lop - Tên lớp cần xóa
+ * @param {string} maGV - Mã GV (kiểm tra quyền)
+ * @param {string|boolean} isAdmin - Có phải admin không
+ */
+function deleteClassWithSync(lop, maGV, isAdmin) {
+  if (!lop) return { success: false, message: 'Thiếu tên lớp!' };
+  lop = lop.toString().trim();
+
+  // 1. Kiểm tra quyền GV
+  if (!_checkTeacherPermission(lop, maGV, isAdmin)) {
+    return { success: false, message: '⛔ Bạn không có quyền xóa lớp ' + lop + '!' };
+  }
+
+  // 2. Tìm HS của lớp trên Sheet
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  var sheet = ss.getSheetByName('Hoc_Sinh');
+  var data = sheet.getDataRange().getValues();
+  var maHSList = [];
+  var rowsToDelete = [];
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][3].toString().trim() === lop) {
+      maHSList.push(data[i][1].toString().trim());
+      rowsToDelete.push(i + 1);
+    }
+  }
+
+  // 3. Xóa khỏi Sheet (từ dưới lên)
+  for (var r = rowsToDelete.length - 1; r >= 0; r--) {
+    sheet.deleteRow(rowsToDelete[r]);
+  }
+
+  // 4. Xóa khỏi Firebase
+  try {
+    var fbDeletes = {};
+    for (var f = 0; f < maHSList.length; f++) {
+      fbDeletes['students/' + maHSList[f]] = null;
+    }
+    if (Object.keys(fbDeletes).length > 0) {
+      firebaseUpdate('', fbDeletes);
+    }
+  } catch(fe) { Logger.log('deleteClassWithSync Firebase error: ' + fe); }
+
+  return { success: true, message: '✅ Đã xóa ' + maHSList.length + ' HS lớp ' + lop + ' khỏi Sheet + Firebase!', count: maHSList.length };
 }

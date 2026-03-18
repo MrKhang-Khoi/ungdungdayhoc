@@ -2114,6 +2114,7 @@
                     <button class="btn btn-sm" id="btnHeaderSync" onclick="doSyncSheetToFirebase()" style="display:none;font-size:12px;padding:6px 12px;background:var(--primary);color:#fff"><i class="fas fa-upload"></i> Push</button>
                     <button class="btn btn-sm" id="btnHeaderPull" onclick="doSyncFirebaseToSheet()" style="display:none;font-size:12px;padding:6px 12px;background:#10b981;color:#fff"><i class="fas fa-download"></i> Pull</button>
                     <button class="btn btn-sm" id="btnTrash" onclick="openTrashModal()" style="font-size:12px;padding:6px 12px;background:var(--bg3);color:var(--text);position:relative" title="Thùng rác"><i class="fas fa-trash-alt"></i> <span id="trashBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px">0</span></button>
+                    <button class="btn btn-sm" id="btnNotifToggle" onclick="toggleNotification()" style="font-size:12px;padding:6px 12px;background:rgba(16,185,129,0.15);color:var(--success)" title="Thông báo: BẬT"><i class="fas fa-bell"></i></button>
                     <button class="btn btn-danger btn-sm" onclick="logoutTeacher()"
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sign-out-alt"></i> Thoát</button>
                 </div>
@@ -2302,6 +2303,10 @@
                         style="flex:1;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;transition:.3s;border:none;cursor:pointer;background:transparent;color:var(--text2)">
                         <i class="fas fa-flask"></i> Thi Thử
                     </button>
+                    <button class="btn btn-sm" id="subTabLeaderboard" onclick="switchResultsSubTab('leaderboard')"
+                        style="flex:1;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:700;transition:.3s;border:none;cursor:pointer;background:transparent;color:var(--text2)">
+                        <i class="fas fa-trophy"></i> Xếp hạng
+                    </button>
                 </div>
 
                 <div id="scoreStatsBar" style="margin-bottom:16px">
@@ -2343,6 +2348,8 @@
                 </div>
                 <div id="itemAnalysisContainer" style="display:none;margin-bottom:16px"></div>
                 <div class="table-container" id="resultsTableContainer"></div>
+                <!-- Xếp hạng thi thử -->
+                <div id="leaderboardContainer" style="display:none"></div>
             </div>
 
             <!-- ===== MODAL: Thùng rác ===== -->
@@ -2936,6 +2943,93 @@
         let dashboardData = null;
         let isPracticeMode = false;
         let practiceAttempts = 0;
+
+        // ============== NOTIFICATION SYSTEM ==============
+        let notificationEnabled = localStorage.getItem('notifEnabled') !== 'false'; // mặc định BẬT
+        let knownResultKeys = new Set();
+        let knownPracticeKeys = new Set();
+        let notifFirstLoad = true; // tránh spam khi GV vừa mở dashboard
+
+        function requestNotifPermission() {
+            if (!('Notification' in window)) { console.log('Browser không hỗ trợ Notification'); return; }
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().then(p => {
+                    if (p === 'granted') {
+                        showPopup('🔔 Đã bật thông báo', 'Bạn sẽ nhận thông báo khi học sinh nộp bài thi!', 'success');
+                    }
+                    updateNotifToggleUI();
+                });
+            }
+        }
+
+        function playNotifSound() {
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                // Tiếng "ding" 2 nốt
+                [880, 1175].forEach((freq, i) => {
+                    let osc = ctx.createOscillator();
+                    let gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.15, ctx.currentTime + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.4);
+                    osc.connect(gain).connect(ctx.destination);
+                    osc.start(ctx.currentTime + i * 0.15);
+                    osc.stop(ctx.currentTime + i * 0.15 + 0.4);
+                });
+            } catch (e) { /* silent */ }
+        }
+
+        function showExamNotification(hoTen, lop, score, isPractice) {
+            if (!notificationEnabled) return;
+            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            let type = isPractice ? '📋 Thi thử' : '📝 Thi thật';
+            let title = type + ' — ' + hoTen;
+            let body = 'Lớp: ' + lop + '  |  Điểm: ' + score;
+            try {
+                let notif = new Notification(title, {
+                    body: body,
+                    icon: 'https://cdn-icons-png.flaticon.com/512/3135/3135810.png',
+                    badge: 'https://cdn-icons-png.flaticon.com/512/3135/3135810.png',
+                    tag: 'exam-' + Date.now(),
+                    requireInteraction: false
+                });
+                notif.onclick = () => { window.focus(); notif.close(); };
+                setTimeout(() => notif.close(), 8000);
+            } catch (e) { console.log('Notif error:', e); }
+            playNotifSound();
+        }
+
+        function toggleNotification() {
+            if (!('Notification' in window)) {
+                showPopup('Không hỗ trợ', 'Trình duyệt không hỗ trợ thông báo đẩy!', 'warning');
+                return;
+            }
+            if (Notification.permission === 'denied') {
+                showPopup('⚠️ Bị chặn', 'Thông báo đã bị chặn. Vào Cài đặt trình duyệt → Site Settings → Notifications để bật lại.', 'warning');
+                return;
+            }
+            if (Notification.permission === 'default') {
+                requestNotifPermission();
+                return;
+            }
+            notificationEnabled = !notificationEnabled;
+            localStorage.setItem('notifEnabled', notificationEnabled);
+            updateNotifToggleUI();
+            showPopup(notificationEnabled ? '🔔 Đã bật' : '🔕 Đã tắt',
+                notificationEnabled ? 'Bạn sẽ nhận thông báo khi HS nộp bài.' : 'Đã tắt thông báo nộp bài.',
+                notificationEnabled ? 'success' : 'info');
+        }
+
+        function updateNotifToggleUI() {
+            let btn = document.getElementById('btnNotifToggle');
+            if (!btn) return;
+            let isOn = notificationEnabled && ('Notification' in window) && Notification.permission === 'granted';
+            btn.innerHTML = isOn ? '<i class="fas fa-bell"></i>' : '<i class="fas fa-bell-slash"></i>';
+            btn.style.background = isOn ? 'rgba(16,185,129,0.15)' : 'var(--bg3)';
+            btn.style.color = isOn ? 'var(--success)' : 'var(--text2)';
+            btn.title = isOn ? 'Thông báo: BẬT (nhấn để tắt)' : 'Thông báo: TẮT (nhấn để bật)';
+        }
 
         // ============== TRÍCH XUẤT KHỐI LỚP ==============
         function extractGradeLevel(lop) {
@@ -4416,6 +4510,16 @@
                     });
                 }
             }
+            // === NOTIFICATION: Load known results + xin quyền ===
+            try {
+                let existResults = await firebaseRead('results') || {};
+                knownResultKeys = new Set(Object.keys(existResults));
+                let existPractice = await firebaseRead('practiceResults') || {};
+                knownPracticeKeys = new Set(Object.keys(existPractice));
+            } catch (e) { /* ignore */ }
+            notifFirstLoad = false;
+            requestNotifPermission();
+            updateNotifToggleUI();
             startFirebaseListeners();
             updateTrashBadge();
             autoPurgeTrash();
@@ -4427,12 +4531,34 @@
                 if (!data) return;
                 buildDashboardFromFirebase();
             });
-            // Real-time listener on results
+            // Real-time listener on results — DETECT NEW SUBMISSIONS
             firebaseListen('results', (data) => {
+                if (data && !notifFirstLoad) {
+                    let currentKeys = Object.keys(data);
+                    currentKeys.forEach(key => {
+                        if (!knownResultKeys.has(key)) {
+                            // Kết quả MỚI!
+                            let r = data[key];
+                            showExamNotification(r.hoTen || r.maHS, r.lop || '?', r.score || 0, false);
+                            knownResultKeys.add(key);
+                        }
+                    });
+                }
                 buildResultsFromFirebase();
             });
-            // Real-time listener on practice results
+            // Real-time listener on practice results — DETECT NEW PRACTICE SUBMISSIONS
             firebaseListen('practiceResults', (data) => {
+                if (data && !notifFirstLoad) {
+                    let currentKeys = Object.keys(data);
+                    currentKeys.forEach(key => {
+                        if (!knownPracticeKeys.has(key)) {
+                            // Kết quả thi thử MỚI!
+                            let r = data[key];
+                            showExamNotification(r.hoTen || r.maHS, r.lop || '?', r.score || 0, true);
+                            knownPracticeKeys.add(key);
+                        }
+                    });
+                }
                 buildResultsFromFirebase();
             });
         }
@@ -4549,7 +4675,8 @@
                     success: true,
                     students: students,
                     classes: classes,
-                    stats: { total, submitted, notSubmitted: total - submitted, inProgress, loggedIn, notLoggedIn, onlineCount, practiceStudents }
+                    stats: { total, submitted, notSubmitted: total - submitted, inProgress, loggedIn, notLoggedIn, onlineCount, practiceStudents },
+                    results: dashboardData ? dashboardData.results : null // giữ lại results khi rebuild
                 };
 
                 renderDashboard();
@@ -4613,7 +4740,10 @@
                 if (subR) subR.innerHTML = '<i class="fas fa-file-alt"></i> Thi Th\u1eadt <span style="background:rgba(255,255,255,0.2);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">' + realBadge + '</span>';
                 if (subP) subP.innerHTML = '<i class="fas fa-flask"></i> Thi Th\u1eed <span style="background:rgba(255,255,255,0.2);padding:1px 7px;border-radius:10px;font-size:11px;margin-left:4px">' + practiceBadge + '</span>';
 
-                if (currentMainTab === 'results') renderResultsTable();
+                if (currentMainTab === 'results') {
+                    if (_resultsSubTab === 'leaderboard') renderPracticeLeaderboard();
+                    else renderResultsTable();
+                }
                 populateResultsClassFilter();
             } catch (e) { console.log('Build results error:', e); }
         }
@@ -5828,6 +5958,7 @@
             _resultsSubTab = tab;
             let subR = document.getElementById('subTabReal');
             let subP = document.getElementById('subTabPractice');
+            let subL = document.getElementById('subTabLeaderboard');
             if (subR) {
                 subR.style.background = tab === 'real' ? 'var(--primary)' : 'transparent';
                 subR.style.color = tab === 'real' ? '#fff' : 'var(--text2)';
@@ -5836,7 +5967,169 @@
                 subP.style.background = tab === 'practice' ? 'var(--warning)' : 'transparent';
                 subP.style.color = tab === 'practice' ? '#fff' : 'var(--text2)';
             }
-            renderResultsTable();
+            if (subL) {
+                subL.style.background = tab === 'leaderboard' ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'transparent';
+                subL.style.color = tab === 'leaderboard' ? '#fff' : 'var(--text2)';
+            }
+            // Show/hide containers
+            let resultsContainer = document.getElementById('resultsTableContainer');
+            let leaderboardContainer = document.getElementById('leaderboardContainer');
+            let statsBar = document.getElementById('scoreStatsBar');
+            let searchBar = resultsContainer ? resultsContainer.previousElementSibling : null;
+            let itemAnalysis = document.getElementById('itemAnalysisContainer');
+
+            if (tab === 'leaderboard') {
+                if (resultsContainer) resultsContainer.style.display = 'none';
+                if (leaderboardContainer) leaderboardContainer.style.display = 'block';
+                if (statsBar) statsBar.style.display = 'none';
+                if (itemAnalysis) itemAnalysis.style.display = 'none';
+                renderPracticeLeaderboard();
+            } else {
+                if (resultsContainer) resultsContainer.style.display = '';
+                if (leaderboardContainer) leaderboardContainer.style.display = 'none';
+                renderResultsTable();
+            }
+        }
+
+        function renderPracticeLeaderboard() {
+            let container = document.getElementById('leaderboardContainer');
+            if (!container) return;
+            if (!dashboardData || !dashboardData.results || !dashboardData.results.practiceResults || !dashboardData.results.practiceResults.length) {
+                container.innerHTML = '<div style="text-align:center;padding:50px 20px"><i class="fas fa-trophy" style="font-size:48px;color:var(--text2);margin-bottom:14px;opacity:.4"></i><p style="color:var(--text2);font-size:15px;margin:0">Chưa có kết quả thi thử để xếp hạng</p></div>';
+                return;
+            }
+
+            let practiceResults = dashboardData.results.practiceResults;
+            let classF = document.getElementById('resultsClassFilter')?.value || '';
+
+            // Lọc theo lớp
+            if (classF) practiceResults = practiceResults.filter(r => r.lop === classF);
+
+            if (!practiceResults.length) {
+                container.innerHTML = '<div style="text-align:center;padding:50px 20px"><i class="fas fa-filter" style="font-size:36px;color:var(--text2);margin-bottom:10px;opacity:.4"></i><p style="color:var(--text2)">Không có kết quả thi thử cho lớp này</p></div>';
+                return;
+            }
+
+            // Gom theo HS → lấy điểm cao nhất
+            let studentMap = {};
+            practiceResults.forEach(r => {
+                let key = r.maHS;
+                if (!studentMap[key]) {
+                    studentMap[key] = {
+                        maHS: r.maHS,
+                        hoTen: r.hoTen,
+                        lop: r.lop,
+                        bestScore: parseFloat(r.score) || 0,
+                        totalAttempts: 1,
+                        allScores: [parseFloat(r.score) || 0],
+                        latestTime: r.thoiGian || ''
+                    };
+                } else {
+                    let s = studentMap[key];
+                    let score = parseFloat(r.score) || 0;
+                    s.totalAttempts++;
+                    s.allScores.push(score);
+                    if (score > s.bestScore) {
+                        s.bestScore = score;
+                    }
+                    if (r.thoiGian && r.thoiGian > s.latestTime) {
+                        s.latestTime = r.thoiGian;
+                    }
+                }
+            });
+
+            // Chuyển thành array và sắp xếp
+            let leaderboard = Object.values(studentMap);
+            leaderboard.sort((a, b) => {
+                if (b.bestScore !== a.bestScore) return b.bestScore - a.bestScore;
+                // Tiebreaker: ít lượt hơn = giỏi hơn
+                return a.totalAttempts - b.totalAttempts;
+            });
+
+            // Thống kê tổng
+            let totalStudents = leaderboard.length;
+            let avgBest = totalStudents > 0 ? (leaderboard.reduce((sum, s) => sum + s.bestScore, 0) / totalStudents).toFixed(1) : 0;
+            let topScore = leaderboard.length > 0 ? leaderboard[0].bestScore : 0;
+            let totalAttempts = leaderboard.reduce((sum, s) => sum + s.totalAttempts, 0);
+
+            let medals = ['🥇', '🥈', '🥉'];
+            let medalColors = ['linear-gradient(135deg,#ffd700,#f59e0b)', 'linear-gradient(135deg,#c0c0c0,#94a3b8)', 'linear-gradient(135deg,#cd7f32,#b45309)'];
+
+            let html = '';
+
+            // Stats header
+            html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:16px">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                    <i class="fas fa-trophy" style="font-size:20px;color:#f59e0b"></i>
+                    <span style="font-size:16px;font-weight:800;color:var(--text)">Xếp hạng thi thử${classF ? ' — Lớp ' + classF : ''}</span>
+                    <span style="font-size:12px;color:var(--text2);margin-left:auto">${totalStudents} học sinh | ${totalAttempts} lượt thi</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+                    <div style="text-align:center;background:var(--bg);border-radius:10px;padding:12px">
+                        <div style="font-size:24px;font-weight:800;color:var(--success)">${topScore}</div>
+                        <div style="font-size:10px;color:var(--text2)">Điểm cao nhất</div>
+                    </div>
+                    <div style="text-align:center;background:var(--bg);border-radius:10px;padding:12px">
+                        <div style="font-size:24px;font-weight:800;color:var(--primary)">${avgBest}</div>
+                        <div style="font-size:10px;color:var(--text2)">TB điểm cao nhất</div>
+                    </div>
+                    <div style="text-align:center;background:var(--bg);border-radius:10px;padding:12px">
+                        <div style="font-size:24px;font-weight:800;color:var(--warning)">${(totalAttempts / totalStudents).toFixed(1)}</div>
+                        <div style="font-size:10px;color:var(--text2)">TB lượt thi/HS</div>
+                    </div>
+                    <div style="text-align:center;background:var(--bg);border-radius:10px;padding:12px">
+                        <div style="font-size:24px;font-weight:800;color:var(--text)">${totalStudents}</div>
+                        <div style="font-size:10px;color:var(--text2)">Số HS đã thi</div>
+                    </div>
+                </div>
+            </div>`;
+
+            // Top 3 podium (nếu có đủ)
+            if (leaderboard.length >= 3) {
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">';
+                [1, 0, 2].forEach(i => {
+                    let s = leaderboard[i];
+                    let isFirst = i === 0;
+                    let avgScore = (s.allScores.reduce((a, b) => a + b, 0) / s.allScores.length).toFixed(1);
+                    html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:${isFirst ? '20px' : '16px'} 14px;text-align:center;${isFirst ? 'transform:scale(1.04);z-index:1;box-shadow:0 4px 20px rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3)' : ''}">
+                        <div style="font-size:${isFirst ? '36px' : '28px'};margin-bottom:6px">${medals[i]}</div>
+                        <div style="width:${isFirst ? '56px' : '44px'};height:${isFirst ? '56px' : '44px'};border-radius:50%;background:${medalColors[i]};display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:${isFirst ? '20px' : '16px'};font-weight:800;color:#fff">${i + 1}</div>
+                        <div style="font-weight:700;font-size:${isFirst ? '15px' : '13px'};color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${s.hoTen}">${s.hoTen}</div>
+                        <div style="font-size:11px;color:var(--text2);margin-bottom:6px">${s.lop}</div>
+                        <div style="font-size:${isFirst ? '28px' : '22px'};font-weight:800;color:var(--success);margin-bottom:4px">${s.bestScore}</div>
+                        <div style="font-size:10px;color:var(--text2)">TB: ${avgScore} | ${s.totalAttempts} lượt</div>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            // Full leaderboard table
+            html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+            html += '<table><thead><tr><th style="width:50px">Hạng</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th style="text-align:center">Điểm cao nhất</th><th style="text-align:center">Số lượt</th><th style="text-align:center">TB điểm</th><th style="text-align:center">Nộp lần cuối</th></tr></thead><tbody>';
+            leaderboard.forEach((s, idx) => {
+                let rank = idx + 1;
+                let avgScore = (s.allScores.reduce((a, b) => a + b, 0) / s.allScores.length).toFixed(1);
+                let rankDisplay;
+                if (rank <= 3) {
+                    rankDisplay = `<span style="font-size:18px">${medals[rank - 1]}</span>`;
+                } else {
+                    rankDisplay = `<span style="font-size:14px;font-weight:700;color:var(--text2)">${rank}</span>`;
+                }
+                let scoreColor = s.bestScore >= 3 ? 'var(--success)' : s.bestScore >= 2 ? 'var(--warning)' : 'var(--danger)';
+                let rowBg = rank <= 3 ? 'background:rgba(245,158,11,' + (0.08 - rank * 0.02) + ')' : '';
+                html += `<tr style="${rowBg}">
+                    <td style="text-align:center">${rankDisplay}</td>
+                    <td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">${s.maHS}</code></td>
+                    <td><strong style="font-size:13px">${s.hoTen}</strong></td>
+                    <td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>
+                    <td style="text-align:center"><span style="background:${scoreColor};color:#fff;padding:3px 12px;border-radius:14px;font-weight:700;font-size:13px">${s.bestScore}</span></td>
+                    <td style="text-align:center"><span style="background:rgba(245,158,11,0.15);color:var(--warning);padding:2px 10px;border-radius:10px;font-size:12px;font-weight:700">${s.totalAttempts}</span></td>
+                    <td style="text-align:center;font-size:13px;font-weight:600;color:var(--text)">${avgScore}</td>
+                    <td style="font-size:11px;color:var(--text2)">${s.latestTime}</td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
         }
 
         // ===== THÙNG RÁC — SOFT DELETE + RESTORE =====
