@@ -1785,6 +1785,9 @@
                         <button class="btn btn-sm" id="btnStudyOnExam" onclick="openStudyMaterials()"
                             style="display:none;width:auto;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;border-radius:8px"><i
                                 class="fas fa-book-reader"></i> Ôn tập</button>
+                        <button class="btn btn-sm" id="btnPracticeExamOnExam" onclick="openPracticeExamModal()"
+                            style="display:none;width:auto;padding:6px 14px;font-size:12px;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;border-radius:8px"><i
+                                class="fas fa-file-alt"></i> Xem đề TH</button>
                         <button class="btn btn-danger btn-sm" onclick="confirmLogout()"
                             style="width:auto;padding:6px 14px;font-size:12px"><i class="fas fa-sign-out-alt"></i>
                             Thoát</button>
@@ -2134,6 +2137,8 @@
                     đặt</button>
                 <button class="main-tab" onclick="switchMainTab('studymaterials', event)"><i
                         class="fas fa-book-open"></i> Tài liệu</button>
+                <button class="main-tab" onclick="switchMainTab('practiceexams', event)"><i
+                        class="fas fa-file-alt"></i> Đề TH</button>
                 <button class="main-tab" id="tabBtnTeachers" onclick="switchMainTab('teachers', event)" style="display:none"><i
                         class="fas fa-chalkboard-teacher"></i> QL Giáo viên</button>
             </div>
@@ -2515,6 +2520,56 @@
                 </div>
             </div>
 
+            <!-- ===== TAB: Đề thực hành ===== -->
+            <div id="tabPracticeExams" style="display:none">
+                <div
+                    style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:800px;margin:0 auto">
+                    <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i
+                            class="fas fa-file-alt" style="color:var(--primary)"></i> Quản lý đề thực hành</h3>
+                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">📋 Đề thực hành sẽ hiển thị cho học sinh
+                        khi ở chế độ <strong>Thi Thật</strong>. HS có thể xem đề trực tiếp trên trình duyệt.</p>
+
+                    <!-- Add new practice exam -->
+                    <div
+                        style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+                        <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i
+                                class="fas fa-plus-circle"></i> Thêm đề thực hành mới</h4>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu đề đề thi</label>
+                                <input type="text" id="peTitle" placeholder="VD: Đề thực hành Word"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            </div>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Khối</label>
+                                <select id="peKhoi" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                                    <option value="">Tất cả khối</option>
+                                    <option value="6">Khối 6</option>
+                                    <option value="7">Khối 7</option>
+                                    <option value="8">Khối 8</option>
+                                    <option value="9">Khối 9</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:10px">
+                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">📎 File đề thi (PDF/Word/Excel/PowerPoint, tối đa 10MB) — <strong style="color:var(--warning)">bắt buộc</strong></label>
+                            <input type="file" id="peFile" accept=".doc,.docx,.pdf,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png"
+                                style="font-size:12px;color:var(--text2)">
+                        </div>
+                        <button class="btn btn-primary" id="btnAddPE" onclick="addPracticeExam()"
+                            style="width:auto;padding:10px 20px;font-size:13px">
+                            <i class="fas fa-plus"></i> Thêm đề
+                        </button>
+                        <div id="peMsg"
+                            style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
+                    </div>
+
+                    <!-- Practice exams list -->
+                    <div id="peListContainer">
+                        <div style="text-align:center;padding:30px;color:var(--text2)"><i
+                                class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ===== TAB: QL Giáo viên (Admin only) ===== -->
             <div id="tabTeachers" style="display:none">
                 <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:900px;margin:0 auto">
@@ -2803,6 +2858,12 @@
                         <i class="fas fa-book-reader" style="font-size:18px"></i> 📚 Ôn tập kiến thức trước khi thi
                     </button>
                 </div>
+                <div id="examGuidePracticeExamBtn" style="display:none;margin-top:4px">
+                    <button class="btn" onclick="closeExamGuide();openPracticeExamModal()"
+                        style="width:100%;padding:14px;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:15px;font-weight:600;border-radius:14px;display:flex;align-items:center;justify-content:center;gap:10px">
+                        <i class="fas fa-file-alt" style="font-size:18px"></i> 📋 Xem đề thực hành
+                    </button>
+                </div>
             </div>
             <div
                 style="display:flex;gap:8px;align-items:center;padding:12px;background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.3);border-radius:12px;margin-bottom:20px">
@@ -2836,6 +2897,30 @@
             </div>
             <button class="btn btn-primary" onclick="closeStudyMaterials()" style="font-size:15px;padding:14px">
                 <i class="fas fa-play-circle"></i> Đóng & Bắt đầu làm bài
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Đề thực hành cho HS (thi thật) -->
+    <div id="practiceExamModal"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10002;align-items:center;justify-content:center;padding:20px">
+        <div
+            style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:28px;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,0.5)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+                <h2 style="margin:0;font-size:20px;display:flex;align-items:center;gap:10px"><span
+                        style="font-size:28px">📋</span> Đề thực hành</h2>
+                <button onclick="closePracticeExamModal()"
+                    style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div id="practiceExamContent" style="margin-bottom:20px">
+                <div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"
+                        style="font-size:24px"></i>
+                    <p style="margin-top:8px">Đang tải đề thực hành...</p>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="closePracticeExamModal()" style="font-size:15px;padding:14px">
+                <i class="fas fa-times-circle"></i> Đóng
             </button>
         </div>
     </div>
@@ -3202,6 +3287,17 @@
             if (badge) badge.remove();
             document.getElementById('step2').style.display = '';
             document.querySelector('.exam-info h2').innerHTML = '<i class="fas fa-file-alt"></i> Bài Kiểm Tra';
+            // Ẩn nút ôn tập (chỉ dùng khi thi thử)
+            let studyBtn = document.getElementById('btnStudyOnExam');
+            if (studyBtn) studyBtn.style.display = 'none';
+            // Hiện nút xem đề thực hành (chỉ dùng khi thi thật)
+            let peBtn = document.getElementById('btnPracticeExamOnExam');
+            if (peBtn) peBtn.style.display = 'inline-flex';
+            // Exam guide: hiện nút đề TH, ẩn nút ôn tập
+            let guideStudyBtn = document.getElementById('examGuideStudyBtn');
+            if (guideStudyBtn) guideStudyBtn.style.display = 'none';
+            let guidePeBtn = document.getElementById('examGuidePracticeExamBtn');
+            if (guidePeBtn) guidePeBtn.style.display = 'block';
         }
 
         // SHA-256 hash function
@@ -4529,11 +4625,11 @@
                 let btn = e.target.closest('.main-tab');
                 if (btn) btn.classList.add('active');
             }
-            ['tabManage', 'tabMonitor', 'tabResults', 'tabQuestions', 'tabNotify', 'tabSettings', 'tabStudymaterials', 'tabTeachers'].forEach(id => {
+            ['tabManage', 'tabMonitor', 'tabResults', 'tabQuestions', 'tabNotify', 'tabSettings', 'tabStudymaterials', 'tabPracticeExams', 'tabTeachers'].forEach(id => {
                 let el = document.getElementById(id);
                 if (el) el.style.display = 'none';
             });
-            let targetMap = { manage: 'tabManage', monitor: 'tabMonitor', results: 'tabResults', questions: 'tabQuestions', notify: 'tabNotify', settings: 'tabSettings', studymaterials: 'tabStudymaterials', teachers: 'tabTeachers' };
+            let targetMap = { manage: 'tabManage', monitor: 'tabMonitor', results: 'tabResults', questions: 'tabQuestions', notify: 'tabNotify', settings: 'tabSettings', studymaterials: 'tabStudymaterials', practiceexams: 'tabPracticeExams', teachers: 'tabTeachers' };
             let target = document.getElementById(targetMap[tab]);
             if (target) target.style.display = 'block';
             if (tab === 'manage') renderManageTable();
@@ -4543,6 +4639,7 @@
             if (tab === 'notify') loadNotifyHistory();
             if (tab === 'settings') loadSettings();
             if (tab === 'studymaterials') { populateSmKhoiDropdown(); loadStudyMaterials(); }
+            if (tab === 'practiceexams') { populatePeKhoiDropdown(); loadPracticeExams(); }
             if (tab === 'teachers') loadTeachersList();
         }
 
@@ -6976,7 +7073,7 @@
 
         // ===== STUDENT: TÀI LIỆU ÔN TẬP =====
         function openStudyMaterials() {
-            if (!isPracticeMode) return; // Extra safety
+            if (!isPracticeMode) return; // Chỉ hiện khi thi thử
             let modal = document.getElementById('studyMaterialsModal');
             modal.style.display = 'flex';
             loadStudyMaterialsForStudent();
@@ -7034,6 +7131,241 @@
             } catch (e) {
                 container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi tải tài liệu: ' + e.message + '</div>';
             }
+        }
+
+        // ===== ĐỀ THỰC HÀNH (PRACTICE EXAMS) =====
+        // --- GV SIDE ---
+        let _practiceExams = [];
+
+        function getTeacherAllowedGrades() {
+            if (!currentTeacher) return [];
+            if (currentTeacher.isAdmin) return ['6', '7', '8', '9'];
+            if (!currentTeacher.allowedClasses || !currentTeacher.allowedClasses.length) return [];
+            let grades = new Set();
+            currentTeacher.allowedClasses.forEach(c => {
+                let m = c.match(/^(\d+)/);
+                if (m) grades.add(m[1]);
+            });
+            return Array.from(grades).sort();
+        }
+
+        function populatePeKhoiDropdown() {
+            let sel = document.getElementById('peKhoi');
+            if (!sel) return;
+            let allowedGrades = getTeacherAllowedGrades();
+            sel.innerHTML = '';
+            if (currentTeacher && currentTeacher.isAdmin) {
+                sel.innerHTML = '<option value="">Tất cả khối</option>';
+                ['6', '7', '8', '9'].forEach(g => {
+                    sel.innerHTML += '<option value="' + g + '">Khối ' + g + '</option>';
+                });
+            } else {
+                allowedGrades.forEach(g => {
+                    sel.innerHTML += '<option value="' + g + '">Khối ' + g + '</option>';
+                });
+            }
+        }
+
+        async function loadPracticeExams() {
+            let container = document.getElementById('peListContainer');
+            if (!container) return;
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+            try {
+                let data = await firebaseRead('practiceExams') || {};
+                let allowedGrades = getTeacherAllowedGrades();
+                _practiceExams = Object.entries(data).map(([key, v]) => ({ ...v, _key: key }));
+                // Lọc theo quyền GV (không phải admin thì chỉ xem khối phụ trách)
+                if (currentTeacher && !currentTeacher.isAdmin && allowedGrades.length) {
+                    _practiceExams = _practiceExams.filter(e => !e.khoi || allowedGrades.includes(e.khoi));
+                }
+                renderPracticeExamsList();
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi: ' + e.message + '</div>';
+            }
+        }
+
+        function renderPracticeExamsList() {
+            let container = document.getElementById('peListContainer');
+            if (!_practiceExams.length) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-file-alt" style="font-size:32px;margin-bottom:8px;display:block;opacity:0.4"></i>Chưa có đề thực hành nào</div>';
+                return;
+            }
+            let html = '<div style="display:flex;flex-direction:column;gap:10px">';
+            _practiceExams.forEach(pe => {
+                let khoiLabel = pe.khoi ? 'Khối ' + pe.khoi : 'Tất cả khối';
+                let khoiBg = pe.khoi ? 'rgba(99,102,241,0.15)' : 'rgba(16,185,129,0.15)';
+                let khoiColor = pe.khoi ? '#818cf8' : '#6ee7b7';
+                let icon = (pe.fileName || '').match(/\.pdf$/i) ? 'fa-file-pdf' : (pe.fileName || '').match(/\.docx?$/i) ? 'fa-file-word' : (pe.fileName || '').match(/\.pptx?$/i) ? 'fa-file-powerpoint' : (pe.fileName || '').match(/\.xlsx?$/i) ? 'fa-file-excel' : (pe.fileName || '').match(/\.(jpg|jpeg|png)$/i) ? 'fa-file-image' : 'fa-file-alt';
+                let dateStr = pe.createdAt ? new Date(pe.createdAt).toLocaleString('vi-VN') : '';
+                html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">`;
+                html += `<div style="width:44px;height:44px;border-radius:12px;background:rgba(6,182,212,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${icon}" style="color:var(--accent);font-size:20px"></i></div>`;
+                html += `<div style="flex:1;min-width:200px">`;
+                html += `<div style="font-weight:600;font-size:14px;margin-bottom:4px">${pe.title}</div>`;
+                html += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">`;
+                html += `<span style="display:inline-block;padding:2px 10px;background:${khoiBg};color:${khoiColor};border-radius:8px;font-size:11px;font-weight:600">${khoiLabel}</span>`;
+                if (pe.fileName) html += `<span style="font-size:11px;color:var(--text2)">📎 ${pe.fileName}</span>`;
+                if (dateStr) html += `<span style="font-size:11px;color:var(--text2)">🕐 ${dateStr}</span>`;
+                if (pe.createdByName) html += `<span style="font-size:11px;color:var(--text2)">👤 ${pe.createdByName}</span>`;
+                html += `</div></div>`;
+                html += `<div style="display:flex;gap:6px">`;
+                if (pe.fileUrl) html += `<a href="${pe.fileUrl}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(6,182,212,0.15);color:var(--accent);font-size:12px;border-radius:8px;text-decoration:none;font-weight:600;border:none;cursor:pointer"><i class="fas fa-eye"></i> Xem</a>`;
+                html += `<button onclick="deletePracticeExam('${pe._key}')" style="display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(239,68,68,0.15);color:#ef4444;font-size:12px;border-radius:8px;border:none;cursor:pointer;font-weight:600"><i class="fas fa-trash"></i> Xóa</button>`;
+                html += `</div></div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function addPracticeExam() {
+            let title = document.getElementById('peTitle').value.trim();
+            let khoi = document.getElementById('peKhoi').value;
+            let fileInput = document.getElementById('peFile');
+            let file = fileInput.files[0];
+            let msgEl = document.getElementById('peMsg');
+            let btn = document.getElementById('btnAddPE');
+
+            if (!title) { showPopup('Thiếu tiêu đề', 'Vui lòng nhập tiêu đề đề thi!', 'warning'); return; }
+            if (!file) { showPopup('Thiếu file', 'Vui lòng chọn file đề thi!', 'warning'); return; }
+            if (file.size > 10 * 1024 * 1024) { showPopup('File quá lớn', 'File tối đa 10MB!', 'warning'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang tải file lên...';
+            msgEl.style.display = 'none';
+
+            try {
+                // Upload file lên Drive qua API
+                let fileData = await fileToBase64(file);
+                let resp = await apiPost('uploadStudyFile', {
+                    fileData: fileData,
+                    fileName: file.name,
+                    fileMimeType: file.type
+                });
+
+                let fileUrl = '', fileId = '';
+                if (resp && resp.success && resp.fileUrl) {
+                    fileUrl = resp.fileUrl;
+                    fileId = resp.fileId || '';
+                } else {
+                    throw new Error(resp?.message || 'Upload file thất bại');
+                }
+
+                // Lưu metadata lên Firebase
+                await firebasePush('practiceExams', {
+                    title: title,
+                    khoi: khoi,
+                    fileUrl: fileUrl,
+                    fileId: fileId,
+                    fileName: file.name,
+                    createdBy: currentTeacher ? currentTeacher.maGV : 'ADMIN',
+                    createdByName: currentTeacher ? currentTeacher.hoTen : 'Admin',
+                    createdAt: Date.now()
+                });
+
+                // Reset form
+                document.getElementById('peTitle').value = '';
+                fileInput.value = '';
+                msgEl.innerHTML = '✅ Đã thêm đề thực hành thành công!';
+                msgEl.style.display = 'block';
+                msgEl.style.background = 'rgba(16,185,129,0.15)';
+                msgEl.style.color = 'var(--success)';
+                loadPracticeExams();
+            } catch (e) {
+                msgEl.innerHTML = '❌ Lỗi: ' + e.message;
+                msgEl.style.display = 'block';
+                msgEl.style.background = 'rgba(239,68,68,0.15)';
+                msgEl.style.color = 'var(--danger)';
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus"></i> Thêm đề';
+            setTimeout(() => { msgEl.style.display = 'none'; }, 5000);
+        }
+
+        function deletePracticeExam(key) {
+            showConfirmPopup('🗑️ Xóa đề thực hành?', 'Bạn có chắc muốn xóa đề thực hành này? Học sinh sẽ không thể xem nữa.', async () => {
+                try {
+                    await firebaseWrite('practiceExams/' + key, null);
+                    loadPracticeExams();
+                } catch (e) { showPopup('Lỗi xóa', 'Lỗi xóa đề: ' + e.message, 'error'); }
+            }, 'Xóa', 'Hủy', 'danger');
+        }
+
+        // --- STUDENT SIDE: XEM ĐỀ THỰC HÀNH ---
+        function openPracticeExamModal() {
+            let modal = document.getElementById('practiceExamModal');
+            modal.style.display = 'flex';
+            loadPracticeExamsForStudent();
+        }
+
+        function closePracticeExamModal() {
+            document.getElementById('practiceExamModal').style.display = 'none';
+        }
+
+        async function loadPracticeExamsForStudent() {
+            let container = document.getElementById('practiceExamContent');
+            container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i><p style="margin-top:8px">Đang tải đề thực hành...</p></div>';
+            try {
+                let data = await firebaseRead('practiceExams') || {};
+                let allExams = Object.values(data);
+                // Lọc theo khối của HS
+                let studentGrade = '';
+                if (currentStudent && currentStudent.lop) {
+                    let lopStr = currentStudent.lop.toString();
+                    let match = lopStr.match(/^(\d+)/);
+                    if (match) studentGrade = match[1];
+                }
+                let filtered = allExams.filter(e => {
+                    if (!e.khoi || e.khoi === '') return true; // Đề chung tất cả khối
+                    return e.khoi === studentGrade;
+                });
+                if (!filtered.length) {
+                    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-file-alt" style="font-size:40px;margin-bottom:12px;display:block;opacity:0.4"></i><h3 style="margin:0 0 8px;color:var(--text)">Chưa có đề thực hành</h3><p style="font-size:13px;margin:0">Giáo viên chưa gửi đề thực hành cho khối của bạn.</p></div>';
+                    return;
+                }
+                let html = '<div style="display:flex;flex-direction:column;gap:12px">';
+                filtered.forEach(pe => {
+                    let icon = (pe.fileName || '').match(/\.pdf$/i) ? 'fa-file-pdf' : (pe.fileName || '').match(/\.docx?$/i) ? 'fa-file-word' : (pe.fileName || '').match(/\.pptx?$/i) ? 'fa-file-powerpoint' : (pe.fileName || '').match(/\.xlsx?$/i) ? 'fa-file-excel' : (pe.fileName || '').match(/\.(jpg|jpeg|png)$/i) ? 'fa-file-image' : 'fa-file-alt';
+                    let khoiLabel = pe.khoi ? 'Khối ' + pe.khoi : 'Chung';
+                    html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:18px">`;
+                    html += `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">`;
+                    html += `<div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#06b6d4,#0891b2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${icon}" style="color:#fff;font-size:22px"></i></div>`;
+                    html += `<div style="flex:1"><div style="font-weight:700;font-size:16px;margin-bottom:4px">${pe.title}</div>`;
+                    html += `<div style="display:flex;gap:6px;flex-wrap:wrap"><span style="padding:2px 10px;background:rgba(6,182,212,0.15);color:var(--accent);border-radius:8px;font-size:11px;font-weight:600">${khoiLabel}</span>`;
+                    if (pe.fileName) html += `<span style="font-size:11px;color:var(--text2)">📎 ${pe.fileName}</span>`;
+                    html += `</div></div></div>`;
+                    // Nút xem + tải
+                    html += `<div style="display:flex;gap:8px;flex-wrap:wrap">`;
+                    if (pe.fileUrl) {
+                        // Nút xem trực tiếp (mở tab mới bằng Google Drive Viewer)
+                        let viewerUrl = pe.fileUrl;
+                        // Nếu là link Google Drive, dùng preview
+                        if (pe.fileId) {
+                            viewerUrl = 'https://drive.google.com/file/d/' + pe.fileId + '/preview';
+                        }
+                        html += `<button onclick="openPracticeExamViewer('${viewerUrl.replace(/'/g, "\\'") }','${(pe.title || '').replace(/'/g, "\\'")}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer"><i class="fas fa-eye"></i> Xem đề trực tiếp</button>`;
+                        html += `<a href="${pe.fileUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;background:var(--bg3);color:var(--text);border-radius:12px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid var(--border)"><i class="fas fa-download"></i> Tải về</a>`;
+                    }
+                    html += `</div></div>`;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--danger)">❌ Lỗi tải đề: ' + e.message + '</div>';
+            }
+        }
+
+        function openPracticeExamViewer(url, title) {
+            // Mở trong iframe modal hoặc tab mới
+            let viewerHtml = `<div style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">`;
+            viewerHtml += `<h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-eye" style="color:var(--accent)"></i> ${title}</h3>`;
+            viewerHtml += `<button onclick="closePracticeExamViewer()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button></div>`;
+            viewerHtml += `<iframe src="${url}" style="width:100%;height:70vh;border:1px solid var(--border);border-radius:12px;background:#fff" allowfullscreen></iframe>`;
+            viewerHtml += `<div style="margin-top:10px;text-align:center"><button onclick="closePracticeExamViewer()" class="btn btn-primary" style="width:auto;padding:10px 24px;font-size:14px"><i class="fas fa-arrow-left"></i> Quay lại danh sách đề</button> <a href="${url}" target="_blank" class="btn" style="width:auto;padding:10px 24px;font-size:14px;background:var(--bg3);color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:6px;margin-left:8px"><i class="fas fa-external-link-alt"></i> Mở tab mới</a></div>`;
+            document.getElementById('practiceExamContent').innerHTML = viewerHtml;
+        }
+
+        function closePracticeExamViewer() {
+            // Quay lại danh sách đề
+            loadPracticeExamsForStudent();
         }
 
         // ============== QUẢN LÝ GIÁO VIÊN (ADMIN) ==============
