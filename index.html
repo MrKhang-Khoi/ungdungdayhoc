@@ -2171,6 +2171,7 @@
                         <button class="btn btn-sm" id="btnDownloadClassFiles" onclick="downloadClassFiles()" style="width:auto;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-download"></i> Tải Bài làm HS</button>
                         <button class="btn btn-sm" onclick="openUploadStudentsModal()" style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-upload"></i> Tải DS lên</button>
                         <button class="btn btn-sm" onclick="downloadStudentTemplate()" style="width:auto;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-file-download"></i> File mẫu</button>
+                        <button class="btn btn-sm" onclick="resetPracticeClass()" style="width:auto;background:linear-gradient(135deg,#f59e0b,#b45309);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-redo-alt"></i> Reset thi thử cả lớp</button>
                         <button class="btn btn-sm" onclick="deleteEntireClass()" style="width:auto;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-trash-alt"></i> Xóa cả lớp</button>
                         <span id="moThiCountBadge" style="font-size:11px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"></span>
                     </div>
@@ -2326,11 +2327,16 @@
                         style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 16px;font-size:13px;white-space:nowrap">
                         <i class="fas fa-file-excel"></i> Xuất Excel
                     </button>
+                    <button class="btn btn-sm" onclick="toggleItemAnalysis()" id="btnItemAnalysis"
+                        style="width:auto;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;padding:8px 16px;font-size:13px;white-space:nowrap">
+                        <i class="fas fa-microscope"></i> Phân tích câu hỏi
+                    </button>
                     <button class="btn btn-sm" id="btnDeleteResults" onclick="softDeleteResultsUI()"
                         style="width:auto;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;padding:8px 16px;font-size:13px;white-space:nowrap">
                         <i class="fas fa-trash-alt"></i> Xóa kết quả
                     </button>
                 </div>
+                <div id="itemAnalysisContainer" style="display:none;margin-bottom:16px"></div>
                 <div class="table-container" id="resultsTableContainer"></div>
             </div>
 
@@ -4975,7 +4981,7 @@
                     : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);color:var(--warning);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-clock"></i> Chưa thi</span>';
                 // Practice exam badge
                 let practiceBadge = s.hasPractice
-                    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,0.15);color:var(--primary);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-flask"></i> ${s.practiceCount}/5 lượt</span>`
+                    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,0.15);color:var(--primary);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-flask"></i> ${s.practiceCount}/5 lượt</span> <button onclick="resetPracticeStudent('${s.maHS}')" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:none;padding:2px 6px;border-radius:4px;cursor:pointer;font-size:10px" title="Reset lượt thi thử"><i class="fas fa-redo-alt"></i></button>`
                     : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(100,116,139,0.15);color:var(--text2);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-minus-circle"></i> Chưa</span>';
                 html += `<tr>`;
                 html += `<td style="font-size:12px;color:var(--text2)">${idx + 1}</td>`;
@@ -5125,6 +5131,74 @@
                     renderManageTable();
                 } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
             }, value ? 'Mở cả lớp' : 'Khóa cả lớp', 'Hủy');
+        }
+
+        // ===== RESET LƯỢT THI THỬ =====
+        async function resetPracticeStudent(maHS) {
+            let student = dashboardData.students.find(s => s.maHS === maHS);
+            let name = student ? student.hoTen : maHS;
+            let count = student ? (student.practiceCount || 0) : '?';
+            showConfirmPopup(
+                '⚠️ Reset lượt thi thử',
+                `Bạn muốn <strong>xóa toàn bộ ${count} lượt thi thử</strong> của <strong>${name}</strong> (${maHS})?<br><small style="color:var(--danger)">⚠️ Hành động này không thể hoàn tác! Dữ liệu điểm thi thử sẽ bị xóa.</small>`,
+                async () => {
+                    try {
+                        showLoading();
+                        let practiceData = await firebaseRead('practiceResults') || {};
+                        let updates = {};
+                        let deleted = 0;
+                        Object.entries(practiceData).forEach(([key, r]) => {
+                            if (r.maHS === maHS) { updates['practiceResults/' + key] = null; deleted++; }
+                        });
+                        if (deleted > 0) {
+                            await db.ref().update(updates);
+                            if (student) student.practiceCount = 0;
+                        }
+                        hideLoading();
+                        showPopup('Thành công', `Đã reset <strong>${deleted}</strong> lượt thi thử của <strong>${name}</strong>`, 'success');
+                        await loadDashboard();
+                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+                },
+                '🗑️ Xác nhận reset', 'Hủy'
+            );
+        }
+
+        async function resetPracticeClass() {
+            let classF = document.getElementById('manageClassFilter').value;
+            if (!classF) {
+                showPopup('Cảnh báo', 'Vui lòng chọn một lớp cụ thể trước khi reset cả lớp!', 'warning');
+                return;
+            }
+            let targetStudents = dashboardData.students.filter(s => s.lop === classF);
+            let totalPractice = targetStudents.reduce((sum, s) => sum + (s.practiceCount || 0), 0);
+            if (totalPractice === 0) {
+                showPopup('Thông báo', 'Lớp <strong>' + classF + '</strong> chưa có lượt thi thử nào để reset.', 'info');
+                return;
+            }
+            let maHSSet = new Set(targetStudents.map(s => s.maHS));
+            showConfirmPopup(
+                '⚠️ Reset thi thử cả lớp',
+                `Xóa <strong>toàn bộ ${totalPractice} lượt thi thử</strong> của <strong>${targetStudents.length} HS</strong> lớp <strong>${classF}</strong>?<br><small style="color:var(--danger)">⚠️ Hành động này không thể hoàn tác!</small>`,
+                async () => {
+                    try {
+                        showLoading();
+                        let practiceData = await firebaseRead('practiceResults') || {};
+                        let updates = {};
+                        let deleted = 0;
+                        Object.entries(practiceData).forEach(([key, r]) => {
+                            if (maHSSet.has(r.maHS)) { updates['practiceResults/' + key] = null; deleted++; }
+                        });
+                        if (deleted > 0) {
+                            await db.ref().update(updates);
+                            targetStudents.forEach(s => s.practiceCount = 0);
+                        }
+                        hideLoading();
+                        showPopup('Thành công', `Đã reset <strong>${deleted}</strong> lượt thi thử cho <strong>${targetStudents.length} HS</strong> lớp <strong>${classF}</strong>`, 'success');
+                        await loadDashboard();
+                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
+                },
+                '🗑️ Reset cả lớp', 'Hủy'
+            );
         }
 
         function exportStudentsExcel() {
@@ -5951,8 +6025,146 @@
             });
             html += '</tbody></table></div>';
             container.innerHTML = html;
+
+            // Tự động cập nhật Item Analysis nếu đang mở
+            if (document.getElementById('itemAnalysisContainer').style.display !== 'none') {
+                renderItemAnalysis();
+            }
         }
 
+
+        // ===== PHÂN TÍCH CÂU HỎI (ITEM ANALYSIS) =====
+        function toggleItemAnalysis() {
+            let c = document.getElementById('itemAnalysisContainer');
+            let btn = document.getElementById('btnItemAnalysis');
+            if (c.style.display === 'none') {
+                c.style.display = 'block';
+                btn.style.background = 'linear-gradient(135deg,#6d28d9,#4c1d95)';
+                btn.innerHTML = '<i class="fas fa-microscope"></i> Ẩn phân tích';
+                renderItemAnalysis();
+            } else {
+                c.style.display = 'none';
+                btn.style.background = 'linear-gradient(135deg,#8b5cf6,#6d28d9)';
+                btn.innerHTML = '<i class="fas fa-microscope"></i> Phân tích câu hỏi';
+            }
+        }
+
+        function renderItemAnalysis() {
+            let container = document.getElementById('itemAnalysisContainer');
+            if (!dashboardData || !dashboardData.results) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)">Chưa có dữ liệu kết quả</div>';
+                return;
+            }
+            let isPracticeTab = _resultsSubTab === 'practice';
+            let allResults = isPracticeTab
+                ? (dashboardData.results.practiceResults || [])
+                : (dashboardData.results.realResults || []);
+
+            if (!allResults.length) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)">Chưa có kết quả để phân tích</div>';
+                return;
+            }
+
+            // Lọc theo lớp nếu có
+            let classF = document.getElementById('resultsClassFilter').value;
+            if (classF) allResults = allResults.filter(r => r.lop === classF);
+
+            // Gom dữ liệu theo câu hỏi
+            let qMap = {};
+            allResults.forEach(r => {
+                if (!r.answers || !r.answers.length) return;
+                r.answers.forEach((a, idx) => {
+                    if (typeof a !== 'object') return;
+                    let stt = a.stt || (idx + 1);
+                    if (!qMap[stt]) {
+                        qMap[stt] = { stt: stt, noiDung: a.noiDung || ('Câu ' + stt), total: 0, correct: 0, wrong: 0, blank: 0, dapAnDung: (a.dapAnDung || '').toUpperCase(), wrongAnswers: {} };
+                    }
+                    let q = qMap[stt];
+                    q.total++;
+                    if (a.ketQua === 'Đúng') {
+                        q.correct++;
+                    } else if (!a.dapAnHS || a.dapAnHS.trim() === '') {
+                        q.blank++;
+                    } else {
+                        q.wrong++;
+                        let wa = a.dapAnHS.toUpperCase();
+                        q.wrongAnswers[wa] = (q.wrongAnswers[wa] || 0) + 1;
+                    }
+                });
+            });
+
+            let questions = Object.values(qMap).sort((a, b) => {
+                let rateA = a.total > 0 ? a.correct / a.total : 0;
+                let rateB = b.total > 0 ? b.correct / b.total : 0;
+                return rateA - rateB; // Khó nhất lên trước
+            });
+
+            if (!questions.length) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)">Dữ liệu không đủ chi tiết để phân tích (cần kết quả có đáp án)</div>';
+                return;
+            }
+
+            // Thống kê tổng
+            let easy = 0, medium = 0, hard = 0;
+            questions.forEach(q => {
+                let rate = q.total > 0 ? q.correct / q.total : 0;
+                if (rate >= 0.7) easy++;
+                else if (rate >= 0.4) medium++;
+                else hard++;
+            });
+
+            let html = '<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px">';
+            html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">';
+            html += '<h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-microscope" style="color:#8b5cf6"></i> Phân tích ' + questions.length + ' câu hỏi <span style="font-size:12px;font-weight:400;color:var(--text2)">(' + allResults.length + ' bài thi' + (classF ? ' lớp ' + classF : '') + ')</span></h3>';
+            html += '<div style="display:flex;gap:10px;flex-wrap:wrap">';
+            html += '<span style="background:rgba(16,185,129,0.15);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">🟢 Dễ: ' + easy + '</span>';
+            html += '<span style="background:rgba(245,158,11,0.15);color:var(--warning);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">🟡 TB: ' + medium + '</span>';
+            html += '<span style="background:rgba(239,68,68,0.15);color:var(--danger);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">🔴 Khó: ' + hard + '</span>';
+            html += '</div></div>';
+
+            html += '<div style="display:flex;flex-direction:column;gap:8px">';
+            questions.forEach(q => {
+                let rate = q.total > 0 ? Math.round(q.correct / q.total * 100) : 0;
+                let wrongRate = q.total > 0 ? Math.round(q.wrong / q.total * 100) : 0;
+                let blankRate = q.total > 0 ? Math.round(q.blank / q.total * 100) : 0;
+                let diffBadge, diffColor;
+                if (rate >= 70) { diffBadge = 'Dễ'; diffColor = 'var(--success)'; }
+                else if (rate >= 40) { diffBadge = 'TB'; diffColor = 'var(--warning)'; }
+                else { diffBadge = 'Khó'; diffColor = 'var(--danger)'; }
+                let topWrong = '', maxWrongCount = 0;
+                for (let w in q.wrongAnswers) {
+                    if (q.wrongAnswers[w] > maxWrongCount) { maxWrongCount = q.wrongAnswers[w]; topWrong = w; }
+                }
+                let noiDung = q.noiDung.length > 60 ? q.noiDung.substring(0, 60) + '...' : q.noiDung;
+
+                html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 16px">';
+                html += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap">';
+                html += '<span style="background:rgba(99,102,241,0.15);color:var(--primary);padding:3px 10px;border-radius:6px;font-size:12px;font-weight:700;white-space:nowrap">Câu ' + q.stt + '</span>';
+                html += '<span style="background:' + diffColor + '22;color:' + diffColor + ';padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">' + diffBadge + '</span>';
+                html += '<span style="font-size:12px;color:var(--text2);flex:1;min-width:80px" title="' + q.noiDung.replace(/"/g, '&quot;') + '">' + noiDung + '</span>';
+                html += '<span style="font-size:11px;color:var(--success);font-weight:600;white-space:nowrap">Đ.án: ' + q.dapAnDung + '</span>';
+                if (topWrong && maxWrongCount > 0) {
+                    html += '<span style="font-size:11px;color:var(--danger);white-space:nowrap" title="Đáp án sai phổ biến nhất">⚠ Chọn nhầm: <strong>' + topWrong + '</strong> (' + maxWrongCount + ')</span>';
+                }
+                html += '</div>';
+                html += '<div style="display:flex;gap:6px;align-items:center">';
+                html += '<div style="flex:1;display:flex;height:18px;border-radius:4px;overflow:hidden;background:var(--bg3)">';
+                if (rate > 0) html += '<div style="width:' + rate + '%;background:var(--success);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff" title="Đúng ' + rate + '%">' + (rate >= 12 ? rate + '%' : '') + '</div>';
+                if (wrongRate > 0) html += '<div style="width:' + wrongRate + '%;background:var(--danger);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff" title="Sai ' + wrongRate + '%">' + (wrongRate >= 12 ? wrongRate + '%' : '') + '</div>';
+                if (blankRate > 0) html += '<div style="width:' + blankRate + '%;background:var(--text2);opacity:.4;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff" title="Bỏ trống ' + blankRate + '%">' + (blankRate >= 12 ? blankRate + '%' : '') + '</div>';
+                html += '</div>';
+                html += '<div style="display:flex;gap:8px;font-size:11px;white-space:nowrap">';
+                html += '<span style="color:var(--success);font-weight:600">' + q.correct + '✓</span>';
+                html += '<span style="color:var(--danger);font-weight:600">' + q.wrong + '✗</span>';
+                if (q.blank > 0) html += '<span style="color:var(--text2)">' + q.blank + '⊘</span>';
+                html += '<span style="color:var(--text2)">/' + q.total + '</span>';
+                html += '</div></div>';
+                html += '</div>';
+            });
+            html += '</div></div>';
+
+            container.innerHTML = html;
+        }
 
         // ===== XUAT EXCEL =====
         async function exportExcel() {
