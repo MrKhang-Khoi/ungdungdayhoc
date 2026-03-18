@@ -5496,6 +5496,7 @@
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang import...';
 
             try {
+                // === GHI FIREBASE (giữ nguyên logic cũ — nhanh, realtime) ===
                 let updates = {};
 
                 // Nếu mode overwrite: xóa HS cũ cùng lớp
@@ -5521,7 +5522,27 @@
                 });
 
                 await db.ref().update(updates);
-                showUploadMsg('✅ Import thành công <strong>' + pendingImportData.length + '</strong> học sinh!', 'success');
+
+                // === AUTO-SYNC: Ghi Sheet qua API (background — không block UI) ===
+                try {
+                    let syncBody = {
+                        students: pendingImportData,
+                        mode: mode
+                    };
+                    if (currentTeacher) {
+                        if (currentTeacher.isAdmin) { syncBody.isAdmin = 'true'; }
+                        else { syncBody.maGV = currentTeacher.maGV; }
+                    }
+                    let syncUrl = new URL(API_URL);
+                    syncUrl.searchParams.set('action', 'importStudentsWithSync');
+                    fetch(syncUrl.toString(), { method: 'POST', redirect: 'follow', body: JSON.stringify(syncBody) })
+                        .then(r => r.json()).then(resp => {
+                            if (resp.success) { console.log('Sheet sync OK:', resp.message); }
+                            else { console.warn('Sheet sync warning:', resp.message); }
+                        }).catch(err => { console.warn('Sheet sync error (non-blocking):', err); });
+                } catch (syncErr) { console.warn('Sheet sync init error:', syncErr); }
+
+                showUploadMsg('✅ Import thành công <strong>' + pendingImportData.length + '</strong> học sinh + đồng bộ Sheet!', 'success');
                 btn.innerHTML = '<i class="fas fa-check"></i> Hoàn tất!';
                 setTimeout(() => { closeUploadStudentsModal(); }, 1500);
             } catch (e) {
@@ -5548,9 +5569,20 @@
                         if (dashboardData.students) {
                             dashboardData.students = dashboardData.students.filter(x => x.maHS !== maHS);
                         }
+                        // AUTO-SYNC: Xóa khỏi Sheet (background)
+                        try {
+                            let syncParams = { maHS: maHS };
+                            if (currentTeacher) {
+                                if (currentTeacher.isAdmin) { syncParams.isAdmin = 'true'; }
+                                else { syncParams.maGV = currentTeacher.maGV; }
+                            }
+                            apiCall('deleteStudentWithSync', syncParams).then(resp => {
+                                console.log('Sheet delete sync:', resp.message || resp);
+                            }).catch(err => { console.warn('Sheet delete sync error:', err); });
+                        } catch (syncErr) { console.warn('Sheet sync init error:', syncErr); }
                         hideLoading();
                         renderManageTable();
-                        showPopup('Đã xóa', 'Đã xóa HS <strong>' + name + '</strong>', 'success');
+                        showPopup('Đã xóa', 'Đã xóa HS <strong>' + name + '</strong> + đồng bộ Sheet', 'success');
                     } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
                 }, 'Xóa', 'Hủy');
         }
@@ -5587,9 +5619,20 @@
                         if (dashboardData.students) {
                             dashboardData.students = dashboardData.students.filter(s => s.lop !== classF);
                         }
+                        // AUTO-SYNC: Xóa cả lớp khỏi Sheet (background)
+                        try {
+                            let syncParams = { lop: classF };
+                            if (currentTeacher) {
+                                if (currentTeacher.isAdmin) { syncParams.isAdmin = 'true'; }
+                                else { syncParams.maGV = currentTeacher.maGV; }
+                            }
+                            apiCall('deleteClassWithSync', syncParams).then(resp => {
+                                console.log('Sheet class delete sync:', resp.message || resp);
+                            }).catch(err => { console.warn('Sheet class delete sync error:', err); });
+                        } catch (syncErr) { console.warn('Sheet sync init error:', syncErr); }
                         hideLoading();
                         renderManageTable();
-                        showPopup('Đã xóa', 'Đã xóa <strong>' + targets.length + ' HS</strong> lớp <strong>' + classF + '</strong>', 'success');
+                        showPopup('Đã xóa', 'Đã xóa <strong>' + targets.length + ' HS</strong> lớp <strong>' + classF + '</strong> + đồng bộ Sheet', 'success');
                     } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
                 }, 'Xóa cả lớp', 'Hủy');
         }
