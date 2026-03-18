@@ -2723,6 +2723,51 @@
                     <div id="settingsMsg"
                         style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:12px"></div>
 
+
+                    <!-- Thông tin Kỳ thi -->
+                    <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
+                        <i class="fas fa-info-circle" style="color:#6366f1"></i> Thông tin Kỳ thi
+                    </h4>
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+                        <div>
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-clipboard-list"
+                                    style="color:#6366f1;margin-right:6px"></i> Màn hình thông tin trước khi thi</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Khi bật: HS thấy thông tin kỳ thi (tiêu đề, lưu ý...) trước khi bắt đầu làm bài</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
+                            <input type="checkbox" id="toggleExamInfo" onchange="saveExamInfo()"
+                                style="opacity:0;width:0;height:0">
+                            <span
+                                style="position:absolute;inset:0;border-radius:13px;background:var(--bg3);transition:.3s"></span>
+                            <span id="toggleExamInfoSlider"
+                                style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
+                        </label>
+                    </div>
+                    <div id="examInfoFieldsArea" style="display:none;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+                        <div style="margin-bottom:12px">
+                            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Tên kỳ thi</label>
+                            <input type="text" id="examInfoTitle" placeholder="VD: Kiểm tra giữa kỳ II - Tin học 7"
+                                style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;outline:none">
+                        </div>
+                        <div style="margin-bottom:12px">
+                            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Mô tả / Lưu ý cho học sinh</label>
+                            <textarea id="examInfoDesc" rows="3" placeholder="VD: Đọc kỹ đề, không sử dụng tài liệu, không trao đổi..."
+                                style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none"></textarea>
+                        </div>
+                        <div style="margin-bottom:12px">
+                            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Ghi chú thêm (tùy chọn)</label>
+                            <input type="text" id="examInfoNote" placeholder="VD: Liên hệ GV nếu gặp sự cố kỹ thuật"
+                                style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;outline:none">
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:flex-end">
+                            <button class="btn btn-primary btn-sm" onclick="saveExamInfo()"
+                                style="width:auto;padding:8px 20px;font-size:13px" id="btnSaveExamInfo"><i class="fas fa-save"></i> Lưu thông tin</button>
+                        </div>
+                    </div>
+
+                    <!-- ===== ADMIN-ONLY: Xóa cache, Sync, Xóa dữ liệu ===== -->
+                    <div id="adminOnlySettings">
                     <!-- Xóa Cache HS -->
                     <div
                         style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-top:12px">
@@ -2786,6 +2831,7 @@
                             <i class="fas fa-trash-alt"></i> Xóa tất cả
                         </button>
                     </div>
+                    </div><!-- /adminOnlySettings -->
                 </div>
             </div>
         </div>
@@ -3324,43 +3370,8 @@
                 };
                 document.getElementById('identityConfirmBtn').onclick = async () => {
                     identityModal.remove();
-                    showLoginLoading();
-                    try {
-                        // Lock the session
-                        await firebaseUpdate('students/' + maHS, { thoiGianDN: Date.now(), isLocked: true, lockedAt: Date.now() });
-
-                        // Update exam header
-                        let headerHtml = `
-                            <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(99,102,241,0.15);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(99,102,241,0.25)">
-                                <i class="fas fa-user" style="font-size:10px"></i> ${currentStudent.hoTen}
-                            </span>
-                            <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.15);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(16,185,129,0.25)">
-                                <i class="fas fa-school" style="font-size:10px"></i> ${currentStudent.lop}
-                            </span>
-                            <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(6,182,212,0.15);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(6,182,212,0.25)">
-                                <i class="fas fa-id-badge" style="font-size:10px"></i> ${currentStudent.maHS}
-                            </span>`;
-                        document.getElementById('examStudentInfo').innerHTML = headerHtml;
-
-                        if (isPracticeMode) setupPracticeUI();
-                        else setupNormalUI();
-
-                        hideLoginLoading();
-                        showScreen('examScreen');
-                        startStudentNotifListener();
-                        startStudentHeartbeat();
-                        try { await startAntiCheat(); } catch (e) { }
-                        try { await startSessionManagement(); } catch (e) { }
-                        initExamTimer();
-                        showExamGuide();
-                        // Load questions AFTER screen is shown (same as practice mode)
-                        // checkAndOfferRestore runs after questions load
-                        await loadQuestions();
-                    } catch (e) {
-                        console.error('Post-confirm error:', e);
-                        hideLoginLoading();
-                        showPopup('Lỗi', 'Lỗi tải bài thi: ' + e.message, 'error');
-                    }
+                    // Show exam info overlay if enabled, otherwise proceed directly
+                    await showExamInfoOverlay(settings, maHS);
                 };
             } catch (e) {
                 console.error('Login error:', e);
@@ -4517,16 +4528,9 @@
                 if (teachersTab) teachersTab.style.display = '';
             }
             if (currentTeacher && !currentTeacher.isAdmin) {
-                let tabBar = document.getElementById('mainTabBar');
-                if (tabBar) {
-                    let tabs = tabBar.querySelectorAll('.main-tab');
-                    tabs.forEach(t => {
-                        let onclick = t.getAttribute('onclick') || '';
-                        if (onclick.includes("'settings'")) {
-                            t.style.display = 'none';
-                        }
-                    });
-                }
+                // GV thường: ẩn các phần nhạy cảm trong Settings (Sync, Xóa dữ liệu...)
+                let adminOnly = document.getElementById('adminOnlySettings');
+                if (adminOnly) adminOnly.style.display = 'none';
             }
             // === NOTIFICATION: Load known results + xin quyền ===
             try {
@@ -6741,6 +6745,19 @@
                     vrToggle.checked = vrOn;
                     updateViewResultsToggleVisual(vrOn);
                 }
+                // Exam info setting
+                let examInfo = settings.examInfo || {};
+                let eiToggle = document.getElementById('toggleExamInfo');
+                if (eiToggle) {
+                    eiToggle.checked = !!examInfo.enabled;
+                    updateExamInfoToggleVisual(!!examInfo.enabled);
+                }
+                let eiTitle = document.getElementById('examInfoTitle');
+                let eiDesc = document.getElementById('examInfoDesc');
+                let eiNote = document.getElementById('examInfoNote');
+                if (eiTitle) eiTitle.value = examInfo.title || '';
+                if (eiDesc) eiDesc.value = examInfo.description || '';
+                if (eiNote) eiNote.value = examInfo.note || '';
             } catch (e) { console.log('Settings load error:', e); }
         }
 
@@ -7032,6 +7049,165 @@
             el.style.color = color;
             el.style.border = '1px solid ' + (color === 'var(--danger)' ? 'rgba(239,68,68,0.3)' : color === 'var(--warning)' ? 'rgba(245,158,11,0.3)' : color === 'var(--success)' ? 'rgba(16,185,129,0.3)' : 'rgba(99,102,241,0.3)');
             setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        // ===== THÔNG TIN KỲ THI (EXAM INFO SCREEN) =====
+        function updateExamInfoToggleVisual(isOn) {
+            let slider = document.getElementById('toggleExamInfoSlider');
+            let bg = document.getElementById('toggleExamInfo')?.parentElement?.querySelector('span');
+            let fieldsArea = document.getElementById('examInfoFieldsArea');
+            if (isOn) {
+                if (bg) bg.style.background = '#6366f1';
+                if (slider) slider.style.left = '27px';
+                if (fieldsArea) fieldsArea.style.display = 'block';
+            } else {
+                if (bg) bg.style.background = 'var(--bg3)';
+                if (slider) slider.style.left = '3px';
+                if (fieldsArea) fieldsArea.style.display = 'none';
+            }
+        }
+
+        async function saveExamInfo() {
+            let isOn = document.getElementById('toggleExamInfo').checked;
+            updateExamInfoToggleVisual(isOn);
+            let data = {
+                enabled: isOn,
+                title: (document.getElementById('examInfoTitle').value || '').trim(),
+                description: (document.getElementById('examInfoDesc').value || '').trim(),
+                note: (document.getElementById('examInfoNote').value || '').trim()
+            };
+            let msgEl = document.getElementById('settingsMsg');
+            let btn = document.getElementById('btnSaveExamInfo');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...'; }
+            try {
+                await firebaseUpdate('settings', { examInfo: data });
+                showSettingsMsg(msgEl, isOn ? '📋 Đã bật màn hình thông tin kỳ thi' : '⏭️ Đã tắt — HS vào thi luôn', isOn ? 'var(--primary)' : 'var(--warning)');
+            } catch (e) {
+                showSettingsMsg(msgEl, '❌ Lỗi: ' + e.message, 'var(--danger)');
+            }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu thông tin'; }
+        }
+
+        async function loadExamInfoSettings() {
+            try {
+                let settings = await firebaseRead('settings') || {};
+                let examInfo = settings.examInfo || {};
+                let toggle = document.getElementById('toggleExamInfo');
+                if (toggle) toggle.checked = !!examInfo.enabled;
+                updateExamInfoToggleVisual(!!examInfo.enabled);
+                let titleEl = document.getElementById('examInfoTitle');
+                let descEl = document.getElementById('examInfoDesc');
+                let noteEl = document.getElementById('examInfoNote');
+                if (titleEl) titleEl.value = examInfo.title || '';
+                if (descEl) descEl.value = examInfo.description || '';
+                if (noteEl) noteEl.value = examInfo.note || '';
+            } catch (e) { console.log('Load examInfo error:', e); }
+        }
+
+        // Show exam info overlay (student-facing)
+        async function showExamInfoOverlay(settings, maHS) {
+            let examInfo = (settings && settings.examInfo) || {};
+            if (!examInfo.enabled) {
+                // Feature disabled → proceed directly to exam
+                await proceedToExam(maHS);
+                return;
+            }
+            // Build info from settings
+            let timerEnabled = settings.timerEnabled === true || settings.timerEnabled === 'true';
+            let timerMinutes = settings.timerMinutes || 45;
+            let antiCheat = settings.antiCheatEnabled !== false;
+            let modeLabel = isPracticeMode ? '🎯 Thi Thử' : '📝 Thi Thật';
+            let questionsLabel = isPracticeMode ? '16 câu lý thuyết' : '8 câu LT + Thực hành';
+
+            let overlay = document.createElement('div');
+            overlay.id = 'examInfoOverlay';
+            overlay.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10006;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease;backdrop-filter:blur(6px)';
+
+            let descHtml = examInfo.description ? `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;text-align:left">
+                <div style="font-size:12px;font-weight:700;color:var(--warning);margin-bottom:6px"><i class="fas fa-exclamation-triangle" style="margin-right:4px"></i> Lưu ý:</div>
+                <p style="color:var(--text);font-size:13px;margin:0;line-height:1.7;white-space:pre-wrap">${examInfo.description}</p>
+            </div>` : '';
+
+            let noteHtml = examInfo.note ? `<div style="font-size:12px;color:var(--text2);margin-bottom:16px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"><i class="fas fa-info-circle" style="margin-right:4px;color:var(--primary)"></i>${examInfo.note}</div>` : '';
+
+            overlay.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:24px;padding:32px;max-width:520px;width:100%;text-align:center;animation:slideUp .4s ease;box-shadow:0 25px 60px rgba(0,0,0,0.5)">
+                <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 8px 32px rgba(99,102,241,0.35)">
+                    <i class="fas fa-file-alt" style="font-size:30px;color:#fff"></i>
+                </div>
+                <h2 style="margin:0 0 4px;font-size:20px;font-weight:800;color:var(--text)">${examInfo.title || 'Bài Kiểm Tra'}</h2>
+                <p style="color:var(--text2);font-size:12px;margin:0 0 20px">${modeLabel}</p>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 8px">
+                        <div style="font-size:20px;margin-bottom:4px">📊</div>
+                        <div style="font-size:11px;color:var(--text2)">Số câu</div>
+                        <div style="font-size:13px;font-weight:700;color:var(--text)">${questionsLabel}</div>
+                    </div>
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 8px">
+                        <div style="font-size:20px;margin-bottom:4px">⏱️</div>
+                        <div style="font-size:11px;color:var(--text2)">Thời gian</div>
+                        <div style="font-size:13px;font-weight:700;color:var(--text)">${timerEnabled ? timerMinutes + ' phút' : 'Không giới hạn'}</div>
+                    </div>
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 8px">
+                        <div style="font-size:20px;margin-bottom:4px">🛡️</div>
+                        <div style="font-size:11px;color:var(--text2)">Chống gian lận</div>
+                        <div style="font-size:13px;font-weight:700;color:${antiCheat ? 'var(--success)' : 'var(--warning)'}">${antiCheat ? 'BẬT' : 'TẮT'}</div>
+                    </div>
+                </div>
+
+                ${descHtml}
+                ${noteHtml}
+
+                <button id="btnStartExamFromInfo" class="btn btn-primary" style="width:100%;padding:16px;font-size:16px;font-weight:800;border-radius:14px;box-shadow:0 6px 24px rgba(99,102,241,0.35);letter-spacing:0.3px">
+                    <i class="fas fa-play-circle" style="margin-right:8px"></i> BẮT ĐẦU LÀM BÀI
+                </button>
+            </div>`;
+
+            document.body.appendChild(overlay);
+            document.getElementById('btnStartExamFromInfo').onclick = async () => {
+                overlay.remove();
+                await proceedToExam(maHS);
+            };
+        }
+
+        // Proceed to exam (extracted from identity confirm flow)
+        async function proceedToExam(maHS) {
+            showLoginLoading();
+            try {
+                // Lock the session
+                await firebaseUpdate('students/' + maHS, { thoiGianDN: Date.now(), isLocked: true, lockedAt: Date.now() });
+
+                // Update exam header
+                let headerHtml = `
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(99,102,241,0.15);color:var(--primary);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(99,102,241,0.25)">
+                        <i class="fas fa-user" style="font-size:10px"></i> ${currentStudent.hoTen}
+                    </span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.15);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(16,185,129,0.25)">
+                        <i class="fas fa-school" style="font-size:10px"></i> ${currentStudent.lop}
+                    </span>
+                    <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(6,182,212,0.15);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid rgba(6,182,212,0.25)">
+                        <i class="fas fa-id-badge" style="font-size:10px"></i> ${currentStudent.maHS}
+                    </span>`;
+                document.getElementById('examStudentInfo').innerHTML = headerHtml;
+
+                if (isPracticeMode) setupPracticeUI();
+                else setupNormalUI();
+
+                hideLoginLoading();
+                showScreen('examScreen');
+                startStudentNotifListener();
+                startStudentHeartbeat();
+                try { await startAntiCheat(); } catch (e) { }
+                try { await startSessionManagement(); } catch (e) { }
+                initExamTimer();
+                showExamGuide();
+                // Load questions AFTER screen is shown
+                await loadQuestions();
+            } catch (e) {
+                console.error('Post-confirm error:', e);
+                hideLoginLoading();
+                showPopup('Lỗi', 'Lỗi tải bài thi: ' + e.message, 'error');
+            }
         }
 
         // ===== STUDENT HEARTBEAT (Online tracking) =====
