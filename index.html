@@ -3644,26 +3644,26 @@
                     lop: q.lop || ''
                 }));
 
-                // Build lookup by STT (dùng TOÀN BỘ câu hỏi — để khôi phục bộ đề cũ)
-                let questionMap = {};
-                questionsArr.forEach(q => { questionMap[q.stt] = q; });
-
                 // ===== LỌC CÂU HỎI THEO KHỐI LỚP CỦA HỌC SINH =====
                 if (currentStudent && currentStudent.lop) {
                     let studentGrade = extractGradeLevel(currentStudent.lop);
                     if (studentGrade) {
-                        let filtered = questionsArr.filter(q => {
-                            if (!q.lop) return true; // Câu hỏi chung → hiện cho tất cả
-                            return parseInt(q.lop) === studentGrade;
+                        questionsArr = questionsArr.filter(q => {
+                            let qGrade = q.lop ? q.lop.toString().trim() : '';
+                            // Nếu lop rỗng → trích khối từ mã câu (K9_001 → "9")
+                            if (!qGrade && q.stt) {
+                                let m = q.stt.toString().match(/^K(\d+)_/);
+                                if (m) qGrade = m[1];
+                            }
+                            if (!qGrade) return true; // Câu chung thật sự (không gắn khối)
+                            return parseInt(qGrade) === studentGrade;
                         });
-                        // Chỉ dùng filtered nếu có đủ câu, nếu không lấy tất cả
-                        if (filtered.length >= 8) {
-                            questionsArr = filtered;
-                        } else {
-                            console.log('Không đủ câu hỏi cho khối ' + studentGrade + ', dùng tất cả.');
-                        }
                     }
                 }
+
+                // Build lookup SAU KHI ĐÃ LỌC — chỉ chứa câu đúng khối
+                let questionMap = {};
+                questionsArr.forEach(q => { questionMap[q.stt] = q; });
 
                 if (!isPracticeMode && currentStudent) {
                     // ===== THI THẬT: Giữ bộ đề cố định =====
@@ -3671,19 +3671,21 @@
                     let assignedSTTs = studentData.assignedQuestions;
 
                     if (assignedSTTs && Array.isArray(assignedSTTs) && assignedSTTs.length > 0) {
-                        // HS đã có bộ đề → khôi phục đúng bộ cũ
+                        // HS đã có bộ đề → khôi phục, nhưng validate từng câu đúng khối
                         examQuestions = assignedSTTs.map(stt => questionMap[stt]).filter(Boolean);
                         if (examQuestions.length === 0) {
-                            // Nếu câu hỏi bị xóa khỏi hệ thống, random lại
+                            // Tất cả câu cũ sai khối hoặc bị xóa → random lại từ câu đúng khối
                             shuffleArray(questionsArr);
                             let count = Math.min(8, questionsArr.length);
                             examQuestions = questionsArr.slice(0, count);
                             let newSTTs = examQuestions.map(q => q.stt);
-                            try { await firebaseUpdate('students/' + currentStudent.maHS, { assignedQuestions: newSTTs }); } catch (e) { }
+                            try { await firebaseUpdate('students/' + currentStudent.maHS, { assignedQuestions: newSTTs, assignedAnswerOrder: null }); } catch (e) { }
+                            renderQuestions();
+                        } else {
+                            // Khôi phục thứ tự đáp án đã lưu
+                            let savedAnswerOrder = studentData.assignedAnswerOrder;
+                            renderQuestions(savedAnswerOrder);
                         }
-                        // Khôi phục thứ tự đáp án đã lưu
-                        let savedAnswerOrder = studentData.assignedAnswerOrder;
-                        renderQuestions(savedAnswerOrder);
                     } else {
                         // HS lần đầu → random bộ đề mới, lưu vào Firebase
                         shuffleArray(questionsArr);
