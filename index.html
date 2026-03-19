@@ -3740,7 +3740,7 @@
                 examQuestions[i]._shuffledAnswers = answers;
                 answerOrderToSave.push(answers.map(a => a.key));
 
-                let html = `<div class="question-block" id="qblock_${i}"><div class="q-header"><div class="q-num">${i + 1}</div><div class="q-text">${q.noiDung}</div></div><div class="options">`;
+                let html = `<div class="question-block" id="qblock_${i}"><div class="q-header"><div class="q-num">${i + 1}</div><span style="font-size:10px;color:var(--text2);background:var(--bg3);padding:2px 6px;border-radius:4px;font-weight:600;flex-shrink:0">${q.stt}</span><div class="q-text">${q.noiDung}</div></div><div class="options">`;
                 let labels = ['A', 'B', 'C', 'D'];
                 answers.forEach((a, j) => {
                     html += `<label class="option-label"><input type="radio" name="q${i}" value="${a.key}" onchange="updateProgress()"><span class="option-radio"></span><span class="option-text"><strong style="color:var(--accent);margin-right:6px">${labels[j]}.</strong>${a.text}</span></label>`;
