@@ -1462,6 +1462,22 @@
             margin-top: 2px;
         }
 
+        /* Warning Toast Override - top center */
+        #studentWarningBar {
+            bottom: auto;
+            top: 12px;
+            right: 50%;
+            transform: translateX(50%) translateY(-120%) scale(0.9);
+            max-width: 500px;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            box-shadow: 0 12px 40px rgba(239, 68, 68, 0.25), 0 0 0 1px rgba(239, 68, 68, 0.15);
+        }
+
+        #studentWarningBar.show {
+            transform: translateX(50%) translateY(0) scale(1);
+            opacity: 1;
+        }
+
         /* Anti-Cheat Warning Overlay */
         .cheat-overlay {
             position: fixed;
@@ -1780,6 +1796,18 @@
                 <button class="notif-toast-close" onclick="hideStudentNotif()">✕</button>
                 <div class="notif-toast-timer">
                     <div class="timer-bar"></div>
+                </div>
+            </div>
+            <!-- Student Warning Toast (per-student) -->
+            <div class="notif-toast" id="studentWarningBar">
+                <div class="notif-toast-accent" style="background:linear-gradient(90deg,#ef4444,#dc2626,#ef4444);background-size:300% 100%;animation:notifGradient 2s ease infinite"></div>
+                <div class="notif-toast-body" style="padding:14px 18px;align-items:center">
+                    <div class="notif-toast-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:18px;width:40px;height:40px;border-radius:10px">⚠️</div>
+                    <div class="notif-toast-content" style="flex:1">
+                        <div class="notif-toast-title" style="color:#ef4444"><span class="live-dot" style="background:#ef4444"></span> CẢNH BÁO TỪ GIÁO VIÊN</div>
+                        <div class="notif-toast-msg" id="studentWarningText" style="font-size:13px;font-weight:600">Nội dung cảnh báo</div>
+                    </div>
+                    <button onclick="dismissWarning()" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-weight:700;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:.15s" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">✅ Đã hiểu</button>
                 </div>
             </div>
             <div class="exam-sticky-top">
@@ -2173,6 +2201,16 @@
                             <option value="tested_both">🏆 Đã thi cả hai</option>
                             <option value="nottested">⏳ Chưa thi</option>
                         </select>
+                        <select id="manageTagFilter" onchange="renderManageTable()"
+                            style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:130px">
+                            <option value="">🏷️ Tất cả nhãn</option>
+                            <option value="vangThi">Vắng thi</option>
+                            <option value="khuyetTat">Khuyết tật</option>
+                            <option value="lopTruong">Lớp trưởng</option>
+                            <option value="lopPho">Lớp phó</option>
+                            <option value="caBiet">Cá biệt</option>
+                            <option value="gioi">Giỏi</option>
+                        </select>
                         <span id="manageCount"
                             style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></span>
                     </div>
@@ -2383,16 +2421,22 @@
                         <h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i
                                 class="fas fa-question-circle" style="color:var(--primary)"></i> Quản lý câu hỏi</h3>
                         <div style="display:flex;gap:8px;flex-wrap:wrap">
-                            <button class="btn btn-sm" onclick="downloadQuestionTemplate()"
-                                style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px">
-                                <i class="fas fa-file-download"></i> Tải file mẫu
-                            </button>
-                            <button class="btn btn-sm" onclick="document.getElementById('importExcelInput').click()"
-                                style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:6px 14px;font-size:12px">
-                                <i class="fas fa-file-excel"></i> Nhập từ Excel
-                            </button>
-                            <input type="file" id="importExcelInput" accept=".xlsx,.xls" style="display:none"
-                                onchange="handleImportExcel(event)">
+                            <div id="adminQuestionBtns" style="display:none;gap:8px;flex-wrap:wrap">
+                                <button class="btn btn-sm" onclick="addQuestionUI()"
+                                    style="width:auto;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:6px 14px;font-size:12px">
+                                    <i class="fas fa-plus"></i> Thêm câu hỏi
+                                </button>
+                                <button class="btn btn-sm" onclick="downloadQuestionTemplate()"
+                                    style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px">
+                                    <i class="fas fa-file-download"></i> Tải file mẫu
+                                </button>
+                                <button class="btn btn-sm" onclick="document.getElementById('importExcelInput').click()"
+                                    style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:6px 14px;font-size:12px">
+                                    <i class="fas fa-file-excel"></i> Nhập từ Excel
+                                </button>
+                                <input type="file" id="importExcelInput" accept=".xlsx,.xls" style="display:none"
+                                    onchange="handleImportExcel(event)">
+                            </div>
                             <button class="btn btn-primary btn-sm" onclick="loadAllQuestions()"
                                 style="font-size:12px;padding:6px 14px"><i class="fas fa-sync-alt"></i> Tải lại</button>
                         </div>
@@ -2766,6 +2810,24 @@
                         </div>
                     </div>
 
+                    <!-- Khóa chat khi thi -->
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+                        <div>
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-comment-slash"
+                                    style="color:#ef4444;margin-right:6px"></i> Khóa chat khi thi</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Khi bật: HS không thể nhắn tin hỗ trợ trong lúc thi</p>
+                        </div>
+                        <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
+                            <input type="checkbox" id="toggleLockChat" onchange="saveLockChat()"
+                                style="opacity:0;width:0;height:0">
+                            <span
+                                style="position:absolute;inset:0;border-radius:13px;background:var(--bg3);transition:.3s"></span>
+                            <span id="toggleLockChatSlider"
+                                style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
+                        </label>
+                    </div>
+
                     <!-- ===== ADMIN-ONLY: Xóa cache, Sync, Xóa dữ liệu ===== -->
                     <div id="adminOnlySettings">
                     <!-- Xóa Cache HS -->
@@ -2815,6 +2877,67 @@
                     </div>
                     <div id="syncMsg"
                         style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px">
+                    </div>
+
+                    <!-- ===== CẤU HÌNH ĐỀ THI (ADMIN ONLY) ===== -->
+                    <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
+                        <i class="fas fa-clipboard-check" style="color:#8b5cf6"></i> Cấu Hình Đề Thi
+                    </h4>
+                    <!-- Migrate button -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+                        <div>
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-exchange-alt" style="color:var(--warning);margin-right:6px"></i> Migrate mã câu hỏi</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Chuyển STT số (1,2,3...) sang mã khối (K6_001, K9_001...) dựa theo cột Lớp</p>
+                        </div>
+                        <button class="btn btn-sm" onclick="doMigrateQuestionCodes()" id="btnMigrate" style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
+                            <i class="fas fa-exchange-alt"></i> Migrate
+                        </button>
+                    </div>
+                    <div id="migrateMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px"></div>
+                    <!-- Exam Config Panel -->
+                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
+                        <p style="color:var(--text2);font-size:12px;margin:0 0 12px"><i class="fas fa-info-circle"></i> Chọn khối → cấu hình số câu thi thử (random) và tick chọn câu cho thi thật.</p>
+                        <!-- Chọn khối -->
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+                            <label style="font-size:12px;color:var(--text2);font-weight:600">Chọn khối:</label>
+                            <select id="examConfigGrade" onchange="loadExamConfigForGrade()" style="padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;min-width:120px">
+                                <option value="">-- Chọn khối --</option>
+                                <option value="6">Khối 6</option>
+                                <option value="7">Khối 7</option>
+                                <option value="8">Khối 8</option>
+                                <option value="9">Khối 9</option>
+                            </select>
+                            <span id="examConfigBadge" style="font-size:11px;color:var(--text2)"></span>
+                        </div>
+                        <!-- Số câu thi thử -->
+                        <div id="examConfigPanel" style="display:none">
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+                                <label style="font-size:12px;color:var(--text2);font-weight:600"><i class="fas fa-flask" style="color:var(--secondary)"></i> Số câu thi thử (random):</label>
+                                <input type="number" id="examConfigPracticeCount" value="16" min="1" max="200" style="width:80px;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-weight:700;text-align:center;font-family:inherit">
+                                <span style="font-size:11px;color:var(--text2)">câu (0 = tất cả)</span>
+                            </div>
+                            <!-- Danh sách câu hỏi để tick cho thi thật -->
+                            <div style="margin-bottom:12px">
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+                                    <label style="font-size:12px;color:var(--text2);font-weight:600"><i class="fas fa-check-square" style="color:var(--success)"></i> Chọn câu cho thi thật:</label>
+                                    <span id="examConfigSelectedCount" style="font-size:12px;font-weight:700;color:var(--success);background:rgba(16,185,129,0.1);padding:4px 10px;border-radius:6px">Đã chọn: 0 câu</span>
+                                </div>
+                                <div style="display:flex;gap:6px;margin-bottom:8px">
+                                    <button class="btn btn-sm" onclick="examConfigSelectAll(true)" style="width:auto;background:var(--bg3);color:var(--text);padding:4px 10px;font-size:11px;border:1px solid var(--border)">Chọn tất cả</button>
+                                    <button class="btn btn-sm" onclick="examConfigSelectAll(false)" style="width:auto;background:var(--bg3);color:var(--text);padding:4px 10px;font-size:11px;border:1px solid var(--border)">Bỏ chọn tất cả</button>
+                                </div>
+                                <div id="examConfigQuestionList" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:6px">
+                                    <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">Chọn khối để xem danh sách câu hỏi</div>
+                                </div>
+                            </div>
+                            <!-- Nút Lưu -->
+                            <div style="display:flex;gap:8px;justify-content:flex-end">
+                                <button class="btn btn-primary btn-sm" onclick="saveExamConfigUI()" id="btnSaveExamConfig" style="width:auto;padding:10px 24px;font-size:13px;font-weight:700">
+                                    <i class="fas fa-save"></i> Áp dụng cấu hình
+                                </button>
+                            </div>
+                            <div id="examConfigMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px"></div>
+                        </div>
                     </div>
 
                     <!-- Xóa toàn bộ dữ liệu -->
@@ -4661,7 +4784,9 @@
                         moThi: s.moThi || false,
                         moThiThat: s.moThiThat,
                         moThiThu: s.moThiThu,
-                        isLocked: s.isLocked || false
+                        isLocked: s.isLocked || false,
+                        tags: s.tags || null,
+                        ghiChu: s.ghiChu || ''
                     };
                 });
 
@@ -4812,6 +4937,9 @@
         async function loadAllQuestions() {
             let container = document.getElementById('questionsListContainer');
             container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải câu hỏi...</div>';
+            // Chỉ Admin mới được thêm/sửa/xóa
+            let adminBtns = document.getElementById('adminQuestionBtns');
+            if (adminBtns) adminBtns.style.display = (currentTeacher && currentTeacher.isAdmin) ? 'flex' : 'none';
             try {
                 let data = await firebaseRead('questions') || {};
                 // Normalize: đảm bảo mọi câu hỏi đều có trường lop (fix cho dữ liệu cũ)
@@ -4870,7 +4998,7 @@
                 html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:8px"><div style="display:flex;align-items:flex-start;gap:12px;justify-content:space-between"><div style="flex:1">`;
                 html += `
                             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                                <span style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${q.stt}</span>
+                                <span style="background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;padding:4px 8px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;white-space:nowrap">${q.stt}</span>
                                 <span style="font-size:14px;font-weight:600;line-height:1.5">${q.noiDung}</span>
                                 ${lopBadge}
                             </div>
@@ -4882,7 +5010,10 @@
                             </div>
                             <div style="margin-left:36px;margin-top:6px;font-size:11px;color:var(--success)"><i class="fas fa-check-circle"></i> Đáp án đúng: <strong>${correctLabel}</strong></div>
                         </div>
-                        <button class="btn btn-sm" onclick="editQuestion(${q.stt})" style="width:auto;padding:4px 12px;font-size:11px;background:var(--bg3);flex-shrink:0"><i class="fas fa-edit"></i> Sửa</button>
+                        ${currentTeacher && currentTeacher.isAdmin ? `<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+                            <button class="btn btn-sm" onclick="editQuestion('${q.stt}')" style="width:auto;padding:4px 12px;font-size:11px;background:var(--bg3)"><i class="fas fa-edit"></i> Sửa</button>
+                            <button class="btn btn-sm" onclick="deleteQuestionUI('${q.stt}')" style="width:auto;padding:4px 12px;font-size:11px;background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.25)"><i class="fas fa-trash"></i> Xóa</button>
+                        </div>` : ''}
                     </div>
                 </div>`;
             });
@@ -4893,6 +5024,7 @@
             let q = allQuestionsData.find(x => x.stt == stt);
             if (!q) return;
             let currentLop = q.lop || '';
+            let escapedStt = String(stt).replace(/'/g, "\\'");
             let modal = document.getElementById('editStudentModal');
             modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:600px;width:95%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease">
                 <h3 style="margin:0 0 16px;font-size:16px"><i class="fas fa-edit" style="color:var(--primary)"></i> Sửa câu hỏi #${stt}</h3>
@@ -4926,7 +5058,7 @@
                     </div>
                 </div>
                 <div style="display:flex;gap:8px;margin-top:16px">
-                    <button class="btn btn-primary btn-sm" id="btnSaveQ" onclick="saveQuestionEdit(${stt})" style="flex:1"><i class="fas fa-save"></i> Lưu</button>
+                    <button class="btn btn-primary btn-sm" id="btnSaveQ" onclick="saveQuestionEdit('${escapedStt}')" style="flex:1"><i class="fas fa-save"></i> Lưu</button>
                     <button class="btn btn-sm" onclick="document.getElementById('editStudentModal').style.display='none'" style="flex:1;background:var(--bg3)">Hủy</button>
                 </div>
                 <div id="editQMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
@@ -4959,6 +5091,8 @@
                     lop: newQLop
                 };
                 await firebaseWrite('questions/' + stt, qData);
+                // Sync GGSheet
+                try { await apiPost('updateQuestion', qData); } catch(se) { console.log('GGSheet sync warning:', se); }
                 msgEl.innerHTML = '✅ Cập nhật câu ' + stt + ' thành công!'; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
                 setTimeout(() => { document.getElementById('editStudentModal').style.display = 'none'; loadAllQuestions(); }, 1000);
             } catch (e) {
@@ -4966,6 +5100,117 @@
             }
             btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu';
         }
+
+        // ===== XÓA CÂU HỎI =====
+        function deleteQuestionUI(stt) {
+            let q = allQuestionsData.find(x => x.stt == stt);
+            let label = q ? (stt + ' — ' + (q.noiDung || '').substring(0, 50)) : stt;
+            showConfirmPopup('🗑️ Xóa câu hỏi?',
+                'Xóa câu <strong>' + label + '</strong>?<br><small style="color:var(--danger)">Hành động không thể hoàn tác!</small>',
+                async () => {
+                    showLoading();
+                    try {
+                        // Xóa Firebase
+                        await firebaseWrite('questions/' + stt, null);
+                        // Xóa GGSheet
+                        try { await apiCall('deleteQuestionWithSync', { maCH: stt }); } catch(se) { console.log('GGSheet delete warning:', se); }
+                        hideLoading();
+                        showPopup('✅ Đã xóa', 'Đã xóa câu hỏi ' + stt, 'success');
+                        loadAllQuestions();
+                    } catch (e) {
+                        hideLoading();
+                        showPopup('Lỗi', 'Lỗi xóa: ' + e.message, 'error');
+                    }
+                }, 'Xóa', 'Hủy', 'danger');
+        }
+
+        // ===== THÊM CÂU HỎI =====
+        function addQuestionUI() {
+            let currentLop = '';
+            let modal = document.getElementById('editStudentModal');
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:600px;width:95%;max-height:90vh;overflow-y:auto;animation:slideUp .3s ease">
+                <h3 style="margin:0 0 16px;font-size:16px"><i class="fas fa-plus-circle" style="color:var(--success)"></i> Thêm câu hỏi mới</h3>
+                <label style="font-size:12px;color:var(--text2);margin-bottom:4px;display:block">Nội dung câu hỏi:</label>
+                <textarea id="addQNoiDung" placeholder="Nhập nội dung câu hỏi..." style="width:100%;min-height:60px;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:13px;resize:vertical;box-sizing:border-box"></textarea>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+                    <div><label style="font-size:11px;color:var(--text2)">A:</label><input id="addQA" placeholder="Đáp án A" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                    <div><label style="font-size:11px;color:var(--text2)">B:</label><input id="addQB" placeholder="Đáp án B" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                    <div><label style="font-size:11px;color:var(--text2)">C:</label><input id="addQC" placeholder="Đáp án C" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                    <div><label style="font-size:11px;color:var(--text2)">D:</label><input id="addQD" placeholder="Đáp án D" style="width:100%;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box"></div>
+                </div>
+                <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
+                    <div><label style="font-size:12px;color:var(--text2)">Đáp án đúng:</label>
+                        <select id="addQCorrect" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
+                            <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+                        </select>
+                    </div>
+                    <div><label style="font-size:12px;color:var(--text2)"><i class="fas fa-layer-group" style="color:var(--warning)"></i> Khối lớp:</label>
+                        <select id="addQLop" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
+                            ${(function(){
+                                let tg = getTeacherAllowedGrades();
+                                let grades = tg ? tg.sort() : ['6','7','8','9'];
+                                let opts = '<option value="">Chung (tất cả)</option>';
+                                grades.forEach(g => { opts += '<option value="' + g + '">Khối ' + g + '</option>'; });
+                                return opts;
+                            })()}
+                        </select>
+                    </div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:16px">
+                    <button class="btn btn-primary btn-sm" id="btnAddQ" onclick="saveNewQuestion()" style="flex:1"><i class="fas fa-plus"></i> Thêm</button>
+                    <button class="btn btn-sm" onclick="document.getElementById('editStudentModal').style.display='none'" style="flex:1;background:var(--bg3)">Hủy</button>
+                </div>
+                <div id="addQMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
+            </div>`;
+            modal.style.display = 'flex';
+        }
+
+        async function saveNewQuestion() {
+            let btn = document.getElementById('btnAddQ');
+            let msgEl = document.getElementById('addQMsg');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+            msgEl.style.display = 'none';
+            let noiDung = document.getElementById('addQNoiDung').value.trim();
+            let dapAn1 = document.getElementById('addQA').value.trim();
+            let dapAn2 = document.getElementById('addQB').value.trim();
+            let dapAn3 = document.getElementById('addQC').value.trim();
+            let dapAn4 = document.getElementById('addQD').value.trim();
+            let dapAnDung = document.getElementById('addQCorrect').value;
+            let lop = document.getElementById('addQLop').value;
+            if (!noiDung) {
+                msgEl.innerHTML = '⚠️ Vui lòng nhập nội dung câu hỏi!'; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(245,158,11,0.15)'; msgEl.style.color = 'var(--warning)';
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm'; return;
+            }
+            if (!dapAn1 || !dapAn2 || !dapAn3 || !dapAn4) {
+                msgEl.innerHTML = '⚠️ Vui lòng nhập đầy đủ 4 đáp án!'; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(245,158,11,0.15)'; msgEl.style.color = 'var(--warning)';
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm'; return;
+            }
+            // Kiểm tra quyền khối lớp
+            let teacherGrades = getTeacherAllowedGrades();
+            if (teacherGrades && lop && !teacherGrades.includes(lop)) {
+                msgEl.innerHTML = '⛔ Bạn không có quyền thêm câu hỏi cho khối <strong>' + lop + '</strong>!';
+                msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm'; return;
+            }
+            try {
+                // Gọi API backend để auto-generate mã + sync GGSheet + Firebase
+                let resp = await apiPost('saveQuestionWithSync', {
+                    khoi: lop, noiDung: noiDung,
+                    dapAn1: dapAn1, dapAn2: dapAn2, dapAn3: dapAn3, dapAn4: dapAn4,
+                    dapAnDung: dapAnDung
+                });
+                if (resp && resp.success) {
+                    msgEl.innerHTML = '✅ ' + resp.message; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
+                    setTimeout(() => { document.getElementById('editStudentModal').style.display = 'none'; loadAllQuestions(); }, 1000);
+                } else {
+                    throw new Error(resp?.message || 'Lỗi không xác định');
+                }
+            } catch (e) {
+                msgEl.innerHTML = '❌ Lỗi: ' + e.message; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(239,68,68,0.15)'; msgEl.style.color = 'var(--danger)';
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Thêm';
+        }
+
 
         // ===== IMPORT CÂU HỎI TỪ EXCEL =====
         let _importedQuestions = [];
@@ -5142,6 +5387,7 @@
             let search = (document.getElementById('manageSearch').value || '').toLowerCase();
             let classF = document.getElementById('manageClassFilter').value;
             let statusF = document.getElementById('manageStatusFilter').value;
+            let tagF = document.getElementById('manageTagFilter')?.value || '';
             let students = dashboardData.students.filter(s => {
                 if (search && !s.hoTen.toLowerCase().includes(search) && !s.maHS.toLowerCase().includes(search)) return false;
                 if (classF && s.lop !== classF) return false;
@@ -5149,6 +5395,7 @@
                 if (statusF === 'tested_practice' && !s.hasPractice) return false;
                 if (statusF === 'tested_both' && (!s.hasReal || !s.hasPractice)) return false;
                 if (statusF === 'nottested' && (s.hasReal || s.hasPractice)) return false;
+                if (tagF && (!s.tags || !s.tags[tagF])) return false;
                 return true;
             });
             document.getElementById('manageCount').textContent = `${students.length}/${dashboardData.students.length} HS`;
@@ -5212,7 +5459,7 @@
                 let total = targetStudents.length;
                 moThiBadge.innerHTML = `<i class="fas fa-info-circle"></i> Thi thật: <strong style="color:var(--success)">${openReal}</strong>/<strong>${total}</strong> mở | Thi thử: <strong style="color:var(--primary)">${openPrac}</strong>/<strong>${total}</strong> mở`;
             }
-            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mở thi thật</th><th>Mở thi thử</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:180px">Thao tác</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Mở thi thật</th><th>Mở thi thử</th><th>Thi Thật</th><th>Thi Thử</th><th style="width:220px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
                 // Backward compat: dùng moThi cũ nếu chưa có moThiThat/moThiThu
                 let isRealOpen = s.moThiThat !== undefined ? !!s.moThiThat : !!s.moThi;
@@ -5236,7 +5483,13 @@
                 html += `<tr>`;
                 html += `<td style="font-size:12px;color:var(--text2)">${idx + 1}</td>`;
                 html += `<td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">${s.maHS}</code></td>`;
-                html += `<td><strong style="font-size:13px">${s.hoTen}</strong></td>`;
+                let tagBadges = '';
+                if (s.tags) {
+                    let tagDefs = {vangThi:{label:'Vắng thi',color:'#f59e0b'},khuyetTat:{label:'Khuyết tật',color:'#3b82f6'},lopTruong:{label:'Lớp trưởng',color:'#10b981'},lopPho:{label:'Lớp phó',color:'#06b6d4'},caBiet:{label:'Cá biệt',color:'#ef4444'},gioi:{label:'Giỏi',color:'#8b5cf6'}};
+                    Object.keys(s.tags).forEach(t => { if (s.tags[t] && tagDefs[t]) tagBadges += `<span style="display:inline-block;background:${tagDefs[t].color}22;color:${tagDefs[t].color};padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;margin-left:4px;border:1px solid ${tagDefs[t].color}33">${tagDefs[t].label}</span>`; });
+                }
+                let noteIcon = (s.ghiChu || tagBadges) ? '<i class="fas fa-sticky-note" style="color:var(--warning);margin-left:4px;font-size:10px" title="' + (s.ghiChu||'').replace(/"/g,'&quot;') + '"></i>' : '';
+                html += `<td><strong style="font-size:13px">${s.hoTen}</strong>${tagBadges}${noteIcon}</td>`;
                 html += `<td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>`;
                 html += `<td>${moThiThatB}</td>`;
                 html += `<td>${moThiThuB}</td>`;
@@ -5268,6 +5521,10 @@
                     html += `<button onclick="downloadStudentFile('${s.maHS}','${s.lop.replace(/'/g,"\\\\'")}')"
                         style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Tải bài làm"><i class="fas fa-download"></i></button> `;
                 }
+                // Nút nhắc nhở HS
+                html += `<button onclick="warnStudent('${s.maHS}')" style="background:rgba(239,68,68,0.15);color:#ef4444;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Nhắc nhở"><i class="fas fa-exclamation-triangle"></i></button>`;
+                // Nút ghi chú HS
+                html += `<button onclick="openNoteModal('${s.maHS}')" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px;margin-right:3px" title="Ghi chú"><i class="fas fa-sticky-note"></i></button>`;
                 // Nút xóa HS
                 html += `<button onclick="deleteStudent('${s.maHS}')" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Xóa HS"><i class="fas fa-trash-alt"></i></button> `;
                 html += `</td></tr>`;
@@ -6293,8 +6550,8 @@
                     let deletedDate = new Date(t.deletedAt).toLocaleString('vi-VN');
                     let daysLeft = Math.max(0, Math.ceil((t.autoDeleteAt - Date.now()) / (24*60*60*1000)));
                     let urgColor = daysLeft <= 3 ? 'var(--danger)' : daysLeft <= 7 ? 'var(--warning)' : 'var(--text2)';
-                    let tIcon = t.type === 'results' ? 'fa-file-alt' : 'fa-flask';
-                    let tColor = t.type === 'results' ? 'var(--primary)' : 'var(--warning)';
+                    let tIcon = t.type === 'students' ? 'fa-user-graduate' : (t.type === 'results' ? 'fa-file-alt' : 'fa-flask');
+                    let tColor = t.type === 'students' ? 'var(--accent)' : (t.type === 'results' ? 'var(--primary)' : 'var(--warning)');
                     html += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px">';
                     html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">';
                     html += '<div style="flex:1;min-width:200px">';
@@ -6368,6 +6625,142 @@
                         showPopup('Đã xóa', 'Đã xóa toàn bộ thùng rác.', 'success');
                     } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
                 }, 'Xóa toàn bộ', 'Hủy');
+        }
+
+        // ===== XÓA HỌC SINH VÀO THÙNG RÁC =====
+        async function deleteStudent(maHS) {
+            let s = dashboardData && dashboardData.students ? dashboardData.students.find(x => x.maHS === maHS) : null;
+            let displayName = s ? s.hoTen + ' (' + maHS + ')' : maHS;
+            showConfirmPopup('🗑️ Xóa học sinh?',
+                'Xóa <strong>' + displayName + '</strong> khỏi danh sách?<br><br>' +
+                '<div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:10px 14px;margin:8px 0">' +
+                '<i class="fas fa-info-circle" style="color:var(--primary)"></i> HS sẽ được lưu trong <strong>Thùng rác 30 ngày</strong>. Bạn có thể khôi phục.</div>',
+                async () => {
+                    showLoading();
+                    try {
+                        let studentData = await firebaseRead('students/' + maHS);
+                        if (!studentData) { hideLoading(); showPopup('Lỗi', 'Không tìm thấy HS!', 'error'); return; }
+                        let trashId = 'trash_hs_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+                        let trashEntry = {
+                            type: 'students',
+                            typeName: 'Học sinh',
+                            lop: studentData.lop || '',
+                            deletedBy: currentTeacher ? currentTeacher.maGV : 'unknown',
+                            deletedByName: currentTeacher ? currentTeacher.hoTen : 'Unknown',
+                            deletedAt: Date.now(),
+                            autoDeleteAt: Date.now() + (TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000),
+                            itemCount: 1,
+                            studentName: studentData.hoTen || maHS,
+                            data: {}
+                        };
+                        trashEntry.data[maHS] = studentData;
+                        let updates = {};
+                        updates['trash/' + trashId] = trashEntry;
+                        updates['students/' + maHS] = null;
+                        await db.ref().update(updates);
+                        hideLoading();
+                        await buildDashboardFromFirebase();
+                        updateTrashBadge();
+                        showPopup('✅ Đã xóa', 'Đã chuyển <strong>' + displayName + '</strong> vào Thùng rác.<br><small>Mở Thùng rác để khôi phục nếu cần.</small>', 'success');
+                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi xóa: ' + e.message, 'error'); }
+                },
+                'Xóa vào Thùng rác', 'Hủy'
+            );
+        }
+
+        // ===== GHI CHÚ / NHÃN HỌC SINH =====
+        function toggleNoteTag(btn) {
+            btn.classList.toggle('_tagActive');
+            let color = btn.dataset.color;
+            if (btn.classList.contains('_tagActive')) {
+                btn.style.background = color + '22';
+                btn.style.borderColor = color;
+                btn.style.boxShadow = '0 0 0 1px ' + color + '44';
+            } else {
+                btn.style.background = 'transparent';
+                btn.style.borderColor = color + '33';
+                btn.style.boxShadow = 'none';
+            }
+        }
+
+        function openNoteModal(maHS) {
+            let s = dashboardData && dashboardData.students ? dashboardData.students.find(x => x.maHS === maHS) : null;
+            if (!s) return;
+            let tags = s.tags || {};
+            let ghiChu = s.ghiChu || '';
+            let tagDefs = [
+                {key:'vangThi', label:'Vắng thi', color:'#f59e0b', icon:'fa-user-slash'},
+                {key:'khuyetTat', label:'Khuyết tật', color:'#3b82f6', icon:'fa-wheelchair'},
+                {key:'lopTruong', label:'Lớp trưởng', color:'#10b981', icon:'fa-star'},
+                {key:'lopPho', label:'Lớp phó', color:'#06b6d4', icon:'fa-star-half-alt'},
+                {key:'caBiet', label:'Cá biệt', color:'#ef4444', icon:'fa-exclamation-triangle'},
+                {key:'gioi', label:'Giỏi', color:'#8b5cf6', icon:'fa-award'}
+            ];
+            let chipsHtml = tagDefs.map(t => {
+                let active = tags[t.key];
+                let bg = active ? t.color + '22' : 'transparent';
+                let borderC = active ? t.color : t.color + '33';
+                let shadow = active ? '0 0 0 1px ' + t.color + '44' : 'none';
+                return `<button type="button" data-tag="${t.key}" data-color="${t.color}" onclick="toggleNoteTag(this)" class="${active ? '_tagActive' : ''}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;border:2px solid ${borderC};background:${bg};color:${t.color};font-size:13px;font-weight:700;cursor:pointer;transition:all .15s ease;font-family:inherit;box-shadow:${shadow};user-select:none"><i class="fas ${t.icon}" style="font-size:12px"></i> ${t.label}</button>`;
+            }).join('');
+            let hasNotes = Object.keys(tags).length > 0 || ghiChu;
+            let clearBtn = hasNotes ? `<button onclick="clearStudentNote('${maHS}')" style="padding:8px 18px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:var(--danger);border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit"><i class="fas fa-eraser" style="margin-right:4px"></i> Xóa ghi chú</button>` : '';
+            let modal = document.createElement('div');
+            modal.id = 'noteModal';
+            modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10002;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease';
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:480px;width:100%;animation:slideUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                    <h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-sticky-note" style="color:var(--warning)"></i> Ghi chú: ${s.hoTen}</h3>
+                    <button onclick="document.getElementById('noteModal').remove()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>
+                </div>
+                <div style="margin-bottom:14px">
+                    <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:8px;font-weight:600"><i class="fas fa-tags" style="margin-right:4px"></i> Nhãn (nhấn để chọn/bỏ)</label>
+                    <div id="noteTagChips" style="display:flex;flex-wrap:wrap;gap:8px">${chipsHtml}</div>
+                </div>
+                <div style="margin-bottom:16px">
+                    <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600"><i class="fas fa-pen" style="margin-right:4px"></i> Ghi chú tự do</label>
+                    <textarea id="noteTextArea" rows="3" placeholder="VD: HS vắng lý do ốm, cần bổ sung thi sau..." style="width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none">${ghiChu}</textarea>
+                </div>
+                <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+                    <div>${clearBtn}</div>
+                    <div style="display:flex;gap:8px">
+                        <button onclick="document.getElementById('noteModal').remove()" style="padding:8px 18px;background:var(--bg3);border:none;color:var(--text);border-radius:10px;cursor:pointer;font-size:13px;font-family:inherit">Hủy</button>
+                        <button id="btnSaveNote" onclick="saveStudentNote('${maHS}')" style="padding:8px 20px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#fff;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit"><i class="fas fa-save" style="margin-right:4px"></i> Lưu</button>
+                    </div>
+                </div>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+
+        async function saveStudentNote(maHS) {
+            let btn = document.getElementById('btnSaveNote');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...'; }
+            let tags = {};
+            document.querySelectorAll('#noteTagChips button').forEach(b => {
+                if (b.classList.contains('_tagActive')) tags[b.dataset.tag] = true;
+            });
+            let ghiChu = (document.getElementById('noteTextArea')?.value || '').trim();
+            try {
+                let updates = { tags: Object.keys(tags).length > 0 ? tags : null, ghiChu: ghiChu || null };
+                await firebaseUpdate('students/' + maHS, updates);
+                document.getElementById('noteModal')?.remove();
+                await buildDashboardFromFirebase();
+                showPopup('✅ Đã lưu', 'Ghi chú cập nhật thành công.', 'success');
+            } catch (e) {
+                showPopup('Lỗi', 'Lỗi lưu: ' + e.message, 'error');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu'; }
+            }
+        }
+
+        async function clearStudentNote(maHS) {
+            showConfirmPopup('Xóa ghi chú?', 'Xóa toàn bộ nhãn và ghi chú của HS này?', async () => {
+                try {
+                    await firebaseUpdate('students/' + maHS, { tags: null, ghiChu: null });
+                    document.getElementById('noteModal')?.remove();
+                    await buildDashboardFromFirebase();
+                    showPopup('✅ Đã xóa', 'Đã xóa toàn bộ ghi chú.', 'success');
+                } catch (e) { showPopup('Lỗi', e.message, 'error'); }
+            }, 'Xóa', 'Hủy');
         }
 
         async function autoPurgeTrash() {
@@ -6758,6 +7151,13 @@
                 if (eiTitle) eiTitle.value = examInfo.title || '';
                 if (eiDesc) eiDesc.value = examInfo.description || '';
                 if (eiNote) eiNote.value = examInfo.note || '';
+                // Lock chat setting
+                let lcToggle = document.getElementById('toggleLockChat');
+                let lcOn = settings.lockChat === true;
+                if (lcToggle) {
+                    lcToggle.checked = lcOn;
+                    updateLockChatToggleVisual(lcOn);
+                }
             } catch (e) { console.log('Settings load error:', e); }
         }
 
@@ -7196,6 +7596,7 @@
                 hideLoginLoading();
                 showScreen('examScreen');
                 startStudentNotifListener();
+                startWarningListener();
                 startStudentHeartbeat();
                 try { await startAntiCheat(); } catch (e) { }
                 try { await startSessionManagement(); } catch (e) { }
@@ -7412,6 +7813,96 @@
         function hideStudentNotif() {
             let bar = document.getElementById('studentNotifBar');
             if (bar) bar.classList.remove('show');
+        }
+
+        // ===== NHẮC NHỞ CÁ NHÂN (TEACHER → STUDENT) =====
+        function warnStudent(maHS) {
+            let s = dashboardData && dashboardData.students ? dashboardData.students.find(x => x.maHS === maHS) : null;
+            let displayName = s ? s.hoTen + ' (' + maHS + ')' : maHS;
+            let quickMsgs = [
+                {icon:'⚠️', text:'Em đang bị phát hiện gian lận!', color:'#ef4444'},
+                {icon:'👀', text:'Tập trung làm bài, không nhìn sang!', color:'#f59e0b'},
+                {icon:'📵', text:'Không sử dụng điện thoại!', color:'#8b5cf6'},
+                {icon:'🔇', text:'Giữ trật tự phòng thi!', color:'#3b82f6'},
+                {icon:'⏰', text:'Hãy nhanh chóng hoàn thành bài làm!', color:'#10b981'}
+            ];
+            let quickHtml = quickMsgs.map(m =>
+                `<button onclick="sendWarning('${maHS}','${m.icon} ${m.text.replace(/'/g,"\\'")}');document.getElementById('warnModal')?.remove()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border-radius:10px;border:1px solid ${m.color}33;background:${m.color}0a;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;text-align:left;transition:.15s" onmouseover="this.style.background='${m.color}18'" onmouseout="this.style.background='${m.color}0a'"><span style="font-size:18px">${m.icon}</span><span>${m.text}</span></button>`
+            ).join('');
+            let modal = document.createElement('div');
+            modal.id = 'warnModal';
+            modal.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10002;align-items:center;justify-content:center;padding:20px;animation:fadeIn .2s ease';
+            modal.innerHTML = `<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:460px;width:100%;animation:slideUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+                    <h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-exclamation-triangle" style="color:#ef4444"></i> Nhắc nhở: ${displayName}</h3>
+                    <button onclick="document.getElementById('warnModal').remove()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">${quickHtml}</div>
+                <div style="margin-bottom:12px">
+                    <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:6px;font-weight:600"><i class="fas fa-pen" style="margin-right:4px"></i> Hoặc nhập tự do</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" id="warnCustomInput" placeholder="Nhập nội dung nhắc nhở..." onkeydown="if(event.key==='Enter'){sendWarning('${maHS}',this.value);document.getElementById('warnModal')?.remove()}" style="flex:1;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+                        <button onclick="let v=document.getElementById('warnCustomInput').value.trim();if(v){sendWarning('${maHS}',v);document.getElementById('warnModal')?.remove()}" style="padding:8px 16px;background:linear-gradient(135deg,#ef4444,#dc2626);border:none;color:#fff;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;white-space:nowrap"><i class="fas fa-paper-plane"></i> Gửi</button>
+                    </div>
+                </div>
+            </div>`;
+            document.body.appendChild(modal);
+        }
+
+        async function sendWarning(maHS, message) {
+            if (!message || !message.trim()) return;
+            try {
+                let senderName = currentTeacher ? currentTeacher.hoTen : 'Giáo viên';
+                await firebaseUpdate('students/' + maHS, {
+                    warning: { message: message.trim(), time: Date.now(), senderName: senderName }
+                });
+                showPopup('✅ Đã gửi', 'Nhắc nhở đã gửi đến HS.', 'success');
+            } catch (e) {
+                showPopup('Lỗi', 'Không gửi được: ' + e.message, 'error');
+            }
+        }
+
+        // Student-side: listen for personal warning
+        let _warningListenerStarted = false;
+        function startWarningListener() {
+            if (_warningListenerStarted || !currentStudent || !currentStudent.maHS) return;
+            _warningListenerStarted = true;
+            db.ref('students/' + currentStudent.maHS + '/warning').on('value', snap => {
+                let w = snap.val();
+                if (w && w.message && w.time) {
+                    showStudentWarning(w.message, w.senderName || 'Giáo viên');
+                }
+            });
+        }
+
+        function showStudentWarning(msg, sender) {
+            let bar = document.getElementById('studentWarningBar');
+            let text = document.getElementById('studentWarningText');
+            if (!bar || !text) return;
+            text.textContent = msg;
+            bar.classList.add('show');
+            // Urgent beep sound
+            try {
+                let ctx = new (window.AudioContext || window.webkitAudioContext)();
+                let playBeep = (freq, start, dur) => {
+                    let osc = ctx.createOscillator();
+                    let gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.frequency.value = freq; gain.gain.value = 0.4;
+                    osc.start(ctx.currentTime + start);
+                    osc.stop(ctx.currentTime + start + dur);
+                };
+                playBeep(880, 0, 0.12); playBeep(1100, 0.15, 0.12); playBeep(880, 0.30, 0.12); playBeep(1100, 0.45, 0.2);
+            } catch(e) {}
+            // Do NOT auto-hide — student must click 'Đã hiểu'
+        }
+
+        async function dismissWarning() {
+            let bar = document.getElementById('studentWarningBar');
+            if (bar) bar.classList.remove('show');
+            if (currentStudent && currentStudent.maHS) {
+                try { await firebaseUpdate('students/' + currentStudent.maHS, { warning: null }); } catch(e) {}
+            }
         }
 
         // ===== TÀI LIỆU ÔN TẬP =====
@@ -8531,7 +9022,17 @@
         let _typingListenerStudent = null;
         let _typingListenerTeacher = null;
 
-        function toggleSupportChat() {
+        async function toggleSupportChat() {
+            // Check lockChat setting
+            if (!_chatOpen) {
+                try {
+                    let settings = await firebaseRead('settings') || {};
+                    if (settings.lockChat === true) {
+                        showPopup('🔒 Chat bị khóa', 'Giáo viên đã khóa tính năng chat trong giờ thi.<br><small>Liên hệ trực tiếp với GV nếu cần hỗ trợ.</small>', 'warning');
+                        return;
+                    }
+                } catch(e) {}
+            }
             let popup = document.getElementById('supportChatPopup');
             _chatOpen = !_chatOpen;
             popup.style.display = _chatOpen ? 'flex' : 'none';
@@ -8542,6 +9043,14 @@
                 fab.style.color = 'var(--text)';
                 fab.style.animation = 'none';
                 fab.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+                // Auto-connect if student is logged in
+                if (!_chatMaHS && currentStudent && currentStudent.maHS) {
+                    _chatMaHS = currentStudent.maHS;
+                    document.getElementById('chatConnectPanel').style.display = 'none';
+                    document.getElementById('chatMessagesPanel').style.display = 'flex';
+                    document.getElementById('chatHeaderName').textContent = currentStudent.hoTen || currentStudent.maHS;
+                    loadChatMessages(_chatMaHS);
+                }
             } else {
                 fab.style.background = '';
                 fab.style.color = '';
@@ -8554,13 +9063,19 @@
         }
 
         function connectStudentChat() {
-            let input = document.getElementById('chatMaHSInput');
-            let maHS = input.value.trim();
+            // Use currentStudent if available, else fallback to input
+            let maHS;
+            if (currentStudent && currentStudent.maHS) {
+                maHS = currentStudent.maHS;
+            } else {
+                let input = document.getElementById('chatMaHSInput');
+                maHS = input ? input.value.trim() : '';
+            }
             if (!maHS) return;
             _chatMaHS = maHS;
             document.getElementById('chatConnectPanel').style.display = 'none';
             document.getElementById('chatMessagesPanel').style.display = 'flex';
-            document.getElementById('chatHeaderName').textContent = maHS;
+            document.getElementById('chatHeaderName').textContent = (currentStudent && currentStudent.hoTen) || maHS;
             loadChatMessages(maHS);
         }
 
@@ -8687,7 +9202,10 @@
                         <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.lastMessage || ''}</div>
                         <div style="font-size:10px;color:var(--text2);margin-top:2px">${time}</div>
                     </div>
-                    <div>${unreadBadge}</div>
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0">
+                        ${unreadBadge}
+                        <button onclick="event.stopPropagation();deleteSupportChat('${c.maHS}')" style="background:rgba(239,68,68,0.1);border:none;color:var(--danger);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:10px;opacity:0.6;transition:.2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'" title="Xóa cuộc trò chuyện"><i class="fas fa-trash-alt"></i></button>
+                    </div>
                 </div>`;
             });
             container.innerHTML = html;
@@ -8755,6 +9273,31 @@
             backToSupportList();
         }
 
+        async function deleteSupportChat(maHS) {
+            showConfirmPopup('Xóa cuộc trò chuyện', 'Xóa toàn bộ tin nhắn của <strong>' + maHS + '</strong>?', async () => {
+                try {
+                    await firebaseWrite('supportChat/' + maHS, null);
+                    showPopup('Đã xóa', 'Xóa cuộc trò chuyện với ' + maHS + ' thành công.', 'success');
+                    // If currently viewing this chat, go back to list
+                    if (_activeChatMaHS === maHS) backToSupportList();
+                    else loadSupportChatList();
+                    updateSupportBadge();
+                } catch(e) { showPopup('Lỗi', e.message, 'error'); }
+            }, 'Xóa', 'Hủy', 'danger');
+        }
+
+        async function deleteAllSupportChats() {
+            showConfirmPopup('Xóa tất cả', 'Xóa <strong>toàn bộ</strong> cuộc trò chuyện hỗ trợ? Hành động này không thể hoàn tác!', async () => {
+                try {
+                    await firebaseWrite('supportChat', null);
+                    showPopup('Đã xóa tất cả', 'Tất cả cuộc trò chuyện hỗ trợ đã được xóa.', 'success');
+                    if (_activeChatMaHS) backToSupportList();
+                    else loadSupportChatList();
+                    updateSupportBadge();
+                } catch(e) { showPopup('Lỗi', e.message, 'error'); }
+            }, 'Xóa tất cả', 'Hủy', 'danger');
+        }
+
         async function quickResetPassword() {
             if (!_activeChatMaHS) return;
             let newPass = _activeChatMaHS; // Reset v\u1ec1 m\u1ea1c \u0111\u1ecbnh = m\u00e3 HS
@@ -8806,6 +9349,23 @@
             }
         }
 
+        // Lock chat toggle (teacher setting)
+        async function saveLockChat() {
+            let toggle = document.getElementById('toggleLockChat');
+            let isOn = toggle ? toggle.checked : false;
+            updateLockChatToggleVisual(isOn);
+            try {
+                await firebaseUpdate('settings', { lockChat: isOn });
+                showSettingsMsg(isOn ? '🔒 Đã khóa chat – HS không thể nhắn tin' : '🔓 Đã mở chat – HS có thể nhắn tin', '#10b981');
+            } catch(e) { showSettingsMsg('Lỗi: ' + e.message, 'var(--danger)'); }
+        }
+        function updateLockChatToggleVisual(isOn) {
+            let bg = document.querySelector('#toggleLockChat')?.parentElement?.querySelector('span');
+            let slider = document.getElementById('toggleLockChatSlider');
+            if (bg) bg.style.background = isOn ? '#ef4444' : 'var(--bg3)';
+            if (slider) slider.style.left = isOn ? '27px' : '3px';
+        }
+
         // Typing indicator functions
         function onStudentTyping() {
             if (!_chatMaHS) return;
@@ -8822,6 +9382,122 @@
             _teacherTypingTimer = setTimeout(() => {
                 if (_activeChatMaHS) firebaseUpdate('supportChat/' + _activeChatMaHS + '/typing/teacher', { isTyping: false, time: Date.now() });
             }, 2000);
+        }
+
+        // ============== CẤU HÌNH ĐỀ THI ==============
+        let _examConfigQuestions = [];
+
+        async function doMigrateQuestionCodes() {
+            let btn = document.getElementById('btnMigrate');
+            if (!confirm('Bạn muốn chuyển đổi mã câu hỏi từ STT số sang mã khối (K6_001, K9_001...)?\n\nThao tác này không thể hoàn tác.')) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang migrate...';
+            try {
+                let resp = await fetch(API_URL + '?action=migrateQuestionCodes');
+                let data = await resp.json();
+                let msg = document.getElementById('migrateMsg');
+                msg.style.display = 'block';
+                if (data.success) {
+                    msg.style.background = 'rgba(16,185,129,0.15)';
+                    msg.style.border = '1px solid rgba(16,185,129,0.3)';
+                    msg.style.color = '#6ee7b7';
+                    msg.textContent = data.message;
+                    if (typeof loadAllQuestions === 'function') loadAllQuestions();
+                } else {
+                    msg.style.background = 'rgba(239,68,68,0.15)';
+                    msg.style.border = '1px solid rgba(239,68,68,0.3)';
+                    msg.style.color = '#fca5a5';
+                    msg.textContent = data.message || 'Lỗi migrate!';
+                }
+            } catch(e) {
+                let msg = document.getElementById('migrateMsg');
+                msg.style.display = 'block';
+                msg.style.background = 'rgba(239,68,68,0.15)';
+                msg.style.border = '1px solid rgba(239,68,68,0.3)';
+                msg.style.color = '#fca5a5';
+                msg.textContent = 'Lỗi: ' + e.message;
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-exchange-alt"></i> Migrate';
+        }
+
+        async function loadExamConfigForGrade() {
+            let grade = document.getElementById('examConfigGrade').value;
+            let panel = document.getElementById('examConfigPanel');
+            if (!grade) { panel.style.display = 'none'; document.getElementById('examConfigBadge').textContent = ''; return; }
+            panel.style.display = 'block';
+            document.getElementById('examConfigBadge').textContent = 'Đang tải...';
+            document.getElementById('examConfigQuestionList').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+            try {
+                let qResp = await fetch(API_URL + '?action=getAllQuestions');
+                let qData = await qResp.json();
+                let allQ = qData.questions || [];
+                _examConfigQuestions = allQ.filter(q => { let k = q.lop ? q.lop.toString().trim() : ''; return !k || k === grade; });
+                let cfgResp = await fetch(API_URL + '?action=getExamConfig&khoi=' + grade);
+                let cfgData = await cfgResp.json();
+                let cfg = cfgData.config || { soCauThiThu: 0, selectedQuestions: [] };
+                let selectedSet = {};
+                if (cfg.selectedQuestions) cfg.selectedQuestions.forEach(m => selectedSet[m] = true);
+                document.getElementById('examConfigPracticeCount').value = cfg.soCauThiThu || 0;
+                let container = document.getElementById('examConfigQuestionList');
+                if (_examConfigQuestions.length === 0) {
+                    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)">Không có câu hỏi nào cho khối ' + grade + '</div>';
+                } else {
+                    let html = '';
+                    _examConfigQuestions.forEach((q, i) => {
+                        let maCH = q.stt ? q.stt.toString() : (i+1).toString();
+                        let checked = selectedSet[maCH] ? 'checked' : '';
+                        let tag = q.lop ? '<span style="font-size:10px;background:rgba(99,102,241,0.15);color:var(--primary);padding:2px 6px;border-radius:4px;margin-left:4px">K'+q.lop+'</span>' : '<span style="font-size:10px;background:rgba(245,158,11,0.15);color:var(--warning);padding:2px 6px;border-radius:4px;margin-left:4px">Chung</span>';
+                        html += '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px">'
+                            + '<input type="checkbox" class="examConfigCB" data-mach="'+maCH+'" '+checked+' onchange="examConfigUpdateCount()" style="accent-color:var(--success);margin-top:3px;flex-shrink:0">'
+                            + '<div style="flex:1"><div style="font-weight:600;font-size:12px;color:var(--text2);margin-bottom:2px">'+maCH+tag+'</div>'
+                            + '<div style="color:var(--text);line-height:1.4">'+(q.noiDung||'').substring(0,120)+(q.noiDung&&q.noiDung.length>120?'...':'')+'</div></div></label>';
+                    });
+                    container.innerHTML = html;
+                }
+                document.getElementById('examConfigBadge').textContent = _examConfigQuestions.length + ' câu cho khối ' + grade;
+                examConfigUpdateCount();
+            } catch(e) {
+                document.getElementById('examConfigBadge').textContent = 'Lỗi: ' + e.message;
+            }
+        }
+
+        function examConfigSelectAll(sel) { document.querySelectorAll('.examConfigCB').forEach(cb => cb.checked = sel); examConfigUpdateCount(); }
+        function examConfigUpdateCount() {
+            let n = document.querySelectorAll('.examConfigCB:checked').length;
+            let badge = document.getElementById('examConfigSelectedCount');
+            badge.textContent = 'Đã chọn: ' + n + ' câu';
+            badge.style.color = n > 0 ? 'var(--success)' : 'var(--text2)';
+        }
+
+        async function saveExamConfigUI() {
+            let grade = document.getElementById('examConfigGrade').value;
+            if (!grade) { alert('Vui lòng chọn khối!'); return; }
+            let soCauThiThu = parseInt(document.getElementById('examConfigPracticeCount').value) || 0;
+            let selectedQuestions = [];
+            document.querySelectorAll('.examConfigCB:checked').forEach(cb => selectedQuestions.push(cb.dataset.mach));
+            let btn = document.getElementById('btnSaveExamConfig');
+            btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            try {
+                let resp = await fetch(API_URL + '?action=saveExamConfig', {
+                    method: 'POST',
+                    body: JSON.stringify({ khoi: grade, soCauThiThu: soCauThiThu, selectedQuestions: selectedQuestions })
+                });
+                let data = await resp.json();
+                let msg = document.getElementById('examConfigMsg');
+                msg.style.display = 'block';
+                if (data.success) {
+                    msg.style.background = 'rgba(16,185,129,0.15)'; msg.style.border = '1px solid rgba(16,185,129,0.3)'; msg.style.color = '#6ee7b7';
+                } else {
+                    msg.style.background = 'rgba(239,68,68,0.15)'; msg.style.border = '1px solid rgba(239,68,68,0.3)'; msg.style.color = '#fca5a5';
+                }
+                msg.textContent = data.message || 'Lỗi!';
+            } catch(e) {
+                let msg = document.getElementById('examConfigMsg');
+                msg.style.display = 'block'; msg.style.background = 'rgba(239,68,68,0.15)'; msg.style.border = '1px solid rgba(239,68,68,0.3)'; msg.style.color = '#fca5a5';
+                msg.textContent = 'Lỗi: ' + e.message;
+            }
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Áp dụng cấu hình';
         }
     </script>
 
@@ -8934,7 +9610,10 @@
             <!-- Modal header -->
             <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
                 <h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-headset" style="color:var(--primary)"></i> Chat hỗ trợ học sinh</h3>
-                <button onclick="closeSupportChatModal()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>
+                <div style="display:flex;gap:6px;align-items:center">
+                    <button onclick="deleteAllSupportChats()" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:var(--danger);padding:5px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap" title="Xóa tất cả cuộc trò chuyện"><i class="fas fa-trash-alt" style="margin-right:3px"></i> Xóa tất cả</button>
+                    <button onclick="closeSupportChatModal()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>
+                </div>
             </div>
             <!-- Chat list -->
             <div id="supportChatListPanel" style="flex:1;overflow-y:auto">
