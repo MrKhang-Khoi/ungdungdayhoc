@@ -2391,10 +2391,14 @@
                         <p style="font-size:11px;color:var(--text2);margin:0">Tiến trình nộp bài</p>
                     </div>
                     <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px">
-                        <div style="margin-bottom:10px">
+                        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
                             <input type="text" id="monitorSearch" placeholder="🔍 Tìm theo tên, mã HS..."
                                 oninput="renderMonitorTable()"
-                                style="width:100%;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+                                style="flex:1;min-width:180px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+                            <select id="monitorClassFilter" onchange="renderMonitorTable()"
+                                style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;min-width:120px">
+                                <option value="">📋 Tất cả lớp</option>
+                            </select>
                         </div>
                         <div class="table-container" id="monitorTableContainer"
                             style="max-height:420px;overflow-y:auto"></div>
@@ -6383,11 +6387,28 @@
             if (!dashboardData || !dashboardData.students || !dashboardData.students.length) {
                 container.innerHTML = '<div class="empty-state"><i class="fas fa-inbox" style="font-size:36px;color:var(--text2);margin-bottom:10px"></i><p style="color:var(--text2)">Chưa có dữ liệu</p></div>'; return;
             }
-            let onlineCount = dashboardData.stats.onlineCount || 0;
             let search = (document.getElementById('monitorSearch').value || '').toLowerCase();
-            let students = dashboardData.students.filter(s => !search || s.hoTen.toLowerCase().includes(search) || s.maHS.toLowerCase().includes(search) || s.lop.toLowerCase().includes(search));
+            let classF = document.getElementById('monitorClassFilter')?.value || '';
+            let students = dashboardData.students.filter(s => {
+                if (classF && s.lop !== classF) return false;
+                if (search && !s.hoTen.toLowerCase().includes(search) && !s.maHS.toLowerCase().includes(search) && !s.lop.toLowerCase().includes(search)) return false;
+                return true;
+            });
 
-            // Áp dụng filter
+            // Populate class filter dropdown (giữ lại giá trị đã chọn)
+            let classSelect = document.getElementById('monitorClassFilter');
+            if (classSelect && classSelect.options.length <= 1) {
+                let classes = [...new Set(dashboardData.students.map(s => s.lop))].sort();
+                classes.forEach(c => {
+                    let o = document.createElement('option');
+                    o.value = c; o.textContent = c;
+                    classSelect.appendChild(o);
+                });
+            }
+
+            // Tính toán counts từ danh sách đã lọc theo lớp
+            let totalFiltered = students.length;
+            let onlineCount = students.filter(s => s.isOnline).length;
             let offlineLoggedIn = students.filter(s => !s.isOnline && s.statusCode === 1).length;
             let submittedCount = students.filter(s => s.statusCode === 2).length;
             let inExamCount = students.filter(s => s.statusCode === 1).length;
@@ -6403,7 +6424,7 @@
             let btnStyle = (key, color) => `display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${f === key ? color : 'var(--border)'};background:${f === key ? color + '18' : 'transparent'};color:${f === key ? color : 'var(--text2)'};transition:.2s`;
 
             let html = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap">
-                <span onclick="setMonitorFilter('all')" style="${btnStyle('all', 'var(--primary)')}"><i class="fas fa-users"></i> Tất cả <strong>${dashboardData.students.length}</strong></span>
+                <span onclick="setMonitorFilter('all')" style="${btnStyle('all', 'var(--primary)')}"><i class="fas fa-users"></i> Tất cả <strong>${totalFiltered}</strong></span>
                 <span onclick="setMonitorFilter('online')" style="${btnStyle('online', '#10b981')}"><span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;${f === 'online' ? 'animation:livePulse 1.5s ease-in-out infinite' : ''}"></span> Online <strong>${onlineCount}</strong></span>
                 <span onclick="setMonitorFilter('offline')" style="${btnStyle('offline', '#94a3b8')}"><span style="width:7px;height:7px;background:#94a3b8;border-radius:50%;display:inline-block"></span> Offline <strong>${offlineLoggedIn}</strong></span>
                 <span style="color:var(--border)">|</span>
