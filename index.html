@@ -1771,7 +1771,9 @@
             </div>
         </div>
         <div style="text-align:center;padding:16px 20px 8px;opacity:.6">
-            <div style="width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--primary),transparent);margin:0 auto 10px;border-radius:1px"></div>
+            <div
+                style="width:40px;height:2px;background:linear-gradient(90deg,transparent,var(--primary),transparent);margin:0 auto 10px;border-radius:1px">
+            </div>
             <p style="font-size:11px;color:var(--text2);margin:0;line-height:1.6">
                 <i class="fas fa-school" style="margin-right:4px;color:var(--primary)"></i>
                 Phát triển bởi <strong style="color:var(--text)">Giáo viên THCS Chu Văn An</strong> — Xã Đăk Hà<br>
@@ -1800,14 +1802,23 @@
             </div>
             <!-- Student Warning Toast (per-student) -->
             <div class="notif-toast" id="studentWarningBar">
-                <div class="notif-toast-accent" style="background:linear-gradient(90deg,#ef4444,#dc2626,#ef4444);background-size:300% 100%;animation:notifGradient 2s ease infinite"></div>
+                <div class="notif-toast-accent"
+                    style="background:linear-gradient(90deg,#ef4444,#dc2626,#ef4444);background-size:300% 100%;animation:notifGradient 2s ease infinite">
+                </div>
                 <div class="notif-toast-body" style="padding:14px 18px;align-items:center">
-                    <div class="notif-toast-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:18px;width:40px;height:40px;border-radius:10px">⚠️</div>
+                    <div class="notif-toast-icon"
+                        style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-size:18px;width:40px;height:40px;border-radius:10px">
+                        ⚠️</div>
                     <div class="notif-toast-content" style="flex:1">
-                        <div class="notif-toast-title" style="color:#ef4444"><span class="live-dot" style="background:#ef4444"></span> CẢNH BÁO TỪ GIÁO VIÊN</div>
-                        <div class="notif-toast-msg" id="studentWarningText" style="font-size:13px;font-weight:600">Nội dung cảnh báo</div>
+                        <div class="notif-toast-title" style="color:#ef4444"><span class="live-dot"
+                                style="background:#ef4444"></span> CẢNH BÁO TỪ GIÁO VIÊN</div>
+                        <div class="notif-toast-msg" id="studentWarningText" style="font-size:13px;font-weight:600">Nội
+                            dung cảnh báo</div>
                     </div>
-                    <button onclick="dismissWarning()" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-weight:700;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:.15s" onmouseover="this.style.background='rgba(239,68,68,0.3)'" onmouseout="this.style.background='rgba(239,68,68,0.15)'">✅ Đã hiểu</button>
+                    <button onclick="dismissWarning()"
+                        style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#ef4444;font-weight:700;padding:8px 16px;border-radius:8px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:.15s"
+                        onmouseover="this.style.background='rgba(239,68,68,0.3)'"
+                        onmouseout="this.style.background='rgba(239,68,68,0.15)'">✅ Đã hiểu</button>
                 </div>
             </div>
             <div class="exam-sticky-top">
@@ -2139,7 +2150,8 @@
                     <h2 style="margin:0 0 2px;font-size:20px;display:flex;align-items:center;gap:8px"><i
                             class="fas fa-graduation-cap" style="color:var(--primary)"></i> Quản Lý Thi Trực Tuyến</h2>
                     <p style="color:var(--text2);font-size:12px;margin:0" id="dashTime">Cập nhật lúc: --:--:--</p>
-                    <p style="color:var(--accent);font-size:12px;margin:2px 0 0;font-weight:600" id="dashTeacherName"></p>
+                    <p style="color:var(--accent);font-size:12px;margin:2px 0 0;font-weight:600" id="dashTeacherName">
+                    </p>
                 </div>
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                     <span
@@ -2147,11 +2159,23 @@
                             class="fas fa-bolt"></i> ⚡ Cập nhật thời gian thực</span>
                     <button class="btn btn-primary btn-sm" onclick="loadDashboard()"
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sync-alt"></i> Làm mới</button>
-                    <button class="btn btn-sm" id="btnHeaderSync" onclick="doSyncSheetToFirebase()" style="display:none;font-size:12px;padding:6px 12px;background:var(--primary);color:#fff"><i class="fas fa-upload"></i> Push</button>
-                    <button class="btn btn-sm" id="btnHeaderPull" onclick="doSyncFirebaseToSheet()" style="display:none;font-size:12px;padding:6px 12px;background:#10b981;color:#fff"><i class="fas fa-download"></i> Pull</button>
-                    <button class="btn btn-sm" id="btnTrash" onclick="openTrashModal()" style="font-size:12px;padding:6px 12px;background:var(--bg3);color:var(--text);position:relative" title="Thùng rác"><i class="fas fa-trash-alt"></i> <span id="trashBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px">0</span></button>
-                    <button class="btn btn-sm" id="btnSupportChat" onclick="openSupportChatModal()" style="font-size:12px;padding:6px 12px;background:rgba(99,102,241,0.15);color:var(--primary);position:relative" title="Chat hỗ trợ HS"><i class="fas fa-headset"></i> <span id="supportChatBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></button>
-                    <button class="btn btn-sm" id="btnNotifToggle" onclick="toggleNotification()" style="font-size:12px;padding:6px 12px;background:rgba(16,185,129,0.15);color:var(--success)" title="Thông báo: BẬT"><i class="fas fa-bell"></i></button>
+                    <button class="btn btn-sm" id="btnHeaderSync" onclick="doSyncSheetToFirebase()"
+                        style="display:none;font-size:12px;padding:6px 12px;background:var(--primary);color:#fff"><i
+                            class="fas fa-upload"></i> Push</button>
+                    <button class="btn btn-sm" id="btnHeaderPull" onclick="doSyncFirebaseToSheet()"
+                        style="display:none;font-size:12px;padding:6px 12px;background:#10b981;color:#fff"><i
+                            class="fas fa-download"></i> Pull</button>
+                    <button class="btn btn-sm" id="btnTrash" onclick="openTrashModal()"
+                        style="font-size:12px;padding:6px 12px;background:var(--bg3);color:var(--text);position:relative"
+                        title="Thùng rác"><i class="fas fa-trash-alt"></i> <span id="trashBadge"
+                            style="display:none;position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px">0</span></button>
+                    <button class="btn btn-sm" id="btnSupportChat" onclick="openSupportChatModal()"
+                        style="font-size:12px;padding:6px 12px;background:rgba(99,102,241,0.15);color:var(--primary);position:relative"
+                        title="Chat hỗ trợ HS"><i class="fas fa-headset"></i> <span id="supportChatBadge"
+                            style="display:none;position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;padding:0 4px">0</span></button>
+                    <button class="btn btn-sm" id="btnNotifToggle" onclick="toggleNotification()"
+                        style="font-size:12px;padding:6px 12px;background:rgba(16,185,129,0.15);color:var(--success)"
+                        title="Thông báo: BẬT"><i class="fas fa-bell"></i></button>
                     <button class="btn btn-danger btn-sm" onclick="logoutTeacher()"
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sign-out-alt"></i> Thoát</button>
                 </div>
@@ -2175,10 +2199,10 @@
                     đặt</button>
                 <button class="main-tab" onclick="switchMainTab('studymaterials', event)"><i
                         class="fas fa-book-open"></i> Tài liệu</button>
-                <button class="main-tab" onclick="switchMainTab('practiceexams', event)"><i
-                        class="fas fa-file-alt"></i> Đề TH</button>
-                <button class="main-tab" id="tabBtnTeachers" onclick="switchMainTab('teachers', event)" style="display:none"><i
-                        class="fas fa-chalkboard-teacher"></i> QL Giáo viên</button>
+                <button class="main-tab" onclick="switchMainTab('practiceexams', event)"><i class="fas fa-file-alt"></i>
+                    Đề TH</button>
+                <button class="main-tab" id="tabBtnTeachers" onclick="switchMainTab('teachers', event)"
+                    style="display:none"><i class="fas fa-chalkboard-teacher"></i> QL Giáo viên</button>
             </div>
 
             <!-- ===== TAB: Quản lý HS ===== -->
@@ -2215,18 +2239,40 @@
                             style="font-size:12px;color:var(--text2);white-space:nowrap;padding:6px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></span>
                     </div>
                     <!-- Nút Mở/Khóa cả lớp + Xuất Excel -->
-                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center" id="bulkMoThiBar">
-                        <button class="btn btn-sm" onclick="toggleMoThiClass('real',true)" style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock-open"></i> Mở thi thật</button>
-                        <button class="btn btn-sm" onclick="toggleMoThiClass('real',false)" style="width:auto;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-lock"></i> Khóa thi thật</button>
-                        <button class="btn btn-sm" onclick="toggleMoThiClass('practice',true)" style="width:auto;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-flask"></i> Mở thi thử</button>
-                        <button class="btn btn-sm" onclick="toggleMoThiClass('practice',false)" style="width:auto;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-flask"></i> Khóa thi thử</button>
-                        <button class="btn btn-sm" onclick="exportStudentsExcel()" style="width:auto;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-file-excel"></i> Tải Excel</button>
-                        <button class="btn btn-sm" id="btnDownloadClassFiles" onclick="downloadClassFiles()" style="width:auto;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-download"></i> Tải Bài làm HS</button>
-                        <button class="btn btn-sm" onclick="openUploadStudentsModal()" style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-upload"></i> Tải DS lên</button>
-                        <button class="btn btn-sm" onclick="downloadStudentTemplate()" style="width:auto;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-file-download"></i> File mẫu</button>
-                        <button class="btn btn-sm" onclick="resetPracticeClass()" style="width:auto;background:linear-gradient(135deg,#f59e0b,#b45309);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-redo-alt"></i> Reset thi thử cả lớp</button>
-                        <button class="btn btn-sm" onclick="deleteEntireClass()" style="width:auto;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i class="fas fa-trash-alt"></i> Xóa cả lớp</button>
-                        <span id="moThiCountBadge" style="font-size:11px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"></span>
+                    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center"
+                        id="bulkMoThiBar">
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('real',true)"
+                            style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-lock-open"></i> Mở thi thật</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('real',false)"
+                            style="width:auto;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-lock"></i> Khóa thi thật</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('practice',true)"
+                            style="width:auto;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-flask"></i> Mở thi thử</button>
+                        <button class="btn btn-sm" onclick="toggleMoThiClass('practice',false)"
+                            style="width:auto;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-flask"></i> Khóa thi thử</button>
+                        <button class="btn btn-sm" onclick="exportStudentsExcel()"
+                            style="width:auto;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-file-excel"></i> Tải Excel</button>
+                        <button class="btn btn-sm" id="btnDownloadClassFiles" onclick="downloadClassFiles()"
+                            style="width:auto;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-download"></i> Tải Bài làm HS</button>
+                        <button class="btn btn-sm" onclick="openUploadStudentsModal()"
+                            style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-upload"></i> Tải DS lên</button>
+                        <button class="btn btn-sm" onclick="downloadStudentTemplate()"
+                            style="width:auto;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-file-download"></i> File mẫu</button>
+                        <button class="btn btn-sm" onclick="resetPracticeClass()"
+                            style="width:auto;background:linear-gradient(135deg,#f59e0b,#b45309);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-redo-alt"></i> Reset thi thử cả lớp</button>
+                        <button class="btn btn-sm" onclick="deleteEntireClass()"
+                            style="width:auto;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;padding:6px 14px;font-size:12px;font-weight:600"><i
+                                class="fas fa-trash-alt"></i> Xóa cả lớp</button>
+                        <span id="moThiCountBadge"
+                            style="font-size:11px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"></span>
                     </div>
                 </div>
                 <!-- Dòng thống kê chi tiết -->
@@ -2235,15 +2281,21 @@
             </div>
 
             <!-- ===== MODAL: Upload Danh sách HS ===== -->
-            <div id="uploadStudentsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
-                <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:700px;width:95%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
+            <div id="uploadStudentsModal"
+                style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+                <div
+                    style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:700px;width:95%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease;box-shadow:0 20px 60px rgba(0,0,0,0.4)">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-                        <h3 style="margin:0;font-size:17px;display:flex;align-items:center;gap:8px"><i class="fas fa-upload" style="color:var(--warning)"></i> Tải danh sách học sinh</h3>
-                        <button onclick="closeUploadStudentsModal()" style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer"><i class="fas fa-times"></i></button>
+                        <h3 style="margin:0;font-size:17px;display:flex;align-items:center;gap:8px"><i
+                                class="fas fa-upload" style="color:var(--warning)"></i> Tải danh sách học sinh</h3>
+                        <button onclick="closeUploadStudentsModal()"
+                            style="background:var(--bg3);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer"><i
+                                class="fas fa-times"></i></button>
                     </div>
 
                     <!-- Hướng dẫn -->
-                    <div style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px">
+                    <div
+                        style="background:rgba(99,102,241,0.08);border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:12px 16px;margin-bottom:16px">
                         <p style="font-size:12px;color:var(--text2);margin:0;line-height:1.7">
                             📋 <strong>File Excel cần có các cột:</strong> Mã HS, Họ tên, Lớp, Mật khẩu (tùy chọn).<br>
                             💡 Nhấn <strong>"File mẫu"</strong> trên toolbar để tải file Excel mẫu.
@@ -2252,25 +2304,37 @@
 
                     <!-- Chọn file -->
                     <div style="margin-bottom:16px">
-                        <label style="display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600">Chọn file Excel (.xlsx, .xls)</label>
-                        <input type="file" id="uploadStudentFile" accept=".xlsx,.xls" onchange="previewStudentFile(event)"
+                        <label
+                            style="display:block;font-size:12px;color:var(--text2);margin-bottom:6px;font-weight:600">Chọn
+                            file Excel (.xlsx, .xls)</label>
+                        <input type="file" id="uploadStudentFile" accept=".xlsx,.xls"
+                            onchange="previewStudentFile(event)"
                             style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                     </div>
 
                     <!-- Chế độ import -->
                     <div style="display:flex;gap:10px;margin-bottom:16px">
-                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;flex:1">
-                            <input type="radio" name="importMode" value="add" checked style="accent-color:var(--primary)"> <i class="fas fa-plus-circle" style="color:var(--success)"></i> Thêm mới (giữ HS cũ)
+                        <label
+                            style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;flex:1">
+                            <input type="radio" name="importMode" value="add" checked
+                                style="accent-color:var(--primary)"> <i class="fas fa-plus-circle"
+                                style="color:var(--success)"></i> Thêm mới (giữ HS cũ)
                         </label>
-                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;flex:1">
-                            <input type="radio" name="importMode" value="overwrite" style="accent-color:var(--danger)"> <i class="fas fa-sync-alt" style="color:var(--warning)"></i> Ghi đè (xóa HS cũ cùng lớp)
+                        <label
+                            style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;flex:1">
+                            <input type="radio" name="importMode" value="overwrite" style="accent-color:var(--danger)">
+                            <i class="fas fa-sync-alt" style="color:var(--warning)"></i> Ghi đè (xóa HS cũ cùng lớp)
                         </label>
                     </div>
 
                     <!-- Preview -->
                     <div id="uploadPreviewArea" style="display:none">
-                        <div id="uploadPreviewStats" style="font-size:12px;color:var(--text2);margin-bottom:8px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"></div>
-                        <div id="uploadPreviewTable" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;margin-bottom:12px"></div>
+                        <div id="uploadPreviewStats"
+                            style="font-size:12px;color:var(--text2);margin-bottom:8px;padding:8px 12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">
+                        </div>
+                        <div id="uploadPreviewTable"
+                            style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;margin-bottom:12px">
+                        </div>
                     </div>
 
                     <!-- Nút Import -->
@@ -2286,7 +2350,8 @@
                     </div>
 
                     <!-- Status -->
-                    <div id="uploadStatusMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:12px"></div>
+                    <div id="uploadStatusMsg"
+                        style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:12px"></div>
                 </div>
             </div>
 
@@ -2377,7 +2442,8 @@
                     style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
                     <input type="text" id="resultsSearch" placeholder="🔍 Tìm kết quả..." oninput="renderResultsTable()"
                         style="flex:1;min-width:200px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
-                    <select id="resultsClassFilter" onchange="buildResultsFromFirebase()" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;min-width:100px">
+                    <select id="resultsClassFilter" onchange="buildResultsFromFirebase()"
+                        style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;min-width:100px">
                         <option value="">📋 Tất cả lớp</option>
                     </select>
                     <button class="btn btn-sm" onclick="exportExcel()" id="btnExportExcel"
@@ -2400,17 +2466,30 @@
             </div>
 
             <!-- ===== MODAL: Thùng rác ===== -->
-            <div id="trashModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px">
-                <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:750px;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease">
+            <div id="trashModal"
+                style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10000;align-items:center;justify-content:center;padding:20px">
+                <div
+                    style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:750px;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp .3s ease">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-                        <h3 style="margin:0;display:flex;align-items:center;gap:8px"><i class="fas fa-trash-alt" style="color:var(--danger)"></i> Thùng rác <span id="trashModalBadge" style="font-size:12px;font-weight:400;color:var(--text2)"></span></h3>
+                        <h3 style="margin:0;display:flex;align-items:center;gap:8px"><i class="fas fa-trash-alt"
+                                style="color:var(--danger)"></i> Thùng rác <span id="trashModalBadge"
+                                style="font-size:12px;font-weight:400;color:var(--text2)"></span></h3>
                         <div style="display:flex;gap:8px;align-items:center">
-                            <button id="btnEmptyTrash" onclick="emptyAllTrash()" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger);padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit"><i class="fas fa-trash"></i> Xóa toàn bộ</button>
-                            <button onclick="closeTrashModal()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>
+                            <button id="btnEmptyTrash" onclick="emptyAllTrash()"
+                                style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:var(--danger);padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit"><i
+                                    class="fas fa-trash"></i> Xóa toàn bộ</button>
+                            <button onclick="closeTrashModal()"
+                                style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i
+                                    class="fas fa-times"></i></button>
                         </div>
                     </div>
-                    <p style="color:var(--text2);font-size:12px;margin:0 0 16px"><i class="fas fa-info-circle"></i> Dữ liệu đã xóa được giữ <strong>30 ngày</strong> trước khi bị xóa vĩnh viễn. Bạn có thể khôi phục hoặc xóa vĩnh viễn bất cứ lúc nào.</p>
-                    <div id="trashListContainer"><div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div></div>
+                    <p style="color:var(--text2);font-size:12px;margin:0 0 16px"><i class="fas fa-info-circle"></i> Dữ
+                        liệu đã xóa được giữ <strong>30 ngày</strong> trước khi bị xóa vĩnh viễn. Bạn có thể khôi phục
+                        hoặc xóa vĩnh viễn bất cứ lúc nào.</p>
+                    <div id="trashListContainer">
+                        <div style="text-align:center;padding:30px;color:var(--text2)"><i
+                                class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                    </div>
                 </div>
             </div>
             <!-- ===== TAB: Câu hỏi ===== -->
@@ -2443,8 +2522,10 @@
                     </div>
                     <!-- Bộ lọc khối lớp -->
                     <div style="display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap">
-                        <span style="font-size:12px;color:var(--text2)"><i class="fas fa-filter"></i> Lọc theo khối:</span>
-                        <select id="questionGradeFilter" onchange="renderQuestionsList()" style="padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit">
+                        <span style="font-size:12px;color:var(--text2)"><i class="fas fa-filter"></i> Lọc theo
+                            khối:</span>
+                        <select id="questionGradeFilter" onchange="renderQuestionsList()"
+                            style="padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit">
                             <option value="">Tất cả</option>
                             <option value="6">Khối 6</option>
                             <option value="7">Khối 7</option>
@@ -2535,16 +2616,20 @@
                         <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i
                                 class="fas fa-plus-circle"></i> Thêm tài liệu mới</h4>
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu đề</label>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu
+                                    đề</label>
                                 <input type="text" id="smTitle" placeholder="VD: Bộ nhớ máy tính"
                                     style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                             </div>
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Danh mục</label>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Danh
+                                    mục</label>
                                 <input type="text" id="smCategory" placeholder="VD: Phần cứng"
                                     style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                             </div>
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Khối</label>
-                                <select id="smKhoi" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            <div><label
+                                    style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Khối</label>
+                                <select id="smKhoi"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                                     <option value="">Tất cả khối</option>
                                     <option value="6">Khối 6</option>
                                     <option value="7">Khối 7</option>
@@ -2586,7 +2671,8 @@
                     style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:800px;margin:0 auto">
                     <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i
                             class="fas fa-file-alt" style="color:var(--primary)"></i> Quản lý đề thực hành</h3>
-                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">📋 Đề thực hành sẽ hiển thị cho học sinh
+                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">📋 Đề thực hành sẽ hiển thị cho học
+                        sinh
                         khi ở chế độ <strong>Thi Thật</strong>. HS có thể xem đề trực tiếp trên trình duyệt.</p>
 
                     <!-- Add new practice exam -->
@@ -2595,12 +2681,15 @@
                         <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i
                                 class="fas fa-plus-circle"></i> Thêm đề thực hành mới</h4>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu đề đề thi</label>
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Tiêu
+                                    đề đề thi</label>
                                 <input type="text" id="peTitle" placeholder="VD: Đề thực hành Word"
                                     style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                             </div>
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Khối</label>
-                                <select id="peKhoi" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            <div><label
+                                    style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Khối</label>
+                                <select id="peKhoi"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                                     <option value="">Tất cả khối</option>
                                     <option value="6">Khối 6</option>
                                     <option value="7">Khối 7</option>
@@ -2610,8 +2699,11 @@
                             </div>
                         </div>
                         <div style="margin-bottom:10px">
-                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">📎 File đề thi (PDF/Word/Excel/PowerPoint, tối đa 10MB) — <strong style="color:var(--warning)">bắt buộc</strong></label>
-                            <input type="file" id="peFile" accept=".doc,.docx,.pdf,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png"
+                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">📎 File đề
+                                thi (PDF/Word/Excel/PowerPoint, tối đa 10MB) — <strong style="color:var(--warning)">bắt
+                                    buộc</strong></label>
+                            <input type="file" id="peFile"
+                                accept=".doc,.docx,.pdf,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png"
                                 style="font-size:12px;color:var(--text2)">
                         </div>
                         <button class="btn btn-primary" id="btnAddPE" onclick="addPracticeExam()"
@@ -2632,37 +2724,57 @@
 
             <!-- ===== TAB: QL Giáo viên (Admin only) ===== -->
             <div id="tabTeachers" style="display:none">
-                <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:900px;margin:0 auto">
-                    <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-chalkboard-teacher" style="color:var(--primary)"></i> Quản lý Giáo viên</h3>
-                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">👨‍🏫 Thêm, sửa, xóa tài khoản giáo viên và phân công lớp phụ trách.</p>
+                <div
+                    style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:900px;margin:0 auto">
+                    <h3 style="margin:0 0 16px;font-size:16px;display:flex;align-items:center;gap:8px"><i
+                            class="fas fa-chalkboard-teacher" style="color:var(--primary)"></i> Quản lý Giáo viên</h3>
+                    <p style="color:var(--text2);font-size:13px;margin:0 0 16px">👨‍🏫 Thêm, sửa, xóa tài khoản giáo
+                        viên và phân công lớp phụ trách.</p>
                     <!-- Add teacher form -->
-                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
-                        <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i class="fas fa-plus-circle"></i> Thêm giáo viên mới</h4>
+                    <div
+                        style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px">
+                        <h4 style="margin:0 0 12px;font-size:14px;color:var(--accent)"><i
+                                class="fas fa-plus-circle"></i> Thêm giáo viên mới</h4>
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Mã GV</label>
-                                <input type="text" id="gvMaGV" placeholder="VD: GV001" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Mã
+                                    GV</label>
+                                <input type="text" id="gvMaGV" placeholder="VD: GV001"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                             </div>
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Họ tên</label>
-                                <input type="text" id="gvHoTen" placeholder="Nguyễn Văn A" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Họ
+                                    tên</label>
+                                <input type="text" id="gvHoTen" placeholder="Nguyễn Văn A"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                             </div>
-                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Mật khẩu</label>
-                                <input type="text" id="gvMatKhau" placeholder="abc123" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Mật
+                                    khẩu</label>
+                                <input type="text" id="gvMatKhau" placeholder="abc123"
+                                    style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                             </div>
                         </div>
                         <div style="margin-bottom:10px">
-                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Lớp phụ trách (cách nhau bởi dấu phẩy)</label>
-                            <input type="text" id="gvLopPhuTrach" placeholder="VD: 7A1,7A2,7A3,6A1" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
+                            <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">Lớp phụ
+                                trách (cách nhau bởi dấu phẩy)</label>
+                            <input type="text" id="gvLopPhuTrach" placeholder="VD: 7A1,7A2,7A3,6A1"
+                                style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box">
                         </div>
                         <div style="display:flex;gap:8px;justify-content:flex-end">
-                            <button class="btn btn-primary" id="btnAddGV" onclick="saveTeacherFromForm()" style="width:auto;padding:8px 20px;font-size:13px"><i class="fas fa-save"></i> Lưu giáo viên</button>
+                            <button class="btn btn-primary" id="btnAddGV" onclick="saveTeacherFromForm()"
+                                style="width:auto;padding:8px 20px;font-size:13px"><i class="fas fa-save"></i> Lưu giáo
+                                viên</button>
                         </div>
-                        <div id="gvMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
+                        <div id="gvMsg"
+                            style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
                     </div>
                     <!-- Teachers list -->
-                    <div id="teachersListContainer"><div style="text-align:center;padding:30px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div></div>
+                    <div id="teachersListContainer">
+                        <div style="text-align:center;padding:30px;color:var(--text2)"><i
+                                class="fas fa-spinner fa-spin"></i> Đang tải...</div>
+                    </div>
                     <!-- Login History -->
                     <div style="margin-top:20px">
-                        <button class="btn btn-sm" onclick="toggleLoginHistory()" id="btnLoginHistory" style="width:auto;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:8px 18px;font-size:13px;margin-bottom:12px">
+                        <button class="btn btn-sm" onclick="toggleLoginHistory()" id="btnLoginHistory"
+                            style="width:auto;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:8px 18px;font-size:13px;margin-bottom:12px">
                             <i class="fas fa-history"></i> Lịch sử đăng nhập
                         </button>
                         <div id="loginHistoryContainer" style="display:none"></div>
@@ -2775,9 +2887,11 @@
                     <div
                         style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
                         <div>
-                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-clipboard-list"
-                                    style="color:#6366f1;margin-right:6px"></i> Màn hình thông tin trước khi thi</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Khi bật: HS thấy thông tin kỳ thi (tiêu đề, lưu ý...) trước khi bắt đầu làm bài</p>
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i
+                                    class="fas fa-clipboard-list" style="color:#6366f1;margin-right:6px"></i> Màn hình
+                                thông tin trước khi thi</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Khi bật: HS thấy thông tin kỳ thi
+                                (tiêu đề, lưu ý...) trước khi bắt đầu làm bài</p>
                         </div>
                         <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
                             <input type="checkbox" id="toggleExamInfo" onchange="saveExamInfo()"
@@ -2788,25 +2902,34 @@
                                 style="position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.3s"></span>
                         </label>
                     </div>
-                    <div id="examInfoFieldsArea" style="display:none;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+                    <div id="examInfoFieldsArea"
+                        style="display:none;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
                         <div style="margin-bottom:12px">
-                            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Tên kỳ thi</label>
+                            <label
+                                style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Tên
+                                kỳ thi</label>
                             <input type="text" id="examInfoTitle" placeholder="VD: Kiểm tra giữa kỳ II - Tin học 7"
                                 style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;outline:none">
                         </div>
                         <div style="margin-bottom:12px">
-                            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Mô tả / Lưu ý cho học sinh</label>
-                            <textarea id="examInfoDesc" rows="3" placeholder="VD: Đọc kỹ đề, không sử dụng tài liệu, không trao đổi..."
+                            <label
+                                style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Mô
+                                tả / Lưu ý cho học sinh</label>
+                            <textarea id="examInfoDesc" rows="3"
+                                placeholder="VD: Đọc kỹ đề, không sử dụng tài liệu, không trao đổi..."
                                 style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;outline:none"></textarea>
                         </div>
                         <div style="margin-bottom:12px">
-                            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Ghi chú thêm (tùy chọn)</label>
+                            <label
+                                style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;font-weight:600">Ghi
+                                chú thêm (tùy chọn)</label>
                             <input type="text" id="examInfoNote" placeholder="VD: Liên hệ GV nếu gặp sự cố kỹ thuật"
                                 style="width:100%;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;box-sizing:border-box;outline:none">
                         </div>
                         <div style="display:flex;gap:8px;justify-content:flex-end">
                             <button class="btn btn-primary btn-sm" onclick="saveExamInfo()"
-                                style="width:auto;padding:8px 20px;font-size:13px" id="btnSaveExamInfo"><i class="fas fa-save"></i> Lưu thông tin</button>
+                                style="width:auto;padding:8px 20px;font-size:13px" id="btnSaveExamInfo"><i
+                                    class="fas fa-save"></i> Lưu thông tin</button>
                         </div>
                     </div>
 
@@ -2814,9 +2937,11 @@
                     <div
                         style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
                         <div>
-                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-comment-slash"
-                                    style="color:#ef4444;margin-right:6px"></i> Khóa chat khi thi</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Khi bật: HS không thể nhắn tin hỗ trợ trong lúc thi</p>
+                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i
+                                    class="fas fa-comment-slash" style="color:#ef4444;margin-right:6px"></i> Khóa chat
+                                khi thi</div>
+                            <p style="color:var(--text2);font-size:12px;margin:0">Khi bật: HS không thể nhắn tin hỗ trợ
+                                trong lúc thi</p>
                         </div>
                         <label style="position:relative;display:inline-block;width:50px;height:26px;cursor:pointer">
                             <input type="checkbox" id="toggleLockChat" onchange="saveLockChat()"
@@ -2830,130 +2955,162 @@
 
                     <!-- ===== ADMIN-ONLY: Xóa cache, Sync, Xóa dữ liệu ===== -->
                     <div id="adminOnlySettings">
-                    <!-- Xóa Cache HS -->
-                    <div
-                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-top:12px">
-                        <div>
-                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-broom"
-                                    style="color:var(--accent);margin-right:6px"></i> Xóa cache trình duyệt HS</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Khi HS bị lỗi hiển thị hoặc dữ liệu
-                                cũ. Xóa localStorage để HS làm bài lại từ đầu.</p>
-                        </div>
-                        <button class="btn btn-sm" onclick="clearStudentCaches()"
-                            style="width:auto;background:var(--accent);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
-                            <i class="fas fa-broom"></i> Xóa cache
-                        </button>
-                    </div>
-
-                    <!-- Firebase Sync -->
-                    <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
-                        <i class="fas fa-fire" style="color:#FF6B35"></i> Đồng bộ Firebase
-                    </h4>
-                    <div
-                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:8px">
-                        <div>
-                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-upload"
-                                    style="color:var(--primary);margin-right:6px"></i> GGSheet → Firebase</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Đẩy dữ liệu học sinh + câu hỏi + cài
-                                đặt từ Google Sheet lên Firebase</p>
-                        </div>
-                        <button class="btn btn-sm" id="btnSyncToFB" onclick="doSyncSheetToFirebase()"
-                            style="width:auto;background:var(--primary);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
-                            <i class="fas fa-upload"></i> Push lên Firebase
-                        </button>
-                    </div>
-                    <div
-                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:8px">
-                        <div>
-                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-download"
-                                    style="color:var(--success);margin-right:6px"></i> Firebase → GGSheet</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Kéo kết quả thi + trạng thái HS từ
-                                Firebase về Google Sheet (để xuất Excel)</p>
-                        </div>
-                        <button class="btn btn-sm" id="btnSyncToSheet" onclick="doSyncFirebaseToSheet()"
-                            style="width:auto;background:var(--success);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
-                            <i class="fas fa-download"></i> Pull về GGSheet
-                        </button>
-                    </div>
-                    <div id="syncMsg"
-                        style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px">
-                    </div>
-
-                    <!-- ===== CẤU HÌNH ĐỀ THI (ADMIN ONLY) ===== -->
-                    <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
-                        <i class="fas fa-clipboard-check" style="color:#8b5cf6"></i> Cấu Hình Đề Thi
-                    </h4>
-                    <!-- Migrate button -->
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
-                        <div>
-                            <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-exchange-alt" style="color:var(--warning);margin-right:6px"></i> Migrate mã câu hỏi</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Chuyển STT số (1,2,3...) sang mã khối (K6_001, K9_001...) dựa theo cột Lớp</p>
-                        </div>
-                        <button class="btn btn-sm" onclick="doMigrateQuestionCodes()" id="btnMigrate" style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
-                            <i class="fas fa-exchange-alt"></i> Migrate
-                        </button>
-                    </div>
-                    <div id="migrateMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px"></div>
-                    <!-- Exam Config Panel -->
-                    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
-                        <p style="color:var(--text2);font-size:12px;margin:0 0 12px"><i class="fas fa-info-circle"></i> Chọn khối → cấu hình số câu thi thử (random) và tick chọn câu cho thi thật.</p>
-                        <!-- Chọn khối -->
-                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
-                            <label style="font-size:12px;color:var(--text2);font-weight:600">Chọn khối:</label>
-                            <select id="examConfigGrade" onchange="loadExamConfigForGrade()" style="padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;min-width:120px">
-                                <option value="">-- Chọn khối --</option>
-                                <option value="6">Khối 6</option>
-                                <option value="7">Khối 7</option>
-                                <option value="8">Khối 8</option>
-                                <option value="9">Khối 9</option>
-                            </select>
-                            <span id="examConfigBadge" style="font-size:11px;color:var(--text2)"></span>
-                        </div>
-                        <!-- Số câu thi thử -->
-                        <div id="examConfigPanel" style="display:none">
-                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-                                <label style="font-size:12px;color:var(--text2);font-weight:600"><i class="fas fa-flask" style="color:var(--secondary)"></i> Số câu thi thử (random):</label>
-                                <input type="number" id="examConfigPracticeCount" value="16" min="1" max="200" style="width:80px;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-weight:700;text-align:center;font-family:inherit">
-                                <span style="font-size:11px;color:var(--text2)">câu (0 = tất cả)</span>
+                        <!-- Xóa Cache HS -->
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-top:12px">
+                            <div>
+                                <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-broom"
+                                        style="color:var(--accent);margin-right:6px"></i> Xóa cache trình duyệt HS</div>
+                                <p style="color:var(--text2);font-size:12px;margin:0">Khi HS bị lỗi hiển thị hoặc dữ
+                                    liệu
+                                    cũ. Xóa localStorage để HS làm bài lại từ đầu.</p>
                             </div>
-                            <!-- Danh sách câu hỏi để tick cho thi thật -->
-                            <div style="margin-bottom:12px">
-                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
-                                    <label style="font-size:12px;color:var(--text2);font-weight:600"><i class="fas fa-check-square" style="color:var(--success)"></i> Chọn câu cho thi thật:</label>
-                                    <span id="examConfigSelectedCount" style="font-size:12px;font-weight:700;color:var(--success);background:rgba(16,185,129,0.1);padding:4px 10px;border-radius:6px">Đã chọn: 0 câu</span>
-                                </div>
-                                <div style="display:flex;gap:6px;margin-bottom:8px">
-                                    <button class="btn btn-sm" onclick="examConfigSelectAll(true)" style="width:auto;background:var(--bg3);color:var(--text);padding:4px 10px;font-size:11px;border:1px solid var(--border)">Chọn tất cả</button>
-                                    <button class="btn btn-sm" onclick="examConfigSelectAll(false)" style="width:auto;background:var(--bg3);color:var(--text);padding:4px 10px;font-size:11px;border:1px solid var(--border)">Bỏ chọn tất cả</button>
-                                </div>
-                                <div id="examConfigQuestionList" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:6px">
-                                    <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">Chọn khối để xem danh sách câu hỏi</div>
-                                </div>
-                            </div>
-                            <!-- Nút Lưu -->
-                            <div style="display:flex;gap:8px;justify-content:flex-end">
-                                <button class="btn btn-primary btn-sm" onclick="saveExamConfigUI()" id="btnSaveExamConfig" style="width:auto;padding:10px 24px;font-size:13px;font-weight:700">
-                                    <i class="fas fa-save"></i> Áp dụng cấu hình
-                                </button>
-                            </div>
-                            <div id="examConfigMsg" style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px"></div>
+                            <button class="btn btn-sm" onclick="clearStudentCaches()"
+                                style="width:auto;background:var(--accent);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
+                                <i class="fas fa-broom"></i> Xóa cache
+                            </button>
                         </div>
-                    </div>
 
-                    <!-- Xóa toàn bộ dữ liệu -->
-                    <div
-                        style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(239,68,68,0.05);border-radius:12px;border:1px solid rgba(239,68,68,0.3);margin-top:12px">
-                        <div>
-                            <div style="font-weight:600;font-size:14px;margin-bottom:2px;color:var(--danger)"><i
-                                    class="fas fa-trash-alt" style="margin-right:6px"></i> Xóa toàn bộ dữ liệu</div>
-                            <p style="color:var(--text2);font-size:12px;margin:0">Xóa hết: kết quả thi, kết quả thi thử,
-                                trạng thái HS và file trên Drive.</p>
+                        <!-- Firebase Sync -->
+                        <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
+                            <i class="fas fa-fire" style="color:#FF6B35"></i> Đồng bộ Firebase
+                        </h4>
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:8px">
+                            <div>
+                                <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-upload"
+                                        style="color:var(--primary);margin-right:6px"></i> GGSheet → Firebase</div>
+                                <p style="color:var(--text2);font-size:12px;margin:0">Đẩy dữ liệu học sinh + câu hỏi +
+                                    cài
+                                    đặt từ Google Sheet lên Firebase</p>
+                            </div>
+                            <button class="btn btn-sm" id="btnSyncToFB" onclick="doSyncSheetToFirebase()"
+                                style="width:auto;background:var(--primary);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
+                                <i class="fas fa-upload"></i> Push lên Firebase
+                            </button>
                         </div>
-                        <button class="btn btn-sm" onclick="confirmClearAll()"
-                            style="width:auto;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
-                            <i class="fas fa-trash-alt"></i> Xóa tất cả
-                        </button>
-                    </div>
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:8px">
+                            <div>
+                                <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i class="fas fa-download"
+                                        style="color:var(--success);margin-right:6px"></i> Firebase → GGSheet</div>
+                                <p style="color:var(--text2);font-size:12px;margin:0">Kéo kết quả thi + trạng thái HS từ
+                                    Firebase về Google Sheet (để xuất Excel)</p>
+                            </div>
+                            <button class="btn btn-sm" id="btnSyncToSheet" onclick="doSyncFirebaseToSheet()"
+                                style="width:auto;background:var(--success);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
+                                <i class="fas fa-download"></i> Pull về GGSheet
+                            </button>
+                        </div>
+                        <div id="syncMsg"
+                            style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px">
+                        </div>
+
+                        <!-- ===== CẤU HÌNH ĐỀ THI (ADMIN ONLY) ===== -->
+                        <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
+                            <i class="fas fa-clipboard-check" style="color:#8b5cf6"></i> Cấu Hình Đề Thi
+                        </h4>
+                        <!-- Migrate button -->
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+                            <div>
+                                <div style="font-weight:600;font-size:14px;margin-bottom:2px"><i
+                                        class="fas fa-exchange-alt" style="color:var(--warning);margin-right:6px"></i>
+                                    Migrate mã câu hỏi</div>
+                                <p style="color:var(--text2);font-size:12px;margin:0">Chuyển STT số (1,2,3...) sang mã
+                                    khối (K6_001, K9_001...) dựa theo cột Lớp</p>
+                            </div>
+                            <button class="btn btn-sm" onclick="doMigrateQuestionCodes()" id="btnMigrate"
+                                style="width:auto;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
+                                <i class="fas fa-exchange-alt"></i> Migrate
+                            </button>
+                        </div>
+                        <div id="migrateMsg"
+                            style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-bottom:12px">
+                        </div>
+                        <!-- Exam Config Panel -->
+                        <div
+                            style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px">
+                            <p style="color:var(--text2);font-size:12px;margin:0 0 12px"><i
+                                    class="fas fa-info-circle"></i> Chọn khối → cấu hình số câu thi thử (random) và tick
+                                chọn câu cho thi thật.</p>
+                            <!-- Chọn khối -->
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+                                <label style="font-size:12px;color:var(--text2);font-weight:600">Chọn khối:</label>
+                                <select id="examConfigGrade" onchange="loadExamConfigForGrade()"
+                                    style="padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;min-width:120px">
+                                    <option value="">-- Chọn khối --</option>
+                                    <option value="6">Khối 6</option>
+                                    <option value="7">Khối 7</option>
+                                    <option value="8">Khối 8</option>
+                                    <option value="9">Khối 9</option>
+                                </select>
+                                <span id="examConfigBadge" style="font-size:11px;color:var(--text2)"></span>
+                            </div>
+                            <!-- Số câu thi thử -->
+                            <div id="examConfigPanel" style="display:none">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+                                    <label style="font-size:12px;color:var(--text2);font-weight:600"><i
+                                            class="fas fa-flask" style="color:var(--secondary)"></i> Số câu thi thử
+                                        (random):</label>
+                                    <input type="number" id="examConfigPracticeCount" value="16" min="1" max="200"
+                                        style="width:80px;padding:8px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-weight:700;text-align:center;font-family:inherit">
+                                    <span style="font-size:11px;color:var(--text2)">câu (0 = tất cả)</span>
+                                </div>
+                                <!-- Danh sách câu hỏi để tick cho thi thật -->
+                                <div style="margin-bottom:12px">
+                                    <div
+                                        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+                                        <label style="font-size:12px;color:var(--text2);font-weight:600"><i
+                                                class="fas fa-check-square" style="color:var(--success)"></i> Chọn câu
+                                            cho thi thật:</label>
+                                        <span id="examConfigSelectedCount"
+                                            style="font-size:12px;font-weight:700;color:var(--success);background:rgba(16,185,129,0.1);padding:4px 10px;border-radius:6px">Đã
+                                            chọn: 0 câu</span>
+                                    </div>
+                                    <div style="display:flex;gap:6px;margin-bottom:8px">
+                                        <button class="btn btn-sm" onclick="examConfigSelectAll(true)"
+                                            style="width:auto;background:var(--bg3);color:var(--text);padding:4px 10px;font-size:11px;border:1px solid var(--border)">Chọn
+                                            tất cả</button>
+                                        <button class="btn btn-sm" onclick="examConfigSelectAll(false)"
+                                            style="width:auto;background:var(--bg3);color:var(--text);padding:4px 10px;font-size:11px;border:1px solid var(--border)">Bỏ
+                                            chọn tất cả</button>
+                                    </div>
+                                    <div id="examConfigQuestionList"
+                                        style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:6px">
+                                        <div style="text-align:center;padding:20px;color:var(--text2);font-size:13px">
+                                            Chọn khối để xem danh sách câu hỏi</div>
+                                    </div>
+                                </div>
+                                <!-- Nút Lưu -->
+                                <div style="display:flex;gap:8px;justify-content:flex-end">
+                                    <button class="btn btn-primary btn-sm" onclick="saveExamConfigUI()"
+                                        id="btnSaveExamConfig"
+                                        style="width:auto;padding:10px 24px;font-size:13px;font-weight:700">
+                                        <i class="fas fa-save"></i> Áp dụng cấu hình
+                                    </button>
+                                </div>
+                                <div id="examConfigMsg"
+                                    style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:8px">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Xóa toàn bộ dữ liệu -->
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(239,68,68,0.05);border-radius:12px;border:1px solid rgba(239,68,68,0.3);margin-top:12px">
+                            <div>
+                                <div style="font-weight:600;font-size:14px;margin-bottom:2px;color:var(--danger)"><i
+                                        class="fas fa-trash-alt" style="margin-right:6px"></i> Xóa toàn bộ dữ liệu</div>
+                                <p style="color:var(--text2);font-size:12px;margin:0">Xóa hết: kết quả thi, kết quả thi
+                                    thử,
+                                    trạng thái HS và file trên Drive.</p>
+                            </div>
+                            <button class="btn btn-sm" onclick="confirmClearAll()"
+                                style="width:auto;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
+                                <i class="fas fa-trash-alt"></i> Xóa tất cả
+                            </button>
+                        </div>
                     </div><!-- /adminOnlySettings -->
                 </div>
             </div>
@@ -3327,6 +3484,80 @@
             return { success: true, message: 'Đã gửi bài thi! (Chưa xác nhận được từ server, vui lòng kiểm tra lại)' };
         }
 
+        // ============== NỘP BÀI QUA POST (FIX BUG 1 + BUG 2) ==============
+        async function apiPostSubmit(examData) {
+            if (!isApiConfigured()) throw new Error('API chưa được cấu hình!');
+            let url = new URL(API_URL);
+            url.searchParams.set('action', 'submitExam');
+
+            // Thử 1: Normal POST (có thể đọc response)
+            try {
+                let resp = await fetch(url.toString(), {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify(examData)
+                });
+                if (resp.ok) {
+                    let result = await resp.json();
+                    return result;
+                }
+            } catch (e) { /* CORS → fallback */ }
+
+            // Thử 2: no-cors POST + verify qua Firebase
+            updateSubmitOverlay('Đang gửi (chế độ dự phòng)...', 'Vui lòng chờ...', 50);
+            try {
+                await fetch(url.toString(), {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(examData)
+                });
+            } catch (e) {
+                throw new Error('Không thể gửi bài thi: ' + e.message);
+            }
+
+            // Verify: kiểm tra Firebase trực tiếp
+            let maHS = examData.maHS;
+            let isPractice = examData.isPractice === true || examData.isPractice === 'true';
+            for (let attempt = 1; attempt <= 5; attempt++) {
+                updateSubmitOverlay('Đang xác nhận bài thi...', 'Lần kiểm tra ' + attempt + '/5', 50 + attempt * 8);
+                await new Promise(r => setTimeout(r, 3000));
+                try {
+                    if (isPractice) {
+                        // Thi thử: check practiceResults có bản ghi mới cho maHS
+                        let practiceData = await firebaseRead('practiceResults') || {};
+                        let myAttempts = Object.values(practiceData).filter(r => r.maHS === maHS);
+                        if (myAttempts.length > practiceAttempts) {
+                            let latest = myAttempts.sort((a, b) => (b.thoiGian || 0) - (a.thoiGian || 0))[0];
+                            return {
+                                success: true, isPractice: true, score: latest.score,
+                                details: latest.details || [], attempt: myAttempts.length,
+                                maxAttempts: practiceMaxAttempts, totalQuestions: latest.totalQuestions
+                            };
+                        }
+                    } else {
+                        // Thi thật: check trangThai = 'X'
+                        let student = await firebaseRead('students/' + maHS);
+                        if (student && student.trangThai && student.trangThai.toString().trim().toUpperCase() === 'X') {
+                            // Kiểm tra thêm file nếu có upload
+                            if (examData.fileData) {
+                                try {
+                                    let verify = await apiCall('verifyFile', { maHS: maHS });
+                                    if (!verify.success || !verify.hasFile) {
+                                        // Bài đã nộp nhưng file chưa verify → cảnh báo nhẹ
+                                        try { await firebaseUpdate('students/' + maHS, { uploadFailed: true, uploadError: 'File chưa xác nhận qua verifyFile' }); } catch (e2) { }
+                                    }
+                                } catch (e) { /* verifyFile lỗi → bỏ qua */ }
+                            }
+                            return { success: true, message: 'Nộp bài thành công!' };
+                        }
+                    }
+                } catch (e) { /* retry */ }
+            }
+            // Sau 5 lần verify thất bại
+            throw new Error('Không thể xác nhận bài thi sau 5 lần thử. Vui lòng kiểm tra kết nối mạng và liên hệ giáo viên.');
+        }
+
         // ============== ĐĂNG NHẬP ==============
         function switchLoginTab(tab) {
             document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (tab === 'student' ? i === 0 : i === 1)));
@@ -3576,7 +3807,7 @@
 
                 if (isAdmin) {
                     currentTeacher = { maGV: 'ADMIN', hoTen: 'Admin', lopPhuTrach: '', isAdmin: true, allowedClasses: [] };
-                    try { firebasePush('teacherLoginHistory', { maGV: 'ADMIN', hoTen: 'Admin', role: 'Admin', thoiGian: Date.now() }); } catch(e) {}
+                    try { firebasePush('teacherLoginHistory', { maGV: 'ADMIN', hoTen: 'Admin', role: 'Admin', thoiGian: Date.now() }); } catch (e) { }
                     showScreen('dashboardScreen');
                     initDashboard();
                     btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
@@ -3603,7 +3834,7 @@
                         isAdmin: false,
                         allowedClasses: allowedClasses
                     };
-                    try { firebasePush('teacherLoginHistory', { maGV: foundTeacher.maGV, hoTen: foundTeacher.hoTen, role: 'Giáo viên', lopPhuTrach: foundTeacher.lopPhuTrach || '', thoiGian: Date.now() }); } catch(e) {}
+                    try { firebasePush('teacherLoginHistory', { maGV: foundTeacher.maGV, hoTen: foundTeacher.hoTen, role: 'Giáo viên', lopPhuTrach: foundTeacher.lopPhuTrach || '', thoiGian: Date.now() }); } catch (e) { }
                     showScreen('dashboardScreen');
                     initDashboard();
                 } else {
@@ -4008,8 +4239,6 @@
                     answers.push({ questionSTT: q.stt, selected: sel ? sel.value : '' });
                 });
 
-                updateSubmitOverlay('Đang gửi đáp án...', 'Bài thi của bạn đang được gửi lên hệ thống chấm điểm', 25);
-
                 // 2. Build exam data
                 let examData = {
                     maHS: currentStudent.maHS,
@@ -4019,40 +4248,21 @@
                     isPractice: isPracticeMode,
                     fileData: '', fileName: '', fileMimeType: ''
                 };
-                let resp = await apiCall('submitExam', { examData: encodeURIComponent(JSON.stringify(examData)) });
+
+                // 3. Gộp file thực hành vào examData (nếu thi thật + có file)
+                if (!isPracticeMode && uploadedFile) {
+                    updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi file: ' + uploadedFile.name, 20);
+                    let base64Data = await fileToBase64(uploadedFile);
+                    examData.fileData = base64Data;
+                    examData.fileName = uploadedFile.name;
+                    examData.fileMimeType = uploadedFile.type;
+                }
+
+                // 4. Gửi tất cả qua POST (bài thi + file cùng lúc)
+                updateSubmitOverlay('Đang gửi bài thi...', 'Bài thi' + (uploadedFile ? ' + file thực hành' : '') + ' đang được tải lên server', 35);
+                let resp = await apiPostSubmit(examData);
 
                 if (resp.success) {
-                    updateSubmitOverlay('Đã gửi đáp án thành công!', 'Đang xử lý kết quả...', 60);
-
-                    // 3. Upload file (chỉ khi thi thật và có file) — dùng hàm xác nhận mới
-                    if (!isPracticeMode && uploadedFile) {
-                        updateSubmitOverlay('Đang tải file thực hành...', 'File: ' + uploadedFile.name, 65);
-                        let fakeProgress = 65;
-                        let progressInterval = setInterval(() => {
-                            fakeProgress = Math.min(fakeProgress + Math.random() * 5, 88);
-                            updateSubmitOverlay(null, null, fakeProgress);
-                        }, 400);
-                        try {
-                            let fileData = await fileToBase64(uploadedFile);
-                            let uploadResult = await uploadFileWithVerification(fileData, uploadedFile.name, uploadedFile.type);
-                            clearInterval(progressInterval);
-                            if (uploadResult.success) {
-                                updateSubmitOverlay('✅ Tải file hoàn tất!', 'File đã được xác nhận thành công', 95);
-                            } else {
-                                updateSubmitOverlay('⚠️ Chưa xác nhận được file', 'Bài trắc nghiệm đã nộp OK. Liên hệ GV về file: ' + (uploadResult.error || ''), 95);
-                                // Log upload failure to Firebase
-                                try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: uploadResult.error }); } catch (e) { }
-                            }
-                            await new Promise(r => setTimeout(r, 800));
-                        } catch (fe) {
-                            clearInterval(progressInterval);
-                            console.log('File upload error:', fe);
-                            updateSubmitOverlay('⚠️ Lỗi tải file', 'Bài trắc nghiệm đã nộp thành công. Liên hệ GV về file thực hành.', 95);
-                            try { await firebaseUpdate('students/' + currentStudent.maHS, { uploadFailed: true, uploadError: fe.message }); } catch (e) { }
-                            await new Promise(r => setTimeout(r, 2500));
-                        }
-                    }
-
                     updateSubmitOverlay('Hoàn tất!', 'Bài thi đã được ghi nhận thành công ✓', 100);
                     await new Promise(r => setTimeout(r, 800));
                     hideSubmitOverlay();
@@ -5049,13 +5259,13 @@
                     </div>
                     <div><label style="font-size:12px;color:var(--text2)"><i class="fas fa-layer-group" style="color:var(--warning)"></i> Khối lớp:</label>
                         <select id="editQLop" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
-                            ${(function(){
-                                let tg = getTeacherAllowedGrades();
-                                let grades = tg ? tg.sort() : ['6','7','8','9'];
-                                let opts = '<option value="" ' + (currentLop === '' ? 'selected' : '') + '>Chung (tất cả)</option>';
-                                grades.forEach(g => { opts += '<option value="' + g + '" ' + (currentLop === g ? 'selected' : '') + '>Khối ' + g + '</option>'; });
-                                return opts;
-                            })()}
+                            ${(function () {
+                    let tg = getTeacherAllowedGrades();
+                    let grades = tg ? tg.sort() : ['6', '7', '8', '9'];
+                    let opts = '<option value="" ' + (currentLop === '' ? 'selected' : '') + '>Chung (tất cả)</option>';
+                    grades.forEach(g => { opts += '<option value="' + g + '" ' + (currentLop === g ? 'selected' : '') + '>Khối ' + g + '</option>'; });
+                    return opts;
+                })()}
                         </select>
                     </div>
                 </div>
@@ -5094,7 +5304,7 @@
                 };
                 await firebaseWrite('questions/' + stt, qData);
                 // Sync GGSheet
-                try { await apiPost('updateQuestion', qData); } catch(se) { console.log('GGSheet sync warning:', se); }
+                try { await apiPost('updateQuestion', qData); } catch (se) { console.log('GGSheet sync warning:', se); }
                 msgEl.innerHTML = '✅ Cập nhật câu ' + stt + ' thành công!'; msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = 'var(--success)';
                 setTimeout(() => { document.getElementById('editStudentModal').style.display = 'none'; loadAllQuestions(); }, 1000);
             } catch (e) {
@@ -5115,7 +5325,7 @@
                         // Xóa Firebase
                         await firebaseWrite('questions/' + stt, null);
                         // Xóa GGSheet
-                        try { await apiCall('deleteQuestionWithSync', { maCH: stt }); } catch(se) { console.log('GGSheet delete warning:', se); }
+                        try { await apiCall('deleteQuestionWithSync', { maCH: stt }); } catch (se) { console.log('GGSheet delete warning:', se); }
                         hideLoading();
                         showPopup('✅ Đã xóa', 'Đã xóa câu hỏi ' + stt, 'success');
                         loadAllQuestions();
@@ -5148,13 +5358,13 @@
                     </div>
                     <div><label style="font-size:12px;color:var(--text2)"><i class="fas fa-layer-group" style="color:var(--warning)"></i> Khối lớp:</label>
                         <select id="addQLop" style="padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;margin-left:8px">
-                            ${(function(){
-                                let tg = getTeacherAllowedGrades();
-                                let grades = tg ? tg.sort() : ['6','7','8','9'];
-                                let opts = '<option value="">Chung (tất cả)</option>';
-                                grades.forEach(g => { opts += '<option value="' + g + '">Khối ' + g + '</option>'; });
-                                return opts;
-                            })()}
+                            ${(function () {
+                    let tg = getTeacherAllowedGrades();
+                    let grades = tg ? tg.sort() : ['6', '7', '8', '9'];
+                    let opts = '<option value="">Chung (tất cả)</option>';
+                    grades.forEach(g => { opts += '<option value="' + g + '">Khối ' + g + '</option>'; });
+                    return opts;
+                })()}
                         </select>
                     </div>
                 </div>
@@ -5487,10 +5697,10 @@
                 html += `<td><code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">${s.maHS}</code></td>`;
                 let tagBadges = '';
                 if (s.tags) {
-                    let tagDefs = {vangThi:{label:'Vắng thi',color:'#f59e0b'},khuyetTat:{label:'Khuyết tật',color:'#3b82f6'},lopTruong:{label:'Lớp trưởng',color:'#10b981'},lopPho:{label:'Lớp phó',color:'#06b6d4'},caBiet:{label:'Cá biệt',color:'#ef4444'},gioi:{label:'Giỏi',color:'#8b5cf6'}};
+                    let tagDefs = { vangThi: { label: 'Vắng thi', color: '#f59e0b' }, khuyetTat: { label: 'Khuyết tật', color: '#3b82f6' }, lopTruong: { label: 'Lớp trưởng', color: '#10b981' }, lopPho: { label: 'Lớp phó', color: '#06b6d4' }, caBiet: { label: 'Cá biệt', color: '#ef4444' }, gioi: { label: 'Giỏi', color: '#8b5cf6' } };
                     Object.keys(s.tags).forEach(t => { if (s.tags[t] && tagDefs[t]) tagBadges += `<span style="display:inline-block;background:${tagDefs[t].color}22;color:${tagDefs[t].color};padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;margin-left:4px;border:1px solid ${tagDefs[t].color}33">${tagDefs[t].label}</span>`; });
                 }
-                let noteIcon = (s.ghiChu || tagBadges) ? '<i class="fas fa-sticky-note" style="color:var(--warning);margin-left:4px;font-size:10px" title="' + (s.ghiChu||'').replace(/"/g,'&quot;') + '"></i>' : '';
+                let noteIcon = (s.ghiChu || tagBadges) ? '<i class="fas fa-sticky-note" style="color:var(--warning);margin-left:4px;font-size:10px" title="' + (s.ghiChu || '').replace(/"/g, '&quot;') + '"></i>' : '';
                 html += `<td><strong style="font-size:13px">${s.hoTen}</strong>${tagBadges}${noteIcon}</td>`;
                 html += `<td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>`;
                 html += `<td>${moThiThatB}</td>`;
@@ -5520,7 +5730,7 @@
                     html += `<button onclick="unlockStudent('${s.maHS}')" style="background:#7c3aed;color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Mở khóa tài khoản"><i class="fas fa-lock-open"></i></button> `;
                 }
                 if (s.hasReal) {
-                    html += `<button onclick="downloadStudentFile('${s.maHS}','${s.lop.replace(/'/g,"\\\\'")}')"
+                    html += `<button onclick="downloadStudentFile('${s.maHS}','${s.lop.replace(/'/g, "\\\\'")}')"
                         style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border:none;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:11px" title="Tải bài làm"><i class="fas fa-download"></i></button> `;
                 }
                 // Nút nhắc nhở HS
@@ -6194,7 +6404,7 @@
 
             let html = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);flex-wrap:wrap">
                 <span onclick="setMonitorFilter('all')" style="${btnStyle('all', 'var(--primary)')}"><i class="fas fa-users"></i> Tất cả <strong>${dashboardData.students.length}</strong></span>
-                <span onclick="setMonitorFilter('online')" style="${btnStyle('online', '#10b981')}"><span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;${f==='online'?'animation:livePulse 1.5s ease-in-out infinite':''}"></span> Online <strong>${onlineCount}</strong></span>
+                <span onclick="setMonitorFilter('online')" style="${btnStyle('online', '#10b981')}"><span style="width:7px;height:7px;background:#10b981;border-radius:50%;display:inline-block;${f === 'online' ? 'animation:livePulse 1.5s ease-in-out infinite' : ''}"></span> Online <strong>${onlineCount}</strong></span>
                 <span onclick="setMonitorFilter('offline')" style="${btnStyle('offline', '#94a3b8')}"><span style="width:7px;height:7px;background:#94a3b8;border-radius:50%;display:inline-block"></span> Offline <strong>${offlineLoggedIn}</strong></span>
                 <span style="color:var(--border)">|</span>
                 <span onclick="setMonitorFilter('submitted')" style="${btnStyle('submitted', '#10b981')}"><i class="fas fa-check-circle"></i> Đã nộp <strong>${submittedCount}</strong></span>
@@ -6550,7 +6760,7 @@
                 let html = '<div style="display:flex;flex-direction:column;gap:10px">';
                 items.forEach(t => {
                     let deletedDate = new Date(t.deletedAt).toLocaleString('vi-VN');
-                    let daysLeft = Math.max(0, Math.ceil((t.autoDeleteAt - Date.now()) / (24*60*60*1000)));
+                    let daysLeft = Math.max(0, Math.ceil((t.autoDeleteAt - Date.now()) / (24 * 60 * 60 * 1000)));
                     let urgColor = daysLeft <= 3 ? 'var(--danger)' : daysLeft <= 7 ? 'var(--warning)' : 'var(--text2)';
                     let tIcon = t.type === 'students' ? 'fa-user-graduate' : (t.type === 'results' ? 'fa-file-alt' : 'fa-flask');
                     let tColor = t.type === 'students' ? 'var(--accent)' : (t.type === 'results' ? 'var(--primary)' : 'var(--warning)');
@@ -6691,12 +6901,12 @@
             let tags = s.tags || {};
             let ghiChu = s.ghiChu || '';
             let tagDefs = [
-                {key:'vangThi', label:'Vắng thi', color:'#f59e0b', icon:'fa-user-slash'},
-                {key:'khuyetTat', label:'Khuyết tật', color:'#3b82f6', icon:'fa-wheelchair'},
-                {key:'lopTruong', label:'Lớp trưởng', color:'#10b981', icon:'fa-star'},
-                {key:'lopPho', label:'Lớp phó', color:'#06b6d4', icon:'fa-star-half-alt'},
-                {key:'caBiet', label:'Cá biệt', color:'#ef4444', icon:'fa-exclamation-triangle'},
-                {key:'gioi', label:'Giỏi', color:'#8b5cf6', icon:'fa-award'}
+                { key: 'vangThi', label: 'Vắng thi', color: '#f59e0b', icon: 'fa-user-slash' },
+                { key: 'khuyetTat', label: 'Khuyết tật', color: '#3b82f6', icon: 'fa-wheelchair' },
+                { key: 'lopTruong', label: 'Lớp trưởng', color: '#10b981', icon: 'fa-star' },
+                { key: 'lopPho', label: 'Lớp phó', color: '#06b6d4', icon: 'fa-star-half-alt' },
+                { key: 'caBiet', label: 'Cá biệt', color: '#ef4444', icon: 'fa-exclamation-triangle' },
+                { key: 'gioi', label: 'Giỏi', color: '#8b5cf6', icon: 'fa-award' }
             ];
             let chipsHtml = tagDefs.map(t => {
                 let active = tags[t.key];
@@ -7093,7 +7303,7 @@
                 let wb = XLSX.utils.book_new();
                 let sheetName = isPractice ? 'Thi_Thu' : 'Thi_That';
                 XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                let fileName = 'KetQua_' + sheetName + '_' + new Date().toISOString().slice(0,10) + '.xlsx';
+                let fileName = 'KetQua_' + sheetName + '_' + new Date().toISOString().slice(0, 10) + '.xlsx';
                 XLSX.writeFile(wb, fileName);
                 showPopup('Thành công', 'Đã tải <strong>' + fileName + '</strong> (' + results.length + ' kết quả)', 'success');
                 btn.innerHTML = '<i class="fas fa-check"></i> Đã xuất!';
@@ -7331,7 +7541,7 @@
                     fileData: '', fileName: '', fileMimeType: ''
                 };
                 updateSubmitOverlay('Đang gửi đáp án...', 'Bài thi hết giờ, đang nộp tự động', 40);
-                let resp = await apiCall('submitExam', { examData: encodeURIComponent(JSON.stringify(examData)) });
+                let resp = await apiPostSubmit(examData);
                 if (resp.success) {
                     // Upload file if exists
                     if (!isPracticeMode && uploadedFile) {
@@ -7822,14 +8032,14 @@
             let s = dashboardData && dashboardData.students ? dashboardData.students.find(x => x.maHS === maHS) : null;
             let displayName = s ? s.hoTen + ' (' + maHS + ')' : maHS;
             let quickMsgs = [
-                {icon:'⚠️', text:'Em đang bị phát hiện gian lận!', color:'#ef4444'},
-                {icon:'👀', text:'Tập trung làm bài, không nhìn sang!', color:'#f59e0b'},
-                {icon:'📵', text:'Không sử dụng điện thoại!', color:'#8b5cf6'},
-                {icon:'🔇', text:'Giữ trật tự phòng thi!', color:'#3b82f6'},
-                {icon:'⏰', text:'Hãy nhanh chóng hoàn thành bài làm!', color:'#10b981'}
+                { icon: '⚠️', text: 'Em đang bị phát hiện gian lận!', color: '#ef4444' },
+                { icon: '👀', text: 'Tập trung làm bài, không nhìn sang!', color: '#f59e0b' },
+                { icon: '📵', text: 'Không sử dụng điện thoại!', color: '#8b5cf6' },
+                { icon: '🔇', text: 'Giữ trật tự phòng thi!', color: '#3b82f6' },
+                { icon: '⏰', text: 'Hãy nhanh chóng hoàn thành bài làm!', color: '#10b981' }
             ];
             let quickHtml = quickMsgs.map(m =>
-                `<button onclick="sendWarning('${maHS}','${m.icon} ${m.text.replace(/'/g,"\\'")}');document.getElementById('warnModal')?.remove()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border-radius:10px;border:1px solid ${m.color}33;background:${m.color}0a;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;text-align:left;transition:.15s" onmouseover="this.style.background='${m.color}18'" onmouseout="this.style.background='${m.color}0a'"><span style="font-size:18px">${m.icon}</span><span>${m.text}</span></button>`
+                `<button onclick="sendWarning('${maHS}','${m.icon} ${m.text.replace(/'/g, "\\'")}');document.getElementById('warnModal')?.remove()" style="display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;border-radius:10px;border:1px solid ${m.color}33;background:${m.color}0a;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;text-align:left;transition:.15s" onmouseover="this.style.background='${m.color}18'" onmouseout="this.style.background='${m.color}0a'"><span style="font-size:18px">${m.icon}</span><span>${m.text}</span></button>`
             ).join('');
             let modal = document.createElement('div');
             modal.id = 'warnModal';
@@ -7895,7 +8105,7 @@
                     osc.stop(ctx.currentTime + start + dur);
                 };
                 playBeep(880, 0, 0.12); playBeep(1100, 0.15, 0.12); playBeep(880, 0.30, 0.12); playBeep(1100, 0.45, 0.2);
-            } catch(e) {}
+            } catch (e) { }
             // Do NOT auto-hide — student must click 'Đã hiểu'
         }
 
@@ -7903,7 +8113,7 @@
             let bar = document.getElementById('studentWarningBar');
             if (bar) bar.classList.remove('show');
             if (currentStudent && currentStudent.maHS) {
-                try { await firebaseUpdate('students/' + currentStudent.maHS, { warning: null }); } catch(e) {}
+                try { await firebaseUpdate('students/' + currentStudent.maHS, { warning: null }); } catch (e) { }
             }
         }
 
@@ -8387,7 +8597,7 @@
                         if (pe.fileId) {
                             viewerUrl = 'https://drive.google.com/file/d/' + pe.fileId + '/preview';
                         }
-                        html += `<button onclick="openPracticeExamViewer('${viewerUrl.replace(/'/g, "\\'") }','${(pe.title || '').replace(/'/g, "\\'")}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer"><i class="fas fa-eye"></i> Xem đề trực tiếp</button>`;
+                        html += `<button onclick="openPracticeExamViewer('${viewerUrl.replace(/'/g, "\\'")}','${(pe.title || '').replace(/'/g, "\\'")}')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer"><i class="fas fa-eye"></i> Xem đề trực tiếp</button>`;
                         html += `<a href="${pe.fileUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;background:var(--bg3);color:var(--text);border-radius:12px;font-size:13px;font-weight:600;text-decoration:none;border:1px solid var(--border)"><i class="fas fa-download"></i> Tải về</a>`;
                     }
                     html += `</div></div>`;
@@ -8442,7 +8652,7 @@
                 let classBadges = classes.map(c => '<span style="display:inline-block;padding:2px 8px;background:rgba(99,102,241,0.15);color:#818cf8;border-radius:6px;font-size:11px;margin:2px">' + c + '</span>').join('');
                 html += `<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
                     <div style="flex:0 0 60px;text-align:center">
-                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;margin:0 auto">${t.maGV.replace(/[^0-9]/g, '') || (idx+1)}</div>
+                        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;margin:0 auto">${t.maGV.replace(/[^0-9]/g, '') || (idx + 1)}</div>
                         <div style="font-size:10px;color:var(--text2);margin-top:4px">${t.maGV}</div>
                     </div>
                     <div style="flex:1;min-width:200px">
@@ -8487,7 +8697,7 @@
             try {
                 await firebaseUpdate('teachers/' + maGV, { hoTen, matKhau, lopPhuTrach });
                 // Sync to GGSheet
-                try { await apiCall('saveTeacher', { maGV, hoTen, matKhau, lopPhuTrach }); } catch(se) { console.log('GGSheet sync warning:', se); }
+                try { await apiCall('saveTeacher', { maGV, hoTen, matKhau, lopPhuTrach }); } catch (se) { console.log('GGSheet sync warning:', se); }
                 msgEl.style.display = 'block'; msgEl.style.background = 'rgba(16,185,129,0.15)'; msgEl.style.color = '#10b981';
                 msgEl.textContent = '✅ Đã lưu giáo viên ' + maGV + ' thành công!';
                 // Clear form
@@ -8521,7 +8731,7 @@
             showConfirmPopup('Xóa giáo viên', 'Bạn có chắc muốn xóa <strong>' + maGV + '</strong>?', async () => {
                 try {
                     await firebaseDelete('teachers/' + maGV);
-                    try { await apiCall('deleteTeacher', { maGV }); } catch(se) { console.log('GGSheet sync warning:', se); }
+                    try { await apiCall('deleteTeacher', { maGV }); } catch (se) { console.log('GGSheet sync warning:', se); }
                     showPopup('Thành công', 'Đã xóa giáo viên ' + maGV, 'success');
                     await loadTeachersList();
                 } catch (e) {
@@ -9033,7 +9243,7 @@
                         showPopup('🔒 Chat bị khóa', 'Giáo viên đã khóa tính năng chat trong giờ thi.<br><small>Liên hệ trực tiếp với GV nếu cần hỗ trợ.</small>', 'warning');
                         return;
                     }
-                } catch(e) {}
+                } catch (e) { }
             }
             let popup = document.getElementById('supportChatPopup');
             _chatOpen = !_chatOpen;
@@ -9114,7 +9324,7 @@
             let html = '';
             msgs.forEach(m => {
                 let isMe = (viewAs === 'student' && m.sender === 'student') || (viewAs === 'teacher' && m.sender === 'teacher');
-                let time = m.time ? new Date(m.time).toLocaleTimeString('vi-VN', {hour:'2-digit',minute:'2-digit'}) : '';
+                let time = m.time ? new Date(m.time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '';
                 let align = isMe ? 'flex-end' : 'flex-start';
                 let bg = isMe ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : 'var(--bg)';
                 let color = isMe ? '#fff' : 'var(--text)';
@@ -9123,7 +9333,7 @@
                 let nameLabel = m.senderName || (m.sender === 'teacher' ? 'Gi\u00e1o vi\u00ean' : 'H\u1ecdc sinh');
                 html += `<div style="display:flex;flex-direction:column;align-items:${align};margin-bottom:8px">
                     <div style="font-size:10px;color:var(--text2);margin-bottom:2px;display:flex;align-items:center;gap:4px">${icon} ${nameLabel}</div>
-                    <div style="max-width:85%;padding:8px 12px;border-radius:${isMe?'12px 12px 2px 12px':'12px 12px 12px 2px'};background:${bg};color:${color};border:${border};font-size:13px;line-height:1.5;word-break:break-word">${m.text}</div>
+                    <div style="max-width:85%;padding:8px 12px;border-radius:${isMe ? '12px 12px 2px 12px' : '12px 12px 12px 2px'};background:${bg};color:${color};border:${border};font-size:13px;line-height:1.5;word-break:break-word">${m.text}</div>
                     <div style="font-size:9px;color:var(--text2);margin-top:2px">${time}</div>
                 </div>`;
             });
@@ -9142,7 +9352,7 @@
             try {
                 let stu = await firebaseRead('students/' + _chatMaHS);
                 if (stu && stu.hoTen) sName = stu.hoTen;
-            } catch(e) {}
+            } catch (e) { }
             await firebasePush('supportChat/' + _chatMaHS + '/messages', {
                 sender: 'student', senderName: sName, text: text, time: Date.now()
             });
@@ -9150,7 +9360,7 @@
             await firebaseUpdate('supportChat/' + _chatMaHS, {
                 maHS: _chatMaHS, hoTen: sName, status: 'open',
                 lastMessage: text, lastTime: Date.now(),
-                unreadByTeacher: (_chatMessages.filter(m=>m.sender==='student').length + 1)
+                unreadByTeacher: (_chatMessages.filter(m => m.sender === 'student').length + 1)
             });
         }
 
@@ -9181,7 +9391,7 @@
             let container = document.getElementById('supportChatListContainer');
             container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text2)"><i class="fas fa-spinner fa-spin"></i></div>';
             let chatData = await firebaseRead('supportChat') || {};
-            let chats = Object.entries(chatData).map(([k, v]) => ({maHS: k, ...v})).filter(c => c.messages);
+            let chats = Object.entries(chatData).map(([k, v]) => ({ maHS: k, ...v })).filter(c => c.messages);
             chats.sort((a, b) => (b.lastTime || 0) - (a.lastTime || 0));
 
             if (!chats.length) {
@@ -9222,7 +9432,7 @@
             try {
                 let stu = await firebaseRead('students/' + maHS);
                 if (stu) document.getElementById('teacherChatTitle').textContent = (stu.hoTen || maHS) + ' (' + maHS + ')';
-            } catch(e) {}
+            } catch (e) { }
             // Clear unread
             firebaseUpdate('supportChat/' + maHS, { unreadByTeacher: 0 });
             updateSupportBadge();
@@ -9284,7 +9494,7 @@
                     if (_activeChatMaHS === maHS) backToSupportList();
                     else loadSupportChatList();
                     updateSupportBadge();
-                } catch(e) { showPopup('Lỗi', e.message, 'error'); }
+                } catch (e) { showPopup('Lỗi', e.message, 'error'); }
             }, 'Xóa', 'Hủy', 'danger');
         }
 
@@ -9296,7 +9506,7 @@
                     if (_activeChatMaHS) backToSupportList();
                     else loadSupportChatList();
                     updateSupportBadge();
-                } catch(e) { showPopup('Lỗi', e.message, 'error'); }
+                } catch (e) { showPopup('Lỗi', e.message, 'error'); }
             }, 'Xóa tất cả', 'Hủy', 'danger');
         }
 
@@ -9313,7 +9523,7 @@
                     });
                     await firebaseUpdate('supportChat/' + _activeChatMaHS, { lastMessage: '[H\u1ec7 th\u1ed1ng] \u0110\u00e3 reset m\u1eadt kh\u1ea9u', lastTime: Date.now() });
                     showPopup('\u2705 Th\u00e0nh c\u00f4ng', '\u0110\u00e3 reset m\u1eadt kh\u1ea9u c\u1ee7a ' + _activeChatMaHS + ' v\u1ec1 m\u1ea1c \u0111\u1ecbnh.', 'success');
-                } catch(e) { showPopup('L\u1ed7i', e.message, 'error'); }
+                } catch (e) { showPopup('L\u1ed7i', e.message, 'error'); }
             }, 'Reset', 'H\u1ee7y');
         }
 
@@ -9332,7 +9542,7 @@
                         badge.style.display = 'none';
                     }
                 }
-            } catch(e) {}
+            } catch (e) { }
         }
 
         // Start support badge polling for teachers
@@ -9359,7 +9569,7 @@
             try {
                 await firebaseUpdate('settings', { lockChat: isOn });
                 showSettingsMsg(isOn ? '🔒 Đã khóa chat – HS không thể nhắn tin' : '🔓 Đã mở chat – HS có thể nhắn tin', '#10b981');
-            } catch(e) { showSettingsMsg('Lỗi: ' + e.message, 'var(--danger)'); }
+            } catch (e) { showSettingsMsg('Lỗi: ' + e.message, 'var(--danger)'); }
         }
         function updateLockChatToggleVisual(isOn) {
             let bg = document.querySelector('#toggleLockChat')?.parentElement?.querySelector('span');
@@ -9411,7 +9621,7 @@
                     msg.style.color = '#fca5a5';
                     msg.textContent = data.message || 'Lỗi migrate!';
                 }
-            } catch(e) {
+            } catch (e) {
                 let msg = document.getElementById('migrateMsg');
                 msg.style.display = 'block';
                 msg.style.background = 'rgba(239,68,68,0.15)';
@@ -9447,19 +9657,19 @@
                 } else {
                     let html = '';
                     _examConfigQuestions.forEach((q, i) => {
-                        let maCH = q.stt ? q.stt.toString() : (i+1).toString();
+                        let maCH = q.stt ? q.stt.toString() : (i + 1).toString();
                         let checked = selectedSet[maCH] ? 'checked' : '';
-                        let tag = q.lop ? '<span style="font-size:10px;background:rgba(99,102,241,0.15);color:var(--primary);padding:2px 6px;border-radius:4px;margin-left:4px">K'+q.lop+'</span>' : '<span style="font-size:10px;background:rgba(245,158,11,0.15);color:var(--warning);padding:2px 6px;border-radius:4px;margin-left:4px">Chung</span>';
+                        let tag = q.lop ? '<span style="font-size:10px;background:rgba(99,102,241,0.15);color:var(--primary);padding:2px 6px;border-radius:4px;margin-left:4px">K' + q.lop + '</span>' : '<span style="font-size:10px;background:rgba(245,158,11,0.15);color:var(--warning);padding:2px 6px;border-radius:4px;margin-left:4px">Chung</span>';
                         html += '<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px">'
-                            + '<input type="checkbox" class="examConfigCB" data-mach="'+maCH+'" '+checked+' onchange="examConfigUpdateCount()" style="accent-color:var(--success);margin-top:3px;flex-shrink:0">'
-                            + '<div style="flex:1"><div style="font-weight:600;font-size:12px;color:var(--text2);margin-bottom:2px">'+maCH+tag+'</div>'
-                            + '<div style="color:var(--text);line-height:1.4">'+(q.noiDung||'').substring(0,120)+(q.noiDung&&q.noiDung.length>120?'...':'')+'</div></div></label>';
+                            + '<input type="checkbox" class="examConfigCB" data-mach="' + maCH + '" ' + checked + ' onchange="examConfigUpdateCount()" style="accent-color:var(--success);margin-top:3px;flex-shrink:0">'
+                            + '<div style="flex:1"><div style="font-weight:600;font-size:12px;color:var(--text2);margin-bottom:2px">' + maCH + tag + '</div>'
+                            + '<div style="color:var(--text);line-height:1.4">' + (q.noiDung || '').substring(0, 120) + (q.noiDung && q.noiDung.length > 120 ? '...' : '') + '</div></div></label>';
                     });
                     container.innerHTML = html;
                 }
                 document.getElementById('examConfigBadge').textContent = _examConfigQuestions.length + ' câu cho khối ' + grade;
                 examConfigUpdateCount();
-            } catch(e) {
+            } catch (e) {
                 document.getElementById('examConfigBadge').textContent = 'Lỗi: ' + e.message;
             }
         }
@@ -9494,7 +9704,7 @@
                     msg.style.background = 'rgba(239,68,68,0.15)'; msg.style.border = '1px solid rgba(239,68,68,0.3)'; msg.style.color = '#fca5a5';
                 }
                 msg.textContent = data.message || 'Lỗi!';
-            } catch(e) {
+            } catch (e) {
                 let msg = document.getElementById('examConfigMsg');
                 msg.style.display = 'block'; msg.style.background = 'rgba(239,68,68,0.15)'; msg.style.border = '1px solid rgba(239,68,68,0.3)'; msg.style.color = '#fca5a5';
                 msg.textContent = 'Lỗi: ' + e.message;
@@ -9504,69 +9714,151 @@
     </script>
 
     <style>
-        .typing-dots { display:inline-flex; margin-left:2px }
-        .typing-dots span { animation:typingBounce .6s ease-in-out infinite; font-weight:900; font-size:14px }
-        .typing-dots span:nth-child(2) { animation-delay:.15s }
-        .typing-dots span:nth-child(3) { animation-delay:.3s }
+        .typing-dots {
+            display: inline-flex;
+            margin-left: 2px
+        }
+
+        .typing-dots span {
+            animation: typingBounce .6s ease-in-out infinite;
+            font-weight: 900;
+            font-size: 14px
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: .15s
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: .3s
+        }
+
         @keyframes typingBounce {
-            0%,80%,100% { opacity:.3; transform:translateY(0) }
-            40% { opacity:1; transform:translateY(-3px) }
+
+            0%,
+            80%,
+            100% {
+                opacity: .3;
+                transform: translateY(0)
+            }
+
+            40% {
+                opacity: 1;
+                transform: translateY(-3px)
+            }
         }
     </style>
 
     <!-- ===== FLOATING SUPPORT CHAT WIDGET ===== -->
     <style>
         .chat-fab {
-            position:fixed; bottom:24px; right:24px; z-index:99999;
-            width:60px; height:60px; border-radius:50%;
-            background:linear-gradient(135deg,#7c3aed,#6366f1,#4f46e5);
-            color:#fff; display:flex; align-items:center; justify-content:center;
-            cursor:pointer; font-size:24px; border:none;
-            box-shadow: 0 0 15px rgba(99,102,241,0.5), 0 0 30px rgba(99,102,241,0.25), 0 4px 15px rgba(0,0,0,0.3);
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 99999;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #6366f1, #4f46e5);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            border: none;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5), 0 0 30px rgba(99, 102, 241, 0.25), 0 4px 15px rgba(0, 0, 0, 0.3);
             animation: chatGlow 2.5s ease-in-out infinite;
             transition: transform .3s ease, box-shadow .3s ease;
         }
+
         .chat-fab:hover {
             transform: scale(1.12);
-            box-shadow: 0 0 25px rgba(99,102,241,0.7), 0 0 50px rgba(99,102,241,0.35), 0 8px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 0 25px rgba(99, 102, 241, 0.7), 0 0 50px rgba(99, 102, 241, 0.35), 0 8px 25px rgba(0, 0, 0, 0.3);
         }
+
         @keyframes chatGlow {
-            0%,100% { box-shadow: 0 0 15px rgba(99,102,241,0.5), 0 0 30px rgba(99,102,241,0.2), 0 4px 15px rgba(0,0,0,0.3) }
-            50%     { box-shadow: 0 0 25px rgba(124,58,237,0.7), 0 0 50px rgba(124,58,237,0.3), 0 4px 20px rgba(0,0,0,0.3) }
+
+            0%,
+            100% {
+                box-shadow: 0 0 15px rgba(99, 102, 241, 0.5), 0 0 30px rgba(99, 102, 241, 0.2), 0 4px 15px rgba(0, 0, 0, 0.3)
+            }
+
+            50% {
+                box-shadow: 0 0 25px rgba(124, 58, 237, 0.7), 0 0 50px rgba(124, 58, 237, 0.3), 0 4px 20px rgba(0, 0, 0, 0.3)
+            }
         }
+
         /* Double pulse rings */
         .chat-ring {
-            position:fixed; bottom:24px; right:24px; z-index:99998;
-            width:60px; height:60px; border-radius:50%;
-            border:2px solid rgba(99,102,241,0.5);
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 99998;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid rgba(99, 102, 241, 0.5);
             animation: chatRingPulse 2.5s ease-out infinite;
-            pointer-events:none;
+            pointer-events: none;
         }
+
         .chat-ring-outer {
             animation-delay: .4s;
-            border-color: rgba(124,58,237,0.3);
+            border-color: rgba(124, 58, 237, 0.3);
         }
+
         @keyframes chatRingPulse {
-            0%   { transform:scale(1); opacity:0.6 }
-            70%  { transform:scale(1.7); opacity:0 }
-            100% { transform:scale(1.7); opacity:0 }
+            0% {
+                transform: scale(1);
+                opacity: 0.6
+            }
+
+            70% {
+                transform: scale(1.7);
+                opacity: 0
+            }
+
+            100% {
+                transform: scale(1.7);
+                opacity: 0
+            }
         }
+
         /* Hover tooltip */
         .chat-tooltip {
-            position:fixed; bottom:44px; right:88px; z-index:99999;
-            background:var(--card); color:var(--text); font-size:12px; font-weight:600;
-            padding:6px 14px; border-radius:8px; border:1px solid var(--border);
-            box-shadow:0 4px 16px rgba(0,0,0,0.25);
-            white-space:nowrap; pointer-events:none;
-            opacity:0; transform:translateX(8px);
+            position: fixed;
+            bottom: 44px;
+            right: 88px;
+            z-index: 99999;
+            background: var(--card);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateX(8px);
             transition: opacity .25s ease, transform .25s ease;
         }
+
         .chat-tooltip::after {
-            content:''; position:absolute; right:-6px; top:50%; transform:translateY(-50%);
-            border:6px solid transparent; border-left-color:var(--card);
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+            border-left-color: var(--card);
         }
-        .chat-fab:hover + .chat-ring + .chat-ring + .chat-tooltip {
-            opacity:1; transform:translateX(0);
+
+        .chat-fab:hover+.chat-ring+.chat-ring+.chat-tooltip {
+            opacity: 1;
+            transform: translateX(0);
         }
     </style>
     <div class="chat-fab" id="supportChatFab" onclick="toggleSupportChat()">
@@ -9577,10 +9869,14 @@
     <div class="chat-tooltip">💬 Cần hỗ trợ?</div>
 
     <!-- Chat Popup -->
-    <div id="supportChatPopup" style="display:none;position:fixed;bottom:90px;right:24px;z-index:99999;width:360px;max-height:500px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);flex-direction:column;overflow:hidden;animation:slideUp .3s ease">
+    <div id="supportChatPopup"
+        style="display:none;position:fixed;bottom:90px;right:24px;z-index:99999;width:360px;max-height:500px;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);flex-direction:column;overflow:hidden;animation:slideUp .3s ease">
         <!-- Header -->
-        <div style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:16px 20px;display:flex;align-items:center;gap:10px">
-            <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center"><i class="fas fa-headset" style="color:#fff;font-size:16px"></i></div>
+        <div
+            style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:16px 20px;display:flex;align-items:center;gap:10px">
+            <div
+                style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center">
+                <i class="fas fa-headset" style="color:#fff;font-size:16px"></i></div>
             <div style="flex:1">
                 <div style="color:#fff;font-weight:700;font-size:14px">Hỗ trợ trực tuyến</div>
                 <div style="color:rgba(255,255,255,0.7);font-size:11px">Nhắn tin cho giáo viên</div>
@@ -9588,33 +9884,57 @@
             <span id="chatHeaderName" style="color:rgba(255,255,255,0.8);font-size:11px;font-weight:600"></span>
         </div>
         <!-- Connect panel: enter maHS -->
-        <div id="chatConnectPanel" style="display:flex;flex-direction:column;align-items:center;padding:30px 20px;gap:12px">
+        <div id="chatConnectPanel"
+            style="display:flex;flex-direction:column;align-items:center;padding:30px 20px;gap:12px">
             <i class="fas fa-user-graduate" style="font-size:36px;color:var(--primary);opacity:.5"></i>
-            <p style="color:var(--text2);font-size:13px;text-align:center;margin:0">Nhập mã học sinh để kết nối với giáo viên</p>
-            <input type="text" id="chatMaHSInput" placeholder="VD: 9A3001" onfocus="autoFillChatMaHS()" style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;text-align:center;box-sizing:border-box">
-            <button onclick="connectStudentChat()" style="width:100%;padding:10px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit"><i class="fas fa-plug"></i> Kết nối</button>
+            <p style="color:var(--text2);font-size:13px;text-align:center;margin:0">Nhập mã học sinh để kết nối với giáo
+                viên</p>
+            <input type="text" id="chatMaHSInput" placeholder="VD: 9A3001" onfocus="autoFillChatMaHS()"
+                style="width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;text-align:center;box-sizing:border-box">
+            <button onclick="connectStudentChat()"
+                style="width:100%;padding:10px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit"><i
+                    class="fas fa-plug"></i> Kết nối</button>
         </div>
         <!-- Messages panel -->
         <div id="chatMessagesPanel" style="display:none;flex-direction:column;flex:1;min-height:0">
-            <div id="chatMsgList" style="flex:1;overflow-y:auto;padding:12px 14px;min-height:250px;max-height:320px"></div>
-            <div id="studentTypingIndicator" style="display:none;align-items:center;gap:6px;padding:4px 14px;font-size:11px;color:var(--text2)"><i class="fas fa-chalkboard-teacher" style="font-size:9px"></i> Giáo viên đang gõ<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>
+            <div id="chatMsgList" style="flex:1;overflow-y:auto;padding:12px 14px;min-height:250px;max-height:320px">
+            </div>
+            <div id="studentTypingIndicator"
+                style="display:none;align-items:center;gap:6px;padding:4px 14px;font-size:11px;color:var(--text2)"><i
+                    class="fas fa-chalkboard-teacher" style="font-size:9px"></i> Giáo viên đang gõ<span
+                    class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>
             <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
-                <button onclick="disconnectStudentChat()" style="background:var(--bg3);border:none;color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;flex-shrink:0;font-size:12px" title="Ngắt kết nối"><i class="fas fa-arrow-left"></i></button>
-                <input type="text" id="chatStudentInput" placeholder="Nhập tin nhắn..." oninput="onStudentTyping()" onkeydown="if(event.key==='Enter')sendStudentMessage()" style="flex:1;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
-                <button onclick="sendStudentMessage()" style="background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;flex-shrink:0;font-size:13px"><i class="fas fa-paper-plane"></i></button>
+                <button onclick="disconnectStudentChat()"
+                    style="background:var(--bg3);border:none;color:var(--text2);width:32px;height:32px;border-radius:50%;cursor:pointer;flex-shrink:0;font-size:12px"
+                    title="Ngắt kết nối"><i class="fas fa-arrow-left"></i></button>
+                <input type="text" id="chatStudentInput" placeholder="Nhập tin nhắn..." oninput="onStudentTyping()"
+                    onkeydown="if(event.key==='Enter')sendStudentMessage()"
+                    style="flex:1;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+                <button onclick="sendStudentMessage()"
+                    style="background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;flex-shrink:0;font-size:13px"><i
+                        class="fas fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
     <!-- ===== TEACHER SUPPORT CHAT MODAL ===== -->
-    <div id="supportChatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;max-width:600px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .3s ease">
+    <div id="supportChatModal"
+        style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:10001;align-items:center;justify-content:center;padding:20px">
+        <div
+            style="background:var(--card);border:1px solid var(--border);border-radius:20px;max-width:600px;width:100%;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;animation:slideUp .3s ease">
             <!-- Modal header -->
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-                <h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-headset" style="color:var(--primary)"></i> Chat hỗ trợ học sinh</h3>
+            <div
+                style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+                <h3 style="margin:0;font-size:16px;display:flex;align-items:center;gap:8px"><i class="fas fa-headset"
+                        style="color:var(--primary)"></i> Chat hỗ trợ học sinh</h3>
                 <div style="display:flex;gap:6px;align-items:center">
-                    <button onclick="deleteAllSupportChats()" style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:var(--danger);padding:5px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap" title="Xóa tất cả cuộc trò chuyện"><i class="fas fa-trash-alt" style="margin-right:3px"></i> Xóa tất cả</button>
-                    <button onclick="closeSupportChatModal()" style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-times"></i></button>
+                    <button onclick="deleteAllSupportChats()"
+                        style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:var(--danger);padding:5px 10px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"
+                        title="Xóa tất cả cuộc trò chuyện"><i class="fas fa-trash-alt" style="margin-right:3px"></i> Xóa
+                        tất cả</button>
+                    <button onclick="closeSupportChatModal()"
+                        style="background:var(--bg3);border:none;color:var(--text);width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:14px"><i
+                            class="fas fa-times"></i></button>
                 </div>
             </div>
             <!-- Chat list -->
@@ -9623,17 +9943,32 @@
             </div>
             <!-- Chat thread -->
             <div id="supportChatThreadPanel" style="display:none;flex-direction:column;flex:1;min-height:0">
-                <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
-                    <button onclick="backToSupportList()" style="background:var(--bg3);border:none;color:var(--text);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:12px"><i class="fas fa-arrow-left"></i></button>
+                <div
+                    style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+                    <button onclick="backToSupportList()"
+                        style="background:var(--bg3);border:none;color:var(--text);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:12px"><i
+                            class="fas fa-arrow-left"></i></button>
                     <strong id="teacherChatTitle" style="flex:1;font-size:14px"></strong>
-                    <button onclick="quickResetPassword()" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:var(--warning);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap" title="Reset mật khẩu về mã HS"><i class="fas fa-key"></i> Reset MK</button>
-                    <button onclick="resolveChat()" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:var(--success);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"><i class="fas fa-check"></i> Đã xử lý</button>
+                    <button onclick="quickResetPassword()"
+                        style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:var(--warning);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"
+                        title="Reset mật khẩu về mã HS"><i class="fas fa-key"></i> Reset MK</button>
+                    <button onclick="resolveChat()"
+                        style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:var(--success);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap"><i
+                            class="fas fa-check"></i> Đã xử lý</button>
                 </div>
-                <div id="teacherChatMsgList" style="flex:1;overflow-y:auto;padding:12px 14px;min-height:300px;max-height:400px"></div>
-                <div id="teacherTypingIndicator" style="display:none;align-items:center;gap:6px;padding:4px 14px;font-size:11px;color:var(--text2)"><i class="fas fa-user-graduate" style="font-size:9px"></i> Học sinh đang gõ<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>
+                <div id="teacherChatMsgList"
+                    style="flex:1;overflow-y:auto;padding:12px 14px;min-height:300px;max-height:400px"></div>
+                <div id="teacherTypingIndicator"
+                    style="display:none;align-items:center;gap:6px;padding:4px 14px;font-size:11px;color:var(--text2)">
+                    <i class="fas fa-user-graduate" style="font-size:9px"></i> Học sinh đang gõ<span
+                        class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>
                 <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px">
-                    <input type="text" id="teacherChatInput" placeholder="Trả lời học sinh..." oninput="onTeacherTyping()" onkeydown="if(event.key==='Enter')sendTeacherMessage()" style="flex:1;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
-                    <button onclick="sendTeacherMessage()" style="background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:14px"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="teacherChatInput" placeholder="Trả lời học sinh..."
+                        oninput="onTeacherTyping()" onkeydown="if(event.key==='Enter')sendTeacherMessage()"
+                        style="flex:1;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--text);font-size:13px;font-family:inherit;outline:none;box-sizing:border-box">
+                    <button onclick="sendTeacherMessage()"
+                        style="background:linear-gradient(135deg,#6366f1,#4f46e5);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:14px"><i
+                            class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
