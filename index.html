@@ -3584,8 +3584,41 @@
             if (currentStudent && currentStudent.sessionToken && !examData.sessionToken) {
                 examData.sessionToken = currentStudent.sessionToken;
             }
-            return await apiCall('submitExam', examData, { forcePost: true });
+            // Retry 3 lần với exponential backoff: 2s, 4s
+            // Lý do: GAS có thể bận (nhiều HS nộp cùng lúc) hoặc mạng chập chờn
+            const MAX_TRIES = 3;
+            let lastErr = null;
+            for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+                try {
+                    if (attempt > 0) {
+                        let waitSec = attempt * 2;
+                        updateSubmitOverlay(
+                            `Đang thử lại (${attempt}/${MAX_TRIES - 1})...`,
+                            `Kết nối chập chờn, đang thử lại sau ${waitSec} giây...`,
+                            30 + attempt * 10
+                        );
+                        await new Promise(r => setTimeout(r, waitSec * 1000));
+                    }
+                    let resp = await apiCall('submitExam', examData, { forcePost: true });
+                    // Nếu server báo "đã nộp rồi" → không retry (idempotent)
+                    if (!resp.success && resp.alreadySubmitted) return resp;
+                    // Nếu thành công → trả về luôn
+                    if (resp.success) return resp;
+                    // Server lỗi logic (không phải network) → không retry
+                    if (resp.message && !resp.message.includes('bận') && !resp.message.includes('timeout') && !resp.message.includes('⏳')) {
+                        return resp;
+                    }
+                    lastErr = new Error(resp.message || 'Server lỗi');
+                } catch (e) {
+                    lastErr = e;
+                    console.warn(`apiPostSubmit attempt ${attempt + 1} failed:`, e.message);
+                    // Nếu là lần cuối → throw
+                    if (attempt === MAX_TRIES - 1) throw e;
+                }
+            }
+            throw lastErr || new Error('Nộp bài thất bại sau 3 lần thử!');
         }
+
 
         // ============== ĐĂNG NHẬP ==============
         function switchLoginTab(tab) {
@@ -4252,8 +4285,17 @@
                 let resp = await apiPostSubmit(examData);
 
                 if (resp.success) {
-                    updateSubmitOverlay('Hoàn tất!', 'Bài thi đã được ghi nhận thành công ✓', 100);
-                    await new Promise(r => setTimeout(r, 800));
+                    // Xác định trạng thái file để hiển thị cho HS
+                    let fileStatusMsg = '';
+                    if (!isPracticeMode) {
+                        if (resp.driveFileId) {
+                            fileStatusMsg = `<br><span style="color:#10b981;font-size:13px">✅ File thực hành đã lưu thành công</span>`;
+                        } else if (resp.fileVerified === false && uploadedFile) {
+                            fileStatusMsg = `<br><span style="color:#f59e0b;font-size:13px">⚠️ File chưa lưu được — sẽ yêu cầu nộp lại</span>`;
+                        }
+                    }
+                    updateSubmitOverlay('✅ Hoàn tất!', 'Bài thi đã được ghi nhận thành công ✓' + fileStatusMsg, 100);
+                    await new Promise(r => setTimeout(r, 1000));
                     hideSubmitOverlay();
                     stopAntiCheat();
                     stopSessionManagement();
@@ -4267,6 +4309,17 @@
                     } else {
                         let btnView = document.getElementById('btnViewResults');
                         if (btnView) btnView.style.display = 'inline-flex';
+                        // Cập nhật text trên successScreen để HS biết tình trạng file
+                        let successPara = document.querySelector('#successScreen .success-container > p');
+                        if (successPara && !isPracticeMode) {
+                            if (resp.driveFileId) {
+                                successPara.innerHTML = `Bài thi và file thực hành của bạn đã được ghi nhận.<br><span style="color:var(--success);font-size:14px">✅ File đã xác nhận lưu thành công</span><br><span style="font-size:11px;color:var(--text2)">Cảm ơn bạn đã hoàn thành bài kiểm tra.</span>`;
+                            } else if (!resp.fileVerified) {
+                                successPara.innerHTML = `Bài thi đã được ghi nhận.<br><span style="color:var(--warning);font-size:14px">⚠️ File thực hành chưa lưu được — xem cảnh báo bên dưới.</span>`;
+                            } else {
+                                successPara.innerHTML = `Bài thi của bạn đã được ghi nhận.<br>Cảm ơn bạn đã hoàn thành bài kiểm tra.`;
+                            }
+                        }
                         showScreen('successScreen');
                         // B2 FIX: fileVerified giờ được server set đúng
                         if (resp.fileVerified === false && !isPracticeMode) {
