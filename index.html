@@ -1881,13 +1881,13 @@
             <div id="examPart2" class="exam-card" style="display:none">
                 <h3 style="margin-bottom:8px"><i class="fas fa-laptop-code"></i> Phần Thực Hành</h3>
                 <p style="color:var(--text2);font-size:14px;margin-bottom:20px">Tải file bài thực hành từ máy tính của
-                    bạn lên hệ thống.</p>
+                    bạn lên hệ thống. <strong style="color:var(--warning)">Chỉ chấp nhận file Word (.doc, .docx) hoặc Excel (.xls, .xlsx)</strong>.</p>
                 <div class="upload-zone" id="uploadZone" onclick="openFilePicker()">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <h3>Kéo thả file vào đây</h3>
-                    <p>hoặc nhấn để chọn file (Tối đa 10MB)</p>
+                    <p>Chấp nhận: <strong>.doc, .docx, .xls, .xlsx</strong> — Tối đa 10MB</p>
                 </div>
-                <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(event)">
+                <input type="file" id="fileInput" style="display:none" onchange="handleFileSelect(event)" accept=".doc,.docx,.xls,.xlsx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
                 <div id="fileInfoDisplay" style="display:none"></div>
                 <div id="uploadProgressBar" style="display:none;margin-top:12px">
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
@@ -2119,6 +2119,12 @@
             <div class="success-icon"><i class="fas fa-check-circle"></i></div>
             <h2>Nộp bài thành công!</h2>
             <p>Bài thi của bạn đã được ghi nhận.<br>Cảm ơn bạn đã hoàn thành bài kiểm tra.</p>
+            <!-- Cảnh báo file thực hành chưa lưu (hiện khi uploadFailed) -->
+            <div id="fileResubmitWarning" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:14px;padding:16px 20px;margin:16px auto 0;max-width:420px;text-align:left">
+                <p style="margin:0 0 10px;font-size:14px;color:var(--danger);font-weight:700"><i class="fas fa-exclamation-triangle"></i> File thực hành chưa được lưu!</p>
+                <p style="margin:0 0 12px;font-size:13px;color:var(--text2)">Bài thi trắc nghiệm đã ghi nhận thành công, nhưng file thực hành chưa lưu được lên Drive.</p>
+                <button onclick="showFileResubmitUI({})" style="width:100%;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;border:none;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="fas fa-cloud-upload-alt"></i> Nộp lại file thực hành ngay</button>
+            </div>
             <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
                 <button class="btn btn-primary btn-sm" onclick="viewMyResults()" id="btnViewResults"
                     style="display:none;width:auto"><i class="fas fa-poll"></i> Xem kết quả</button>
@@ -2129,6 +2135,7 @@
                 style="display:none;margin-top:24px;text-align:left;max-width:700px;width:100%"></div>
         </div>
     </div>
+
 
     <!-- ==================== DASHBOARD GIÁO VIÊN ==================== -->
     <div class="screen dashboard" id="dashboardScreen">
@@ -2157,6 +2164,11 @@
                     <span
                         style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--success);background:rgba(16,185,129,0.1);padding:4px 10px;border-radius:20px;border:1px solid rgba(16,185,129,0.2)"><i
                             class="fas fa-bolt"></i> ⚡ Cập nhật thời gian thực</span>
+                    <span id="examPeriodBadge"
+                        style="display:none;align-items:center;gap:5px;font-size:11px;color:#f59e0b;background:rgba(245,158,11,0.1);padding:4px 12px;border-radius:20px;border:1px solid rgba(245,158,11,0.25);font-weight:600;cursor:pointer"
+                        onclick="switchMainTab('settings', event)" title="Nhấn để vào Cài đặt đợt thi">
+                        <i class="fas fa-folder-open"></i> <span id="examPeriodBadgeText"></span>
+                    </span>
                     <button class="btn btn-primary btn-sm" onclick="loadDashboard()"
                         style="font-size:12px;padding:6px 12px"><i class="fas fa-sync-alt"></i> Làm mới</button>
                     <button class="btn btn-sm" id="btnHeaderSync" onclick="doSyncSheetToFirebase()"
@@ -2201,6 +2213,7 @@
                         class="fas fa-book-open"></i> Tài liệu</button>
                 <button class="main-tab" onclick="switchMainTab('practiceexams', event)"><i class="fas fa-file-alt"></i>
                     Đề TH</button>
+                <button class="main-tab" onclick="openExamFilesFolder()" title="Mở thư mục bài thi trên Google Drive"><i class="fas fa-folder-open" style="color:#f59e0b"></i> QL Bài Thi</button>
                 <button class="main-tab" id="tabBtnTeachers" onclick="switchMainTab('teachers', event)"
                     style="display:none"><i class="fas fa-chalkboard-teacher"></i> QL Giáo viên</button>
             </div>
@@ -2450,6 +2463,10 @@
                         style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;min-width:100px">
                         <option value="">📋 Tất cả lớp</option>
                     </select>
+                    <button class="btn btn-sm" id="btnToggleAllPeriods" onclick="toggleAllPeriods()"
+                        style="width:auto;background:var(--bg);border:1px solid var(--border);color:var(--text2);padding:8px 14px;font-size:12px;white-space:nowrap;border-radius:8px;cursor:pointer;transition:.2s">
+                        <i class="fas fa-layer-group"></i> <span id="btnToggleAllPeriodsText">Đợt hiện tại</span>
+                    </button>
                     <button class="btn btn-sm" onclick="exportExcel()" id="btnExportExcel"
                         style="width:auto;background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:8px 16px;font-size:13px;white-space:nowrap">
                         <i class="fas fa-file-excel"></i> Xuất Excel
@@ -2883,6 +2900,39 @@
                     <div id="settingsMsg"
                         style="display:none;padding:10px 14px;border-radius:10px;font-size:13px;margin-top:12px"></div>
 
+                    <!-- ===== ĐỢT THI (EXAM PERIOD) ===== -->
+                    <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
+                        <i class="fas fa-folder-open" style="color:var(--warning)"></i> Đợt Thi (Thư mục lưu bài)
+                    </h4>
+                    <div style="padding:16px;background:var(--bg);border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                            <div id="examPeriodBadge" style="display:none;padding:6px 14px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border-radius:20px;font-size:12px;font-weight:700">
+                                <i class="fas fa-folder"></i> <span id="examPeriodBadgeText"></span>
+                            </div>
+                            <div id="examPeriodNoBadge" style="padding:6px 14px;background:rgba(245,158,11,0.15);color:var(--warning);border-radius:20px;font-size:12px;font-weight:600">
+                                <i class="fas fa-exclamation-triangle"></i> Chưa cài đặt đợt thi
+                            </div>
+                        </div>
+                        <p style="color:var(--text2);font-size:12px;margin:0 0 12px;line-height:1.6">
+                            Đặt tên đợt thi để tạo <strong>thư mục riêng</strong> cho mỗi kỳ thi trên Google Drive.<br>
+                            Ví dụ: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px">Giữa kỳ 1</code>,
+                            <code style="background:var(--bg3);padding:2px 6px;border-radius:4px">Cuối kỳ 2</code>,
+                            <code style="background:var(--bg3);padding:2px 6px;border-radius:4px">Kiểm tra 15p - Tin học</code>
+                        </p>
+                        <div style="display:flex;gap:8px;align-items:center">
+                            <input type="text" id="examPeriodInput" placeholder="VD: Giữa kỳ 2 - 2025-2026"
+                                style="flex:1;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+                            <button class="btn btn-primary btn-sm" onclick="saveExamPeriod()"
+                                style="width:auto;padding:10px 20px;font-size:13px;white-space:nowrap" id="btnSaveExamPeriod">
+                                <i class="fas fa-save"></i> Lưu đợt thi
+                            </button>
+                        </div>
+                        <div id="examPeriodFolderPreview" style="display:none;margin-top:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;font-size:12px;color:var(--text2);font-family:monospace">
+                            <i class="fas fa-sitemap" style="margin-right:6px;color:var(--primary)"></i>
+                            <span id="examPeriodFolderPath"></span>
+                        </div>
+                        <div id="examPeriodMsg" style="display:none;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px"></div>
+                    </div>
 
                     <!-- Thông tin Kỳ thi -->
                     <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
@@ -3100,19 +3150,34 @@
                             </div>
                         </div>
 
-                        <!-- Xóa toàn bộ dữ liệu -->
+                        <!-- Reset cho đợt thi mới -->
+                        <h4 style="margin:24px 0 12px;font-size:14px;display:flex;align-items:center;gap:8px">
+                            <i class="fas fa-sync-alt" style="color:var(--warning)"></i> Quản lý Đợt Thi
+                        </h4>
                         <div
-                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(239,68,68,0.05);border-radius:12px;border:1px solid rgba(239,68,68,0.3);margin-top:12px">
+                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(245,158,11,0.05);border-radius:12px;border:1px solid rgba(245,158,11,0.3);margin-bottom:8px">
+                            <div>
+                                <div style="font-weight:600;font-size:14px;margin-bottom:2px;color:var(--warning)"><i
+                                        class="fas fa-redo-alt" style="margin-right:6px"></i> Reset cho đợt thi mới</div>
+                                <p style="color:var(--text2);font-size:12px;margin:0">Reset trạng thái HS (cho phép thi lại). <strong>GIỮ NGUYÊN</strong> kết quả + file Drive các đợt trước.</p>
+                            </div>
+                            <button class="btn btn-sm" onclick="confirmResetForNewPeriod()"
+                                style="width:auto;background:linear-gradient(135deg,var(--warning),#d97706);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
+                                <i class="fas fa-redo-alt"></i> Reset đợt mới
+                            </button>
+                        </div>
+
+                        <!-- Xóa dữ liệu đợt hiện tại -->
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:rgba(239,68,68,0.05);border-radius:12px;border:1px solid rgba(239,68,68,0.3);margin-top:8px">
                             <div>
                                 <div style="font-weight:600;font-size:14px;margin-bottom:2px;color:var(--danger)"><i
-                                        class="fas fa-trash-alt" style="margin-right:6px"></i> Xóa toàn bộ dữ liệu</div>
-                                <p style="color:var(--text2);font-size:12px;margin:0">Xóa hết: kết quả thi, kết quả thi
-                                    thử,
-                                    trạng thái HS và file trên Drive.</p>
+                                        class="fas fa-trash-alt" style="margin-right:6px"></i> Xóa dữ liệu đợt hiện tại</div>
+                                <p style="color:var(--text2);font-size:12px;margin:0">Xóa kết quả thi + file Drive <strong>CHỈ của đợt thi đang chọn</strong>. Đợt trước không bị ảnh hưởng.</p>
                             </div>
                             <button class="btn btn-sm" onclick="confirmClearAll()"
                                 style="width:auto;background:linear-gradient(135deg,var(--danger),#dc2626);color:#fff;padding:8px 14px;font-size:12px;white-space:nowrap">
-                                <i class="fas fa-trash-alt"></i> Xóa tất cả
+                                <i class="fas fa-trash-alt"></i> Xóa đợt này
                             </button>
                         </div>
                     </div><!-- /adminOnlySettings -->
@@ -3454,112 +3519,72 @@
             document.getElementById(id).classList.add('active');
         }
 
-        async function apiCall(action, params = {}) {
+        // P0-2: Session token global
+        let currentSessionToken = '';
+
+        // P0-3: apiCall with auto session + POST for sensitive actions
+        const SENSITIVE_ACTIONS = new Set([
+            'submitExam', 'clearAllData', 'resetForNewPeriod',
+            'setSettings', 'saveQuestionWithSync', 'deleteQuestionWithSync',
+            'deleteQuestionsByGrade', 'bulkSaveQuestions', 'saveExamConfig',
+            'updateQuestion', 'syncSheetToFirebase', 'syncFirebaseToSheet',
+            'saveTeacher', 'deleteTeacher', 'uploadStudyFile',
+            'downloadClassFiles', 'downloadStudentFiles', 'cleanupDownloadZip',
+            'addStudentWithSync', 'deleteStudentWithSync',
+            'importStudentsWithSync', 'deleteClassWithSync', 'setup',
+            'saveFile', 'saveStudentAnswers', 'updateStudent',
+            'loginAdmin', 'loginTeacher'
+        ]);
+
+        async function apiCall(action, params = {}, options = {}) {
             if (!isApiConfigured()) throw new Error('API chưa được cấu hình!');
-            let url = new URL(API_URL);
+
+            // Auto-attach session token
+            if (currentSessionToken && !params.sessionToken) {
+                params.sessionToken = currentSessionToken;
+            }
+            if (currentStudent && currentStudent.sessionToken && !params.sessionToken) {
+                params.sessionToken = currentStudent.sessionToken;
+            }
+
+            // GAS REDIRECT FIX: action LUÔN trong URL query string
+            // Khi GAS redirect POST→GET, body mất nhưng URL params vẫn còn
+            const urlWithAction = API_URL + (API_URL.includes('?') ? '&' : '?') + 'action=' + encodeURIComponent(action);
+
+            if (options.forcePost || SENSITIVE_ACTIONS.has(action)) {
+                // Body chứa toàn bộ params (có cả action để server parse được từ body hoặc URL)
+                params.action = action;
+                const response = await fetch(urlWithAction, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(params),
+                    redirect: 'follow'
+                });
+                return await response.json();
+            }
+
+            // GET request: action + params đều trong URL
+            const url = new URL(API_URL);
             url.searchParams.set('action', action);
-            for (let k in params) url.searchParams.set(k, params[k]);
-            let resp = await fetch(url.toString(), { redirect: 'follow' });
-            return await resp.json();
+            Object.keys(params).forEach(k => { if (k !== 'action') url.searchParams.set(k, params[k]); });
+            const response = await fetch(url.toString(), { redirect: 'follow' });
+            return await response.json();
         }
 
         let savedPassword = ''; // Lưu mật khẩu để xác minh sau nộp bài
 
+        // H1: apiPost — wrapper dùng apiCall để đảm bảo body có action và sessionToken
         async function apiPost(action, body) {
-            if (!isApiConfigured()) throw new Error('API chưa được cấu hình!');
-            let url = new URL(API_URL);
-            url.searchParams.set('action', action);
-            // Try 1: Normal POST
-            try {
-                let resp = await fetch(url.toString(), { method: 'POST', redirect: 'follow', body: JSON.stringify(body) });
-                if (resp.ok) return await resp.json();
-            } catch (e) { /* CORS error - try fallback */ }
-            // Try 2: no-cors POST (Google Apps Script CORS workaround)
-            await fetch(url.toString(), { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
-            // Can't read response in no-cors, wait and verify with retries
-            for (let attempt = 0; attempt < 3; attempt++) {
-                await new Promise(r => setTimeout(r, 3000));
-                try {
-                    let verify = await apiCall('login', { maHS: body.maHS, password: savedPassword });
-                    if (verify.alreadyTested) return { success: true, message: 'Nộp bài thành công!' };
-                } catch (e2) { /* retry */ }
-            }
-            // After 3 retries, warn user that submission may not have been saved
-            return { success: true, message: 'Đã gửi bài thi! (Chưa xác nhận được từ server, vui lòng kiểm tra lại)' };
+            return await apiCall(action, body || {}, { forcePost: true });
         }
 
-        // ============== NỘP BÀI QUA POST (FIX BUG 1 + BUG 2) ==============
+        // A1/H1: apiPostSubmit — dùng apiCall thống nhất, body POST luôn có action và sessionToken
         async function apiPostSubmit(examData) {
-            if (!isApiConfigured()) throw new Error('API chưa được cấu hình!');
-            let url = new URL(API_URL);
-            url.searchParams.set('action', 'submitExam');
-
-            // Thử 1: Normal POST (có thể đọc response)
-            try {
-                let resp = await fetch(url.toString(), {
-                    method: 'POST',
-                    redirect: 'follow',
-                    body: JSON.stringify(examData)
-                });
-                if (resp.ok) {
-                    let result = await resp.json();
-                    return result;
-                }
-            } catch (e) { /* CORS → fallback */ }
-
-            // Thử 2: no-cors POST + verify qua Firebase
-            updateSubmitOverlay('Đang gửi (chế độ dự phòng)...', 'Vui lòng chờ...', 50);
-            try {
-                await fetch(url.toString(), {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(examData)
-                });
-            } catch (e) {
-                throw new Error('Không thể gửi bài thi: ' + e.message);
+            // Gắn sessionToken nếu chưa có
+            if (currentStudent && currentStudent.sessionToken && !examData.sessionToken) {
+                examData.sessionToken = currentStudent.sessionToken;
             }
-
-            // Verify: kiểm tra Firebase trực tiếp
-            let maHS = examData.maHS;
-            let isPractice = examData.isPractice === true || examData.isPractice === 'true';
-            for (let attempt = 1; attempt <= 5; attempt++) {
-                updateSubmitOverlay('Đang xác nhận bài thi...', 'Lần kiểm tra ' + attempt + '/5', 50 + attempt * 8);
-                await new Promise(r => setTimeout(r, 3000));
-                try {
-                    if (isPractice) {
-                        // Thi thử: check practiceResults có bản ghi mới cho maHS
-                        let practiceData = await firebaseRead('practiceResults') || {};
-                        let myAttempts = Object.values(practiceData).filter(r => r.maHS === maHS);
-                        if (myAttempts.length > practiceAttempts) {
-                            let latest = myAttempts.sort((a, b) => (b.thoiGian || 0) - (a.thoiGian || 0))[0];
-                            return {
-                                success: true, isPractice: true, score: latest.score,
-                                details: latest.details || [], attempt: myAttempts.length,
-                                maxAttempts: practiceMaxAttempts, totalQuestions: latest.totalQuestions
-                            };
-                        }
-                    } else {
-                        // Thi thật: check trangThai = 'X'
-                        let student = await firebaseRead('students/' + maHS);
-                        if (student && student.trangThai && student.trangThai.toString().trim().toUpperCase() === 'X') {
-                            // Kiểm tra thêm file nếu có upload
-                            if (examData.fileData) {
-                                try {
-                                    let verify = await apiCall('verifyFile', { maHS: maHS });
-                                    if (!verify.success || !verify.hasFile) {
-                                        // Bài đã nộp nhưng file chưa verify → cảnh báo nhẹ
-                                        try { await firebaseUpdate('students/' + maHS, { uploadFailed: true, uploadError: 'File chưa xác nhận qua verifyFile' }); } catch (e2) { }
-                                    }
-                                } catch (e) { /* verifyFile lỗi → bỏ qua */ }
-                            }
-                            return { success: true, message: 'Nộp bài thành công!' };
-                        }
-                    }
-                } catch (e) { /* retry */ }
-            }
-            // Sau 5 lần verify thất bại
-            throw new Error('Không thể xác nhận bài thi sau 5 lần thử. Vui lòng kiểm tra kết nối mạng và liên hệ giáo viên.');
+            return await apiCall('submitExam', examData, { forcePost: true });
         }
 
         // ============== ĐĂNG NHẬP ==============
@@ -3596,106 +3621,36 @@
             document.getElementById('loginWarning').style.display = 'none';
             showLoginLoading();
             try {
-                // ===== FIREBASE LOGIN =====
-                let student = await firebaseRead('students/' + maHS);
-                if (!student) {
+                // ===== C1 FIX: GỌI SERVER - không đọc Firebase client-side =====
+                let srvLogin = await apiCall('login', { maHS: maHS, password: password }, { forcePost: true });
+
+                if (!srvLogin.success) {
                     hideLoginLoading();
-                    showAlert('loginAlert', '❌ Mã học sinh không tồn tại! Vui lòng kiểm tra lại.');
-                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
-                    return;
-                }
-
-                // Check password
-                let correctPass = (student.matKhau || '123456').toString().trim();
-                if (correctPass !== password.trim()) {
-                    hideLoginLoading();
-                    showAlert('loginAlert', '❌ Mật khẩu không đúng!');
-                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
-                    return;
-                }
-
-                // Check settings for practice mode
-                let settings = await firebaseRead('settings') || {};
-                let isPractice = settings.practiceMode === true || settings.practiceMode === 'true';
-
-                // ===== SESSION LOCK CHECK =====
-                if (student.isLocked && student.lockedAt) {
-                    let lockAge = Date.now() - student.lockedAt;
-                    if (lockAge < 7200000) {
-                        // Account actively in use (< 2h) → conflict resolution
-                        hideLoginLoading();
-                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
-                        await handleLoginConflict(maHS, student, password, isPractice);
-                        return;
+                    if (srvLogin.alreadyTested) {
+                        showAlert('loginWarning', srvLogin.message || '⚠️ Bạn đã hoàn thành bài thi!');
                     } else {
-                        // Stale lock (> 2h) → safe to auto-unlock
-                        try { await firebaseUpdate('students/' + maHS, { isLocked: false, lockedAt: null }); } catch (e) { }
+                        showAlert('loginAlert', srvLogin.message || '❌ Đăng nhập thất bại!');
                     }
-                }
-
-                // ===== CHECK MỞ KỲ THI (tách thi thật / thi thử) =====
-                // Inline migration: nếu HS cũ chưa có moThiThat/moThiThu → tạo từ moThi
-                if (student.moThiThat === undefined || student.moThiThu === undefined) {
-                    let migrateData = {};
-                    if (student.moThiThat === undefined) { student.moThiThat = !!student.moThi; migrateData.moThiThat = student.moThiThat; }
-                    if (student.moThiThu === undefined) { student.moThiThu = false; migrateData.moThiThu = false; }
-                    try { await firebaseUpdate('students/' + maHS, migrateData); } catch (e) { }
-                }
-                let canReal = !!student.moThiThat;
-                let canPractice = !!student.moThiThu;
-
-                // Auto-switch: nếu chế độ chính bị khóa nhưng chế độ còn lại đang mở → tự chuyển
-                if (!isPractice && !canReal && canPractice) {
-                    isPractice = true; // Thi thật bị khóa, thi thử đang mở → chuyển sang thi thử
-                }
-                if (isPractice && !canPractice && canReal) {
-                    isPractice = false; // Thi thử bị khóa, thi thật đang mở → chuyển sang thi thật
-                }
-
-                if (isPractice && !canPractice) {
-                    hideLoginLoading();
-                    showAlert('loginWarning', '⏳ Giáo viên chưa mở THI THỬ cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
-                    btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
-                    return;
-                }
-                if (!isPractice && !canReal) {
-                    hideLoginLoading();
-                    showAlert('loginWarning', '⏳ Giáo viên chưa mở kỳ thi cho bạn. Vui lòng chờ hướng dẫn từ giáo viên!');
                     btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
                     return;
                 }
 
-                if (isPractice) {
-                    // Count practice attempts from Firebase
-                    let practiceData = await firebaseRead('practiceResults') || {};
-                    let attempts = 0;
-                    Object.values(practiceData).forEach(r => {
-                        if (r.maHS === maHS) attempts++;
-                    });
-                    if (attempts >= 5) {
-                        hideLoginLoading();
-                        showAlert('loginWarning', '⚠️ Bạn đã hết 5 lượt thi thử! Liên hệ giáo viên.');
-                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
-                        return;
-                    }
-                    currentStudent = { stt: student.stt, maHS: maHS, hoTen: student.hoTen, lop: student.lop };
-                    savedPassword = password;
-                    isPracticeMode = true;
-                    practiceAttempts = attempts;
-                    practiceMaxAttempts = 5;
-                } else {
-                    // Normal exam mode
-                    let trangThai = (student.trangThai || '').toString().trim().toUpperCase();
-                    if (trangThai === 'X') {
-                        hideLoginLoading();
-                        showAlert('loginWarning', '⚠️ Bạn đã hoàn thành bài thi rồi! Không thể thi lại.');
-                        btn.disabled = false; btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
-                        return;
-                    }
-                    currentStudent = { stt: student.stt, maHS: maHS, hoTen: student.hoTen, lop: student.lop };
-                    savedPassword = password;
-                    isPracticeMode = false;
-                }
+                // Server trả về: sessionToken, student info, practiceMode, practiceAttempts
+                let student = srvLogin.student;
+                let settings = {};
+                try { settings = await firebaseRead('settings') || {}; } catch (e2) { }
+
+                currentStudent = {
+                    stt: student.stt,
+                    maHS: student.maHS,
+                    hoTen: student.hoTen,
+                    lop: student.lop,
+                    sessionToken: srvLogin.sessionToken || ''
+                };
+                savedPassword = password;
+                isPracticeMode = !!srvLogin.practiceMode;
+                practiceAttempts = srvLogin.practiceAttempts || 0;
+                practiceMaxAttempts = srvLogin.practiceMaxAttempts || 5;
 
                 // ===== IDENTITY CONFIRMATION =====
                 hideLoginLoading();
@@ -3711,7 +3666,7 @@
                     <div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:20px;text-align:left">
                         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><i class="fas fa-user" style="color:var(--primary);width:20px;text-align:center"></i><span style="font-size:13px;color:var(--text2)">Họ tên:</span><strong style="color:var(--text);font-size:15px">${student.hoTen}</strong></div>
                         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><i class="fas fa-school" style="color:var(--success);width:20px;text-align:center"></i><span style="font-size:13px;color:var(--text2)">Lớp:</span><strong style="color:var(--text);font-size:15px">${student.lop}</strong></div>
-                        <div style="display:flex;align-items:center;gap:10px"><i class="fas fa-id-badge" style="color:var(--accent);width:20px;text-align:center"></i><span style="font-size:13px;color:var(--text2)">Mã HS:</span><strong style="color:var(--text);font-size:15px">${maHS}</strong></div>
+                        <div style="display:flex;align-items:center;gap:10px"><i class="fas fa-id-badge" style="color:var(--accent);width:20px;text-align:center"></i><span style="font-size:13px;color:var(--text2)">Mã HS:</span><strong style="color:var(--text);font-size:15px">${student.maHS}</strong></div>
                     </div>
                     <div style="display:flex;gap:10px;justify-content:center">
                         <button id="identityDenyBtn" class="btn" style="width:auto;background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:11px 24px;font-size:14px;font-weight:600"><i class="fas fa-times"></i> Không phải tôi</button>
@@ -3728,7 +3683,6 @@
                 };
                 document.getElementById('identityConfirmBtn').onclick = async () => {
                     identityModal.remove();
-                    // Show exam info overlay if enabled, otherwise proceed directly
                     await showExamInfoOverlay(settings, maHS);
                 };
             } catch (e) {
@@ -3793,23 +3747,10 @@
             let btn = document.getElementById('btnTeacherLogin');
             btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang kiểm tra...';
             try {
-                // ===== KIỂM TRA ADMIN TRƯỚC =====
-                let settings = await firebaseRead('settings') || {};
-                let inputHash = await sha256(pass);
-                let isAdmin = false;
-
-                if (settings.teacherPasswordHash) {
-                    if (inputHash === settings.teacherPasswordHash) isAdmin = true;
-                } else {
-                    let oldPass = settings.teacherPassword || 'admin@2025';
-                    if (pass === oldPass) {
-                        let newHash = await sha256(pass);
-                        await firebaseUpdate('settings', { teacherPasswordHash: newHash, teacherPassword: null });
-                        isAdmin = true;
-                    }
-                }
-
-                if (isAdmin) {
+                // ===== GỌI SERVER ĐỂ KIỂM TRA ADMIN (P0-2) =====
+                let adminRes = await apiCall('loginAdmin', { password: pass });
+                if (adminRes.success && adminRes.isAdmin) {
+                    currentSessionToken = adminRes.sessionToken || '';
                     currentTeacher = { maGV: 'ADMIN', hoTen: 'Admin', lopPhuTrach: '', isAdmin: true, allowedClasses: [] };
                     try { firebasePush('teacherLoginHistory', { maGV: 'ADMIN', hoTen: 'Admin', role: 'Admin', thoiGian: Date.now() }); } catch (e) { }
                     showScreen('dashboardScreen');
@@ -3818,31 +3759,24 @@
                     return;
                 }
 
-                // ===== KIỂM TRA GIÁO VIÊN THEO MẬT KHẨU =====
-                let teachers = await firebaseRead('teachers') || {};
-                let foundTeacher = null;
-                for (let maGV in teachers) {
-                    let t = teachers[maGV];
-                    if (t.matKhau && t.matKhau === pass) {
-                        foundTeacher = { maGV: maGV, hoTen: t.hoTen || '', lopPhuTrach: t.lopPhuTrach || '' };
-                        break;
-                    }
-                }
+                // ===== C2 FIX: GỌI SERVER - không đọc teachers client-side =====
+                let teacherRes = await apiCall('loginTeacher', { maGV: '', password: pass }, { forcePost: true });
 
-                if (foundTeacher) {
-                    let allowedClasses = foundTeacher.lopPhuTrach ? foundTeacher.lopPhuTrach.split(',').map(c => c.trim()).filter(c => c) : [];
+                if (teacherRes.success && teacherRes.sessionToken) {
+                    currentSessionToken = teacherRes.sessionToken;
+                    let t = teacherRes.teacher || {};
+                    let allowedClasses = t.lopPhuTrach ? t.lopPhuTrach.split(',').map(c => c.trim()).filter(c => c) : [];
                     currentTeacher = {
-                        maGV: foundTeacher.maGV,
-                        hoTen: foundTeacher.hoTen,
-                        lopPhuTrach: foundTeacher.lopPhuTrach,
+                        maGV: t.maGV || '',
+                        hoTen: t.hoTen || '',
+                        lopPhuTrach: t.lopPhuTrach || '',
                         isAdmin: false,
                         allowedClasses: allowedClasses
                     };
-                    try { firebasePush('teacherLoginHistory', { maGV: foundTeacher.maGV, hoTen: foundTeacher.hoTen, role: 'Giáo viên', lopPhuTrach: foundTeacher.lopPhuTrach || '', thoiGian: Date.now() }); } catch (e) { }
                     showScreen('dashboardScreen');
                     initDashboard();
                 } else {
-                    showAlert('loginAlert', '❌ Mật khẩu không đúng!');
+                    showAlert('loginAlert', teacherRes.message || '❌ Mật khẩu không đúng!');
                 }
             } catch (e) {
                 console.error('Teacher login error:', e);
@@ -3857,7 +3791,7 @@
             showConfirmPopup('Thoát bài thi?', 'Bài thi chưa nộp sẽ không được lưu! Bạn có chắc muốn thoát?', async () => {
                 // Unlock session before logout
                 if (currentStudent && currentStudent.maHS) {
-                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null }); } catch (e) { }
+                    try { await apiCall('releaseStudentSession', { sessionToken: currentStudent.sessionToken }, { forcePost: true }); } catch (e) { }
                 }
                 location.reload();
             }, 'Thoát', 'Tiếp tục thi');
@@ -3992,11 +3926,13 @@
                 if (navGrid) navGrid.appendChild(btn);
             });
 
-            // Lưu thứ tự đáp án vào Firebase (chỉ thi thật + lần đầu render)
+            // D1 FIX: Lưu thứ tự đáp án qua server action (không ghi Firebase trực tiếp)
             if (!isPracticeMode && currentStudent && !savedAnswerOrder) {
-                firebaseUpdate('students/' + currentStudent.maHS, {
-                    assignedAnswerOrder: answerOrderToSave
-                }).catch(e => console.log('Save answer order error:', e));
+                apiCall('saveStudentAnswers', {
+                    maHS: currentStudent.maHS,
+                    sessionToken: currentStudent.sessionToken,
+                    answers: { _answerOrder: answerOrderToSave }
+                }, { forcePost: true }).catch(e => console.log('Save answer order error:', e));
             }
 
             updateProgress();
@@ -4112,9 +4048,47 @@
 
         function handleFileSelect(e) { if (e.target.files.length) processFile(e.target.files[0]); }
 
+        // Danh sách định dạng file được phép (Word + Excel)
+        const ALLOWED_FILE_EXTENSIONS = ['.doc', '.docx', '.xls', '.xlsx'];
+        const ALLOWED_MIME_TYPES = [
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+
+        function isAllowedFileType(file) {
+            // Kiểm tra extension
+            let name = file.name.toLowerCase();
+            let extOk = ALLOWED_FILE_EXTENSIONS.some(ext => name.endsWith(ext));
+            // Kiểm tra MIME type (fallback nếu trình duyệt cung cấp)
+            let mimeOk = !file.type || ALLOWED_MIME_TYPES.includes(file.type);
+            return extOk && mimeOk;
+        }
+
         function processFile(file) {
+            // Validate file type: chỉ Word hoặc Excel
+            if (!isAllowedFileType(file)) {
+                let ext = file.name.includes('.') ? '.' + file.name.split('.').pop() : 'không rõ';
+                showStepAlert(
+                    '⚠️ Sai định dạng file!',
+                    'Chỉ chấp nhận file <strong>Word (.doc, .docx)</strong> hoặc <strong>Excel (.xls, .xlsx)</strong>.' +
+                    '<br><br>File bạn chọn: <strong>' + file.name + '</strong> (định dạng: ' + ext + ')' +
+                    '<br><br>Vui lòng chọn đúng file bài thực hành.'
+                );
+                document.getElementById('fileInput').value = '';
+                return;
+            }
+            // Validate file size: phải > 0
+            if (!file.size || file.size <= 0) {
+                showStepAlert('⚠️ File rỗng!', 'File bạn chọn không có nội dung (0 bytes). Vui lòng chọn file bài thực hành đã hoàn thành.');
+                document.getElementById('fileInput').value = '';
+                return;
+            }
+            // Validate max size: 10MB
             if (file.size > 10 * 1024 * 1024) {
-                showStepAlert('⚠️ File quá lớn!', 'File tối đa 10MB. Vui lòng chọn file nhỏ hơn.');
+                showStepAlert('⚠️ File quá lớn!', 'File tối đa 10MB. File của bạn: ' + (file.size / 1048576).toFixed(1) + 'MB. Vui lòng chọn file nhỏ hơn.');
+                document.getElementById('fileInput').value = '';
                 return;
             }
             // Show loading state
@@ -4125,7 +4099,7 @@
             setTimeout(() => {
                 uploadedFile = file;
                 let size = file.size < 1024 ? file.size + 'B' : file.size < 1048576 ? (file.size / 1024).toFixed(1) + 'KB' : (file.size / 1048576).toFixed(1) + 'MB';
-                let icon = file.name.match(/\.pdf$/i) ? 'fa-file-pdf' : file.name.match(/\.docx?$/i) ? 'fa-file-word' : file.name.match(/\.pptx?$/i) ? 'fa-file-powerpoint' : file.name.match(/\.xlsx?$/i) ? 'fa-file-excel' : 'fa-file-alt';
+                let icon = file.name.match(/\.docx?$/i) ? 'fa-file-word' : 'fa-file-excel';
 
                 display.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-top:12px">
                     <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${icon}" style="color:var(--primary);font-size:20px"></i></div>
@@ -4162,7 +4136,7 @@
             uploadedFile = null;
             document.getElementById('fileInfoDisplay').style.display = 'none';
             document.getElementById('fileInput').value = '';
-            uploadZone.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><h3>Kéo thả file vào đây</h3><p>hoặc nhấn để chọn file (Tối đa 10MB)</p>';
+            uploadZone.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><h3>Kéo thả file vào đây</h3><p>Chấp nhận: <strong>.doc, .docx, .xls, .xlsx</strong> — Tối đa 10MB</p>';
         }
 
         // ============== NỘP BÀI ==============
@@ -4254,9 +4228,20 @@
                 };
 
                 // 3. Gộp file thực hành vào examData (nếu thi thật + có file)
-                if (!isPracticeMode && uploadedFile) {
+                if (!isPracticeMode) {
+                    // Safety check: thi thật PHẢI có file
+                    if (!uploadedFile) {
+                        throw new Error('Thiếu file thực hành! Vui lòng quay lại bước 2 để tải file lên.');
+                    }
                     updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi file: ' + uploadedFile.name, 20);
+                    // W1 FIX: kiểm tra size client-side trước khi encode
+                    if (!checkFileSizeOk(uploadedFile)) {
+                        throw new Error(`File quá lớn (> ${MAX_FILE_MB}MB). Hãy nén file rồi thử lại.`);
+                    }
                     let base64Data = await fileToBase64(uploadedFile);
+                    if (!base64Data || base64Data.length === 0) {
+                        throw new Error('File thực hành rỗng hoặc không đọc được. Vui lòng tải lại file.');
+                    }
                     examData.fileData = base64Data;
                     examData.fileName = uploadedFile.name;
                     examData.fileMimeType = uploadedFile.type;
@@ -4274,8 +4259,8 @@
                     stopSessionManagement();
                     stopExamTimer();
                     clearExamBackup(currentStudent.maHS);
-                    // Clear Firebase answer backup & unlock session after submit
-                    try { await firebaseUpdate('students/' + currentStudent.maHS, { isLocked: false, lockedAt: null, savedAnswers: null, savedAnswersTime: null }); } catch (e) { }
+                    // B4 FIX: Giải phóng session qua server thay vì ghi Firebase trực tiếp
+                    try { await apiCall('releaseStudentSession', { sessionToken: currentStudent.sessionToken }, { forcePost: true }); } catch (e) { }
 
                     if (isPracticeMode && resp.isPractice) {
                         showPracticeResults(resp);
@@ -4283,6 +4268,13 @@
                         let btnView = document.getElementById('btnViewResults');
                         if (btnView) btnView.style.display = 'inline-flex';
                         showScreen('successScreen');
+                        // B2 FIX: fileVerified giờ được server set đúng
+                        if (resp.fileVerified === false && !isPracticeMode) {
+                            // Hiển thị cả overlay nộp lại + warning banner cố định
+                            setTimeout(() => showFileResubmitUI(resp), 800);
+                            let warn = document.getElementById('fileResubmitWarning');
+                            if (warn) warn.style.display = 'block';
+                        }
                     }
                 } else {
                     throw new Error(resp.message || 'Server trả về lỗi không rõ');
@@ -4653,36 +4645,113 @@
             if (resultsSearch) resultsSearch.oninput = debouncedResults;
         });
 
-        // ============== XÓA TOÀN BỘ DỮ LIỆU ==============
+        // ============== XÓA DỮ LIỆU ĐỢT HIỆN TẠI ==============
         async function confirmClearAll() {
-            showConfirmPopup('⚠️ XÓA TOÀN BỘ DỮ LIỆU?', 'Sẽ xóa: Tất cả kết quả thi, kết quả thi thử, reset trạng thái HS, xóa file trên Google Drive. Bạn có chắc chắn?', () => {
-                showConfirmPopup('🔴 XÁC NHẬN LẦN 2', 'Thao tác này KHÔNG THỂ hoàn tác! Nhấn Xác nhận để xóa hoàn toàn.', () => { executeClearAll(); }, 'Xóa hoàn toàn', 'Hủy', 'danger');
-            }, 'Tiếp tục', 'Hủy', 'danger');
+            // P0-6: Yêu cầu nhập tên đợt thi để xác nhận
+            let periodName = prompt('Nhập chính xác tên đợt thi hiện tại để xác nhận xóa (không thể hoàn tác):');
+            if (!periodName || !periodName.trim()) return;
+            showConfirmPopup('🔴 XÁC NHẬN XÓA', 'Xóa toàn bộ dữ liệu đợt "' + periodName.trim() + '"? Thao tác KHÔNG THỂ hoàn tác!', () => { executeClearAll(periodName.trim()); }, 'Xóa đợt này', 'Hủy', 'danger');
         }
-        async function executeClearAll() {
+        async function executeClearAll(confirmPeriod) {
             try {
                 let msgEl = document.getElementById('settingsMsg');
                 msgEl.style.display = 'block';
                 msgEl.style.background = 'rgba(99,102,241,0.15)';
                 msgEl.style.border = '1px solid rgba(99,102,241,0.3)';
                 msgEl.style.color = 'var(--primary)';
-                msgEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa toàn bộ dữ liệu...';
-                let resp = await apiCall('clearAllData');
+                msgEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xóa dữ liệu đợt hiện tại...';
+                let resp = await apiCall('clearAllData', { confirmPeriod: confirmPeriod });
                 if (resp.success) {
                     msgEl.style.background = 'rgba(16,185,129,0.15)';
                     msgEl.style.border = '1px solid rgba(16,185,129,0.3)';
                     msgEl.style.color = 'var(--success)';
                     msgEl.textContent = resp.message;
-                    // Refresh dashboard
                     setTimeout(() => initDashboard(), 1500);
                 } else {
                     msgEl.style.background = 'rgba(239,68,68,0.15)';
                     msgEl.style.border = '1px solid rgba(239,68,68,0.3)';
                     msgEl.style.color = 'var(--danger)';
                     msgEl.textContent = resp.message || 'Lỗi xóa dữ liệu!';
+                    if (resp.partialSuccess) {
+                        msgEl.textContent += ' (Có bước thất bại, cần kiểm tra lại)';
+                    }
                 }
             } catch (e) {
                 showPopup('Lỗi xóa', 'Lỗi xóa dữ liệu: ' + e.message, 'error');
+            }
+        }
+
+        // ============== RESET CHO ĐỢT THI MỚI ==============
+        async function confirmResetForNewPeriod() {
+            showConfirmPopup('🔄 RESET CHO ĐỢT THI MỚI?', 'Sẽ reset trạng thái tất cả HS (cho phép thi lại). Kết quả thi + file Drive các đợt trước được GIỮ NGUYÊN. Tiếp tục?', () => {
+                showConfirmPopup('⚠️ XÁC NHẬN', 'Sau khi reset, hãy đặt tên đợt thi mới và cấu hình đề thi trước khi mở thi! Nhấn Xác nhận để tiếp tục.', () => { executeResetForNewPeriod(); }, 'Reset ngay', 'Hủy', 'warning');
+            }, 'Tiếp tục', 'Hủy', 'warning');
+        }
+        async function executeResetForNewPeriod() {
+            try {
+                let msgEl = document.getElementById('settingsMsg');
+                msgEl.style.display = 'block';
+                msgEl.style.background = 'rgba(245,158,11,0.15)';
+                msgEl.style.border = '1px solid rgba(245,158,11,0.3)';
+                msgEl.style.color = 'var(--warning)';
+                msgEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang reset trạng thái HS cho đợt mới...';
+                let resp = await apiCall('resetForNewPeriod');
+                if (resp.success) {
+                    msgEl.style.background = 'rgba(16,185,129,0.15)';
+                    msgEl.style.border = '1px solid rgba(16,185,129,0.3)';
+                    msgEl.style.color = 'var(--success)';
+                    msgEl.textContent = resp.message;
+                    setTimeout(() => initDashboard(), 1500);
+                } else {
+                    msgEl.style.background = 'rgba(239,68,68,0.15)';
+                    msgEl.style.border = '1px solid rgba(239,68,68,0.3)';
+                    msgEl.style.color = 'var(--danger)';
+                    msgEl.textContent = resp.message || 'Lỗi reset!';
+                    if (resp.partialSuccess) {
+                        msgEl.textContent += ' (Có bước thất bại, cần kiểm tra lại)';
+                    }
+                }
+            } catch (e) {
+                showPopup('Lỗi reset', 'Lỗi reset đợt thi: ' + e.message, 'error');
+            }
+        }
+
+        // ============== LỌC KẾT QUẢ THEO ĐỢT THI ==============
+        window._showAllPeriods = false;
+        function toggleAllPeriods() {
+            window._showAllPeriods = !window._showAllPeriods;
+            let btn = document.getElementById('btnToggleAllPeriods');
+            let txt = document.getElementById('btnToggleAllPeriodsText');
+            if (window._showAllPeriods) {
+                btn.style.background = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
+                btn.style.color = '#fff';
+                btn.style.borderColor = '#6366f1';
+                txt.textContent = 'Tất cả đợt';
+            } else {
+                btn.style.background = 'var(--bg)';
+                btn.style.color = 'var(--text2)';
+                btn.style.borderColor = 'var(--border)';
+                txt.textContent = 'Đợt hiện tại';
+            }
+            buildResultsFromFirebase();
+        }
+
+        // ============== MỞ THƯ MỤC BÀI THI TRÊN DRIVE ==============
+        async function openExamFilesFolder() {
+            try {
+                showPopup('📂 Đang mở...', '<i class="fas fa-spinner fa-spin"></i> Đang tải thư mục bài thi trên Google Drive...', 'info');
+                let resp = await apiCall('getExamFolderUrl');
+                // Đóng popup loading
+                let overlay = document.getElementById('popupOverlay');
+                if (overlay) overlay.style.display = 'none';
+                if (resp.success && resp.url) {
+                    window.open(resp.url, '_blank');
+                    showPopup('📂 Thư mục bài thi', '<div style="text-align:left;font-size:13px"><p><strong>📁 ' + resp.name + '</strong></p><p>📂 ' + resp.subFolders + ' thư mục con (lớp)</p><p>📄 ' + resp.files + ' file</p><p style="color:var(--text2);font-size:12px;margin-top:8px">Thư mục đã mở trong tab mới.</p></div>', 'success');
+                } else {
+                    showPopup('Lỗi', resp.message || 'Không thể mở thư mục!', 'error');
+                }
+            } catch (e) {
+                showPopup('Lỗi', 'Lỗi: ' + e.message, 'error');
             }
         }
 
@@ -4712,6 +4781,154 @@
                 reader.onerror = reject;
                 reader.readAsDataURL(file);
             });
+        }
+
+        // W1 FIX: kiểm tra size trước khi encode (client-side guard, server cũng check)
+        const MAX_FILE_MB = 6;
+        function checkFileSizeOk(file) {
+            if (!file) return true;
+            if (file.size > MAX_FILE_MB * 1024 * 1024) {
+                showPopup(`⚠️ File quá lớn`, `File <strong>${file.name}</strong> có dung lượng <strong>${(file.size/1024/1024).toFixed(1)} MB</strong>, vượt giới hạn ${MAX_FILE_MB} MB.<br><br>Vui lòng nén file lại hoặc chọn file khác.`, 'warning');
+                return false;
+            }
+            return true;
+        }
+
+        // ============== UI NỘP LẠI FILE (khi Drive save thất bại) ==============
+        function showFileResubmitUI(submitResp) {
+            // Xóa overlay cũ nếu có
+            let old = document.getElementById('fileResubmitOverlay');
+            if (old) old.remove();
+
+            let overlay = document.createElement('div');
+            overlay.id = 'fileResubmitOverlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10010;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .3s ease';
+            overlay.innerHTML = `
+                <div style="background:var(--card);border:2px solid rgba(239,68,68,0.4);border-radius:24px;padding:36px;max-width:480px;width:100%;text-align:center;animation:slideUp .3s ease">
+                    <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px;color:#fff">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 style="margin:0 0 8px;font-size:22px;color:var(--danger)">⚠️ File thực hành chưa lưu được!</h3>
+                    <p style="color:var(--text2);font-size:14px;margin:0 0 8px">Bài thi trắc nghiệm <strong style="color:var(--success)">đã được ghi nhận thành công</strong>.</p>
+                    <p style="color:var(--text2);font-size:14px;margin:0 0 24px">Tuy nhiên, file thực hành <strong style="color:var(--danger)">chưa lưu được lên Google Drive</strong> do sự cố kỹ thuật. Vui lòng nộp lại file ngay!</p>
+
+                    <div id="resubmitFileZone" style="border:2px dashed rgba(239,68,68,0.5);border-radius:16px;padding:24px;margin-bottom:20px;background:rgba(239,68,68,0.05);cursor:pointer;transition:all .2s"
+                         onclick="document.getElementById('resubmitFileInput').click()"
+                         ondragover="event.preventDefault();this.style.background='rgba(239,68,68,0.12)'"
+                         ondragleave="this.style.background='rgba(239,68,68,0.05)'"
+                         ondrop="handleResubmitDrop(event)">
+                        <i class="fas fa-cloud-upload-alt" style="font-size:40px;color:var(--danger);margin-bottom:12px"></i>
+                        <p id="resubmitFileLabel" style="margin:0;font-size:14px;color:var(--text2)">Click hoặc kéo thả file thực hành vào đây</p>
+                        <p style="margin:4px 0 0;font-size:12px;color:var(--text2);opacity:0.7">Định dạng: .doc, .docx, .xls, .xlsx — Tối đa 6MB</p>
+                    </div>
+                    <input type="file" id="resubmitFileInput" accept=".doc,.docx,.xls,.xlsx" style="display:none" onchange="handleResubmitFileSelect(this)">
+
+                    <div id="resubmitProgress" style="display:none;margin-bottom:16px">
+                        <div style="background:var(--bg3);border-radius:8px;height:8px;overflow:hidden;margin-bottom:8px">
+                            <div id="resubmitProgressBar" style="height:100%;background:linear-gradient(90deg,var(--danger),#f97316);width:0%;transition:width .3s;border-radius:8px"></div>
+                        </div>
+                        <p id="resubmitProgressText" style="margin:0;font-size:13px;color:var(--text2)">Đang xử lý...</p>
+                    </div>
+
+                    <div id="resubmitError" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--danger)"></div>
+                    <div id="resubmitSuccess" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;color:var(--success)"></div>
+
+                    <button id="resubmitBtn" class="btn btn-primary" style="width:100%;margin-bottom:10px;font-size:15px;padding:14px;background:linear-gradient(135deg,var(--danger),#dc2626)" onclick="doResubmitFile()" disabled>
+                        <i class="fas fa-paper-plane"></i> Nộp lại file thực hành
+                    </button>
+                    <button class="btn" id="resubmitSkipBtn" style="width:100%;background:rgba(255,255,255,0.05);color:var(--text2);font-size:13px;padding:10px" onclick="confirmSkipResubmit()">
+                        <i class="fas fa-times"></i> Bỏ qua (liên hệ giáo viên sau)
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            window._resubmitFile = null;
+        }
+
+        function handleResubmitDrop(event) {
+            event.preventDefault();
+            let f = event.dataTransfer.files[0];
+            if (f) selectResubmitFile(f);
+        }
+        function handleResubmitFileSelect(input) {
+            if (input.files[0]) selectResubmitFile(input.files[0]);
+        }
+        function selectResubmitFile(file) {
+            if (!checkFileSizeOk(file)) return;
+            let allowed = ['.doc','.docx','.xls','.xlsx'];
+            let ext = '.' + file.name.split('.').pop().toLowerCase();
+            if (!allowed.includes(ext)) {
+                document.getElementById('resubmitError').textContent = '❌ Sai định dạng! Chỉ chấp nhận .doc, .docx, .xls, .xlsx';
+                document.getElementById('resubmitError').style.display = 'block';
+                return;
+            }
+            document.getElementById('resubmitError').style.display = 'none';
+            window._resubmitFile = file;
+            let label = document.getElementById('resubmitFileLabel');
+            label.innerHTML = `<i class="fas fa-file-alt" style="color:var(--success)"></i> <strong>${file.name}</strong> (${(file.size/1024/1024).toFixed(2)} MB)`;
+            document.getElementById('resubmitBtn').disabled = false;
+            document.getElementById('resubmitBtn').style.opacity = '1';
+        }
+        async function doResubmitFile() {
+            if (!window._resubmitFile || !currentStudent) return;
+            let btn = document.getElementById('resubmitBtn');
+            let progressEl = document.getElementById('resubmitProgress');
+            let progressBar = document.getElementById('resubmitProgressBar');
+            let progressText = document.getElementById('resubmitProgressText');
+            let errEl = document.getElementById('resubmitError');
+            let successEl = document.getElementById('resubmitSuccess');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+            errEl.style.display = 'none';
+            progressEl.style.display = 'block';
+            progressBar.style.width = '20%';
+            progressText.textContent = 'Đang chuyển đổi file...';
+            try {
+                let base64 = await fileToBase64(window._resubmitFile);
+                progressBar.style.width = '50%';
+                progressText.textContent = 'Đang gửi lên server...';
+                let resp = await apiCall('resubmitFile', {
+                    sessionToken: currentStudent.sessionToken,
+                    fileData: base64,
+                    fileName: window._resubmitFile.name,
+                    fileMimeType: window._resubmitFile.type
+                }, { forcePost: true });
+                progressBar.style.width = '100%';
+                if (resp.success) {
+                    progressText.textContent = 'Hoàn tất!';
+                    successEl.innerHTML = '<i class="fas fa-check-circle"></i> <strong>' + resp.message + '</strong><br>File đã được lưu lên Google Drive thành công!';
+                    successEl.style.display = 'block';
+                    btn.innerHTML = '<i class="fas fa-check"></i> Đã nộp thành công!';
+                    btn.style.background = 'linear-gradient(135deg,var(--success),#059669)';
+                    document.getElementById('resubmitSkipBtn').textContent = '✔ Đóng';
+                    // Ẩn overlay sau 3 giây
+                    setTimeout(() => {
+                        let ov = document.getElementById('fileResubmitOverlay');
+                        if (ov) ov.remove();
+                    }, 3500);
+                } else {
+                    throw new Error(resp.message || 'Server lỗi');
+                }
+            } catch (e) {
+                progressEl.style.display = 'none';
+                errEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Lỗi:</strong> ' + e.message + '<br><small>Vui lòng thử lại hoặc liên hệ giáo viên.</small>';
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-redo"></i> Thử lại';
+            }
+        }
+        function confirmSkipResubmit() {
+            let skipBtn = document.getElementById('resubmitSkipBtn');
+            if (skipBtn && skipBtn.textContent.includes('Đóng')) {
+                let ov = document.getElementById('fileResubmitOverlay');
+                if (ov) ov.remove();
+                return;
+            }
+            if (confirm('Bạn chắc chắn muốn bỏ qua?\nFile thực hành CHƯA được lưu. Hãy liên hệ giáo viên!')) {
+                let ov = document.getElementById('fileResubmitOverlay');
+                if (ov) ov.remove();
+            }
         }
 
         // Open file picker without triggering anti-cheat
@@ -4856,6 +5073,21 @@
                     teacherNameEl.innerHTML = '<i class="fas fa-chalkboard-teacher"></i> ' + currentTeacher.hoTen;
                 }
             }
+            // Cập nhật badge đợt thi trên header
+            try {
+                let periodBadge = document.getElementById('examPeriodBadge');
+                let periodText = document.getElementById('examPeriodBadgeText');
+                if (periodBadge && periodText) {
+                    let fbSettings = await firebaseRead('settings') || {};
+                    let currentPeriodName = (fbSettings.examPeriod || '').toString().trim();
+                    if (currentPeriodName) {
+                        periodBadge.style.display = 'inline-flex';
+                        periodText.textContent = currentPeriodName;
+                    } else {
+                        periodBadge.style.display = 'none';
+                    }
+                }
+            } catch (e) { /* ignore */ }
             // Hiển/ẩn tab + nút theo quyền
             if (currentTeacher && currentTeacher.isAdmin) {
                 // Admin: hiển sync buttons + teacher tab
@@ -4944,8 +5176,19 @@
 
                 // Cross-reference practice results to know who has practiced
                 let practiceObj = await firebaseRead('practiceResults') || {};
+                // Đọc đợt thi hiện tại để lọc practice results
+                let currentPeriodDash = '';
+                try {
+                    let dashSettings = await firebaseRead('settings') || {};
+                    currentPeriodDash = (dashSettings.examPeriod || '').toString().trim();
+                } catch (e) { /* ignore */ }
                 let practiceByStudent = {};
                 Object.values(practiceObj).forEach(r => {
+                    // Lọc theo đợt thi hiện tại
+                    if (currentPeriodDash) {
+                        let pDotThi = (r.dotThi || '').toString().trim();
+                        if (pDotThi !== currentPeriodDash) return;
+                    }
                     let maHS = r.maHS;
                     if (!practiceByStudent[maHS]) practiceByStudent[maHS] = 0;
                     practiceByStudent[maHS]++;
@@ -4979,6 +5222,8 @@
                     let trangThai = statusCode === 2 ? 'Đã thi' : statusCode === 1 ? 'Đang thi' : 'Chưa thi';
                     let lastSeen = s.lastSeen || 0;
                     let isOnline = statusCode === 1 && (now - lastSeen) < 60000;
+                    // STUCK DETECTION: Offline > 30 phút nhưng vẫn statusCode=1
+                    let isStuck = statusCode === 1 && !isOnline && (now - lastSeen) > 30 * 60 * 1000;
                     return {
                         stt: s.stt,
                         maHS: maHS,
@@ -4993,8 +5238,13 @@
                         thoiGianNB: s.thoiGianNB ? new Date(s.thoiGianNB).toLocaleTimeString('vi-VN') : '',
                         lastSeen: lastSeen,
                         isOnline: isOnline,
+                        isStuck: !!(statusCode === 1 && !isOnline && lastSeen > 0 && (now - lastSeen) > 30 * 60 * 1000),
                         cheatingCount: s.cheatingCount || 0,
                         uploadFailed: s.uploadFailed || false,
+                        uploadMissing: s.uploadMissing || false,
+                        filePending: s.filePending || false,
+                        // hasFile logic: true nếu Drive đã xác nhận, hoặc dữ liệu cũ có driveFolder
+                        hasFile: s.hasFile === true || (s.hasFile === undefined && !!s.driveFolder),
                         uploadError: s.uploadError || '',
                         driveFolder: s.driveFolder || '',
                         moThi: s.moThi || false,
@@ -5034,12 +5284,13 @@
                 let notLoggedIn = total - loggedIn;
                 let onlineCount = students.filter(s => s.isOnline).length;
                 let practiceStudents = students.filter(s => s.hasPractice).length;
+                let missingFile = students.filter(s => s.statusCode === 2 && !s.hasFile).length;
 
                 dashboardData = {
                     success: true,
                     students: students,
                     classes: classes,
-                    stats: { total, submitted, notSubmitted: total - submitted, inProgress, loggedIn, notLoggedIn, onlineCount, practiceStudents },
+                    stats: { total, submitted, notSubmitted: total - submitted, inProgress, loggedIn, notLoggedIn, onlineCount, practiceStudents, missingFile },
                     results: dashboardData ? dashboardData.results : null // giữ lại results khi rebuild
                 };
 
@@ -5055,10 +5306,25 @@
                 let practiceObj = await firebaseRead('practiceResults') || {};
                 let lop = document.getElementById('resultsClassFilter')?.value || document.getElementById('manageClassFilter')?.value || '';
 
-                // Real exam results
+                // Đọc đợt thi hiện tại để lọc kết quả
+                let currentPeriod = '';
+                try {
+                    let fbSettings = await firebaseRead('settings') || {};
+                    currentPeriod = (fbSettings.examPeriod || '').toString().trim();
+                } catch (e) { /* ignore */ }
+                // Nếu bật "Tất cả đợt" → không lọc theo đợt
+                if (window._showAllPeriods) currentPeriod = '';
+
+                // Real exam results — lọc theo đợt thi
                 let realResults = [];
                 Object.values(resultsObj).forEach(r => {
                     if (lop && r.lop !== lop) return;
+                    // Lọc theo đợt thi: hiển thị kết quả trùng đợt hiện tại
+                    // Nếu currentPeriod trống → hiển thị tất cả (backward compatible)
+                    if (currentPeriod) {
+                        let rDotThi = (r.dotThi || '').toString().trim();
+                        if (rDotThi !== currentPeriod) return;
+                    }
                     // Phân quyền GV: chỉ hiển kết quả lớp phụ trách
                     if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
                         if (!currentTeacher.allowedClasses.includes(r.lop)) return;
@@ -5067,14 +5333,20 @@
                         maHS: r.maHS, hoTen: r.hoTen, lop: r.lop,
                         answers: r.answers || [], score: parseFloat(r.score) || 0,
                         thoiGian: r.thoiGian ? new Date(r.thoiGian).toLocaleString('vi-VN') : '',
+                        dotThi: r.dotThi || '',
                         isPractice: false
                     });
                 });
 
-                // Practice results
+                // Practice results — lọc theo đợt thi
                 let practiceResults = [];
                 Object.values(practiceObj).forEach(r => {
                     if (lop && r.lop !== lop) return;
+                    // Lọc theo đợt thi
+                    if (currentPeriod) {
+                        let pDotThi = (r.dotThi || '').toString().trim();
+                        if (pDotThi !== currentPeriod) return;
+                    }
                     // Phân quyền GV: chỉ hiển kết quả lớp phụ trách
                     if (currentTeacher && !currentTeacher.isAdmin && currentTeacher.allowedClasses && currentTeacher.allowedClasses.length > 0) {
                         if (!currentTeacher.allowedClasses.includes(r.lop)) return;
@@ -5083,6 +5355,7 @@
                         maHS: r.maHS, hoTen: r.hoTen, lop: r.lop,
                         answers: r.answers || [], score: parseFloat(r.score) || 0,
                         thoiGian: r.thoiGian ? new Date(r.thoiGian).toLocaleString('vi-VN') : '',
+                        dotThi: r.dotThi || '',
                         isPractice: true, luot: r.luot || ''
                     });
                 });
@@ -5591,7 +5864,8 @@
                 <div class="stat-card cyan"><div class="stat-icon"><i class="fas fa-sign-in-alt"></i></div><div class="stat-value">${s.loggedIn}<small style="font-size:11px;opacity:.6">/${s.total}</small></div><div class="stat-label">Đã đăng nhập</div><div style="margin-top:6px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden"><div style="height:100%;width:${s.total ? Math.round(s.loggedIn / s.total * 100) : 0}%;background:#06b6d4;border-radius:2px;transition:width .5s"></div></div></div>
                 <div class="stat-card green"><div class="stat-icon"><i class="fas fa-check-double"></i></div><div class="stat-value">${s.submitted}<small style="font-size:11px;opacity:.6">/${s.total}</small></div><div class="stat-label">Đã nộp bài</div><div style="margin-top:6px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--success);border-radius:2px;transition:width .5s"></div></div></div>
                 <div class="stat-card orange"><div class="stat-icon"><i class="fas fa-pen-fancy"></i></div><div class="stat-value">${inProgress > 0 ? inProgress : 0}</div><div class="stat-label">Đang làm bài</div></div>
-                <div class="stat-card red"><div class="stat-icon"><i class="fas fa-user-clock"></i></div><div class="stat-value">${s.notLoggedIn}</div><div class="stat-label">Chưa đăng nhập</div></div>`;
+                <div class="stat-card red"><div class="stat-icon"><i class="fas fa-user-clock"></i></div><div class="stat-value">${s.notLoggedIn}</div><div class="stat-label">Chưa đăng nhập</div></div>
+                ${s.missingFile > 0 ? `<div class="stat-card red" style="cursor:pointer;border:2px solid rgba(239,68,68,0.4);animation:pulse 2s infinite" onclick="switchMainTab('monitor',event);setTimeout(()=>setMonitorFilter('missingfile'),100)" title="Nhấn để xem danh sách HS thiếu file"><div class="stat-icon"><i class="fas fa-file-excel"></i></div><div class="stat-value">${s.missingFile}</div><div class="stat-label">⚠️ Thiếu file TH</div></div>` : ''}`;
             if (currentMainTab === 'manage') renderManageTable();
             if (currentMainTab === 'monitor') renderMonitorTable();
         }
@@ -6198,10 +6472,6 @@
                         // AUTO-SYNC: Xóa khỏi Sheet (background)
                         try {
                             let syncParams = { maHS: maHS };
-                            if (currentTeacher) {
-                                if (currentTeacher.isAdmin) { syncParams.isAdmin = 'true'; }
-                                else { syncParams.maGV = currentTeacher.maGV; }
-                            }
                             apiCall('deleteStudentWithSync', syncParams).then(resp => {
                                 console.log('Sheet delete sync:', resp.message || resp);
                             }).catch(err => { console.warn('Sheet delete sync error:', err); });
@@ -6248,10 +6518,6 @@
                         // AUTO-SYNC: Xóa cả lớp khỏi Sheet (background)
                         try {
                             let syncParams = { lop: classF };
-                            if (currentTeacher) {
-                                if (currentTeacher.isAdmin) { syncParams.isAdmin = 'true'; }
-                                else { syncParams.maGV = currentTeacher.maGV; }
-                            }
                             apiCall('deleteClassWithSync', syncParams).then(resp => {
                                 console.log('Sheet class delete sync:', resp.message || resp);
                             }).catch(err => { console.warn('Sheet class delete sync error:', err); });
@@ -6294,10 +6560,6 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang nén...';
             try {
                 let params = { lop: classF };
-                if (currentTeacher) {
-                    if (currentTeacher.isAdmin) { params.isAdmin = 'true'; }
-                    else { params.maGV = currentTeacher.maGV; }
-                }
                 let resp = await apiCall('downloadClassFiles', params);
                 if (resp.success) {
                     // Mở link tải
@@ -6326,10 +6588,6 @@
             showLoading();
             try {
                 let params = { lop: lop, maHS: maHS };
-                if (currentTeacher) {
-                    if (currentTeacher.isAdmin) { params.isAdmin = 'true'; }
-                    else { params.maGV = currentTeacher.maGV; }
-                }
                 let resp = await apiCall('downloadStudentFiles', params);
                 hideLoading();
                 if (resp.success) {
@@ -6381,7 +6639,45 @@
 
         // ===== TAB: THEO DÕI =====
         let _monitorFilter = 'all';
+        // ============== SYNC TRẠNG THÁI: FIX HS BỊ KẸT ==============
+        async function doSyncStudentStatus() {
+            let btn = event && event.target ? event.target : null;
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang sync...'; }
+            try {
+                let res = await apiCall('syncStudentStatus', {}, { forcePost: true });
+                if (res.success) {
+                    showPopup('✅ Sync thành công', res.message + (res.fixedCount > 0 ? '<br><br>Dashboard sẽ tự động cập nhật.' : '<br><br>Không có học sinh nào bị kẹt.'), res.fixedCount > 0 ? 'success' : 'info');
+                    if (res.fixedCount > 0) setTimeout(() => buildDashboardFromFirebase(), 1500);
+                } else {
+                    showPopup('❌ Lỗi sync', res.message || 'Không thể sync!', 'error');
+                }
+            } catch (e) {
+                showPopup('❌ Lỗi kết nối', e.message, 'error');
+            }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync'; }
+        }
+
+        async function doManualMarkSubmitted(maHS, hoTen) {
+            showConfirmPopup(
+                'Đánh dấu đã nộp bài?',
+                `Bạn có chắc muốn đánh dấu <strong>${hoTen} (${maHS})</strong> là đã nộp bài?<br><small style="color:var(--text2)">Chỉ dùng khi học sinh thực tế đã nộp nhưng hệ thống chưa ghi nhận.</small>`,
+                async () => {
+                    try {
+                        let res = await apiCall('manualMarkSubmitted', { maHS: maHS }, { forcePost: true });
+                        if (res.success) {
+                            showPopup('✅ Thành công', res.message, 'success');
+                            setTimeout(() => buildDashboardFromFirebase(), 1000);
+                        } else {
+                            showPopup('❌ Lỗi', res.message, 'error');
+                        }
+                    } catch (e) { showPopup('❌ Lỗi', e.message, 'error'); }
+                },
+                'Xác nhận', 'Hủy'
+            );
+        }
+
         function setMonitorFilter(f) { _monitorFilter = f; renderMonitorTable(); }
+
         function renderMonitorTable() {
             let container = document.getElementById('monitorTableContainer');
             if (!dashboardData || !dashboardData.students || !dashboardData.students.length) {
@@ -6414,11 +6710,16 @@
             let inExamCount = students.filter(s => s.statusCode === 1).length;
             let notStarted = students.filter(s => s.statusCode === 0).length;
 
+            let missingFileCount = students.filter(s => s.statusCode === 2 && !s.hasFile).length;
+            let stuckCount = students.filter(s => s.isStuck).length;
+
             if (_monitorFilter === 'online') students = students.filter(s => s.isOnline);
             else if (_monitorFilter === 'offline') students = students.filter(s => !s.isOnline && s.statusCode === 1);
             else if (_monitorFilter === 'submitted') students = students.filter(s => s.statusCode === 2);
             else if (_monitorFilter === 'inexam') students = students.filter(s => s.statusCode === 1);
             else if (_monitorFilter === 'notstarted') students = students.filter(s => s.statusCode === 0);
+            else if (_monitorFilter === 'missingfile') students = students.filter(s => s.statusCode === 2 && !s.hasFile);
+            else if (_monitorFilter === 'stuck') students = students.filter(s => s.isStuck);
 
             let f = _monitorFilter;
             let btnStyle = (key, color) => `display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid ${f === key ? color : 'var(--border)'};background:${f === key ? color + '18' : 'transparent'};color:${f === key ? color : 'var(--text2)'};transition:.2s`;
@@ -6431,8 +6732,11 @@
                 <span onclick="setMonitorFilter('submitted')" style="${btnStyle('submitted', '#10b981')}"><i class="fas fa-check-circle"></i> Đã nộp <strong>${submittedCount}</strong></span>
                 <span onclick="setMonitorFilter('inexam')" style="${btnStyle('inexam', '#f59e0b')}"><i class="fas fa-pencil-alt"></i> Đang thi <strong>${inExamCount}</strong></span>
                 <span onclick="setMonitorFilter('notstarted')" style="${btnStyle('notstarted', '#ef4444')}"><i class="fas fa-clock"></i> Chưa thi <strong>${notStarted}</strong></span>
+                ${missingFileCount > 0 ? `<span style="color:var(--border)">|</span><span onclick="setMonitorFilter('missingfile')" style="${btnStyle('missingfile', '#ef4444')}"><i class="fas fa-file-excel"></i> Thiếu file <strong>${missingFileCount}</strong></span>` : ''}
+                ${stuckCount > 0 ? `<span style="color:var(--border)">|</span><span onclick="setMonitorFilter('stuck')" style="${btnStyle('stuck', '#ef4444')};animation:pulse 2s infinite"><i class="fas fa-exclamation-triangle"></i> Kẹt trạng thái <strong>${stuckCount}</strong></span>` : ''}
+                <button onclick="doSyncStudentStatus()" style="margin-left:auto;background:rgba(99,102,241,0.1);color:var(--primary);border:1px solid rgba(99,102,241,0.3);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px" title="Đồng bộ trạng thái từ Google Sheet vào Firebase — fix HS bị kẹt"><i class="fas fa-sync-alt"></i> Sync</button>
             </div>`;
-            html += '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Kết nối</th><th>Trạng thái</th><th>Vi phạm</th><th>File TH</th><th>Đăng nhập</th><th>Nộp bài</th></tr></thead><tbody>';
+            html += '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Kết nối</th><th>Trạng thái</th><th>Vi phạm</th><th>File TH</th><th>Đăng nhập</th><th>Nộp bài</th><th style="width:90px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
                 let badge = s.statusCode === 2 ? 'badge-green' : s.statusCode === 1 ? 'badge-yellow' : 'badge-red';
                 let icon = s.statusCode === 2 ? '✅' : s.statusCode === 1 ? '✍️' : '⏳';
@@ -6455,14 +6759,26 @@
                 html += `<td><strong style="font-size:13px">${s.hoTen}</strong></td>`;
                 html += `<td><span style="background:var(--bg);padding:2px 8px;border-radius:6px;font-size:11px">${s.lop}</span></td>`;
                 html += `<td>${onlineDot}</td>`;
-                html += `<td>${icon} <span class="badge ${badge}">${s.trangThai}</span></td>`;
+                html += `<td>${icon} <span class="badge ${badge}">${s.trangThai}</span>${s.isStuck ? ' <span title="Offline > 30 phút, có thể đã nộp bài nhưng hệ thống chưa ghi nhận" style="display:inline-flex;align-items:center;gap:3px;background:rgba(239,68,68,0.15);color:var(--danger);padding:2px 6px;border-radius:5px;font-size:10px;font-weight:700;margin-left:4px;cursor:help"><i class="fas fa-exclamation-triangle"></i> Kẹt?</span>' : ''}</td>`;
                 let cheatBadge = s.cheatingCount > 0 ? `<span style="display:inline-flex;align-items:center;gap:4px;background:${s.cheatingCount >= 3 ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.15)'};color:${s.cheatingCount >= 3 ? 'var(--danger)' : 'var(--warning)'};padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700"><i class="fas fa-exclamation-triangle"></i> ${s.cheatingCount}</span>` : '<span style="font-size:12px;color:var(--text2)">0</span>';
                 html += `<td style="text-align:center">${cheatBadge}</td>`;
                 let fileBadge = '';
                 if (s.statusCode === 2) {
-                    fileBadge = s.uploadFailed
-                        ? `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(239,68,68,0.15);color:var(--danger);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600" title="${s.uploadError}"><i class="fas fa-times-circle"></i> Lỗi</span>`
-                        : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check-circle"></i> OK</span>';
+                    if (s.uploadFailed) {
+                        fileBadge = s.driveFolder
+                            ? `<a href="${s.driveFolder}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;background:rgba(239,68,68,0.15);color:var(--danger);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;cursor:pointer" title="${s.uploadError} — Nhấn để mở thư mục kiểm tra"><i class="fas fa-times-circle"></i> Lỗi <i class="fas fa-external-link-alt" style="font-size:9px;opacity:.7"></i></a>`
+                            : `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(239,68,68,0.15);color:var(--danger);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;cursor:help" title="${s.uploadError}"><i class="fas fa-times-circle"></i> Lỗi upload</span>`;
+                    } else if (s.filePending && !s.hasFile) {
+                        fileBadge = '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,0.15);color:var(--primary);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600" title="File đang được lưu lên Google Drive..."><i class="fas fa-spinner fa-spin"></i> Đang lưu...</span>';
+                    } else if (!s.hasFile) {
+                        fileBadge = s.driveFolder
+                            ? `<a href="${s.driveFolder}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);color:var(--warning);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;cursor:pointer;animation:pulse 2s infinite" title="THIẾU file thực hành — Nhấn để mở thư mục kiểm tra"><i class="fas fa-exclamation-triangle"></i> Thiếu file <i class="fas fa-external-link-alt" style="font-size:9px;opacity:.7"></i></a>`
+                            : `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);color:var(--warning);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;animation:pulse 2s infinite" title="HS đã nộp bài nhưng THIẾU file thực hành!"><i class="fas fa-exclamation-triangle"></i> Thiếu file</span>`;
+                    } else {
+                        fileBadge = '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check-circle"></i> OK</span>';
+                    }
+                } else if (s.statusCode === 1) {
+                    fileBadge = '<span style="font-size:12px;color:var(--text2)" title="HS đang làm bài, chưa nộp">⏳ Chờ</span>';
                 } else {
                     fileBadge = '<span style="font-size:12px;color:var(--text2)">--</span>';
                 }
@@ -6479,7 +6795,15 @@
                 } else {
                     submitBadge = '<span style="font-size:12px;color:var(--text2)">--</span>';
                 }
-                html += `<td style="text-align:center">${submitBadge}</td></tr>`;
+                html += `<td style="text-align:center">${submitBadge}</td>`;
+                // Cột thao tác: nút đánh dấu nộp thủ công cho HS bị kẹt
+                let actionCell = '';
+                if (s.isStuck) {
+                    actionCell = `<button onclick="doManualMarkSubmitted('${s.maHS}','${s.hoTen}')" style="background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap" title="Đánh dấu học sinh này là đã nộp bài"><i class="fas fa-check"></i> Đánh dấu nộp</button>`;
+                } else if (s.statusCode === 1 && s.thoiGianDN) {
+                    actionCell = `<button onclick="doManualMarkSubmitted('${s.maHS}','${s.hoTen}')" style="background:transparent;color:var(--text2);border:1px solid var(--border);padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer" title="Đánh dấu thủ công"><i class="fas fa-hand-pointer"></i></button>`;
+                }
+                html += `<td style="text-align:center">${actionCell}</td></tr>`;
             });
             html += '</tbody></table>';
             if (!students.length && search) html = '<div class="empty-state"><p style="color:var(--text2)">Không tìm thấy</p></div>';
@@ -7391,6 +7715,26 @@
                     lcToggle.checked = lcOn;
                     updateLockChatToggleVisual(lcOn);
                 }
+                // Exam period setting
+                let epInput = document.getElementById('examPeriodInput');
+                let epBadge = document.getElementById('examPeriodBadge');
+                let epNoBadge = document.getElementById('examPeriodNoBadge');
+                let epBadgeText = document.getElementById('examPeriodBadgeText');
+                let epFolderPreview = document.getElementById('examPeriodFolderPreview');
+                let epFolderPath = document.getElementById('examPeriodFolderPath');
+                if (settings.examPeriod && settings.examPeriod.trim()) {
+                    let period = settings.examPeriod.trim();
+                    if (epInput) epInput.value = period;
+                    if (epBadge) { epBadge.style.display = 'inline-flex'; }
+                    if (epBadgeText) epBadgeText.textContent = period;
+                    if (epNoBadge) epNoBadge.style.display = 'none';
+                    if (epFolderPreview) epFolderPreview.style.display = 'block';
+                    if (epFolderPath) epFolderPath.textContent = 'KET_QUA_THI / ' + period + ' / [Lớp] / [HS]';
+                } else {
+                    if (epBadge) epBadge.style.display = 'none';
+                    if (epNoBadge) epNoBadge.style.display = 'inline-flex';
+                    if (epFolderPreview) epFolderPreview.style.display = 'none';
+                }
             } catch (e) { console.log('Settings load error:', e); }
         }
 
@@ -7561,28 +7905,47 @@
                     autoSubmitted: true,
                     fileData: '', fileName: '', fileMimeType: ''
                 };
-                updateSubmitOverlay('Đang gửi đáp án...', 'Bài thi hết giờ, đang nộp tự động', 40);
+
+                // ===== GẮN FILE VÀO examData TRƯỚC KHI GỬI (không tách riêng) =====
+                if (!isPracticeMode && uploadedFile) {
+                    updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi: ' + uploadedFile.name, 20);
+                    try {
+                        if (!checkFileSizeOk(uploadedFile)) {
+                            examData.uploadError = `File quá lớn > ${MAX_FILE_MB}MB`;
+                        } else {
+                        let base64Data = await fileToBase64(uploadedFile);
+                        examData.fileData = base64Data; }
+                        examData.fileName = uploadedFile.name;
+                        examData.fileMimeType = uploadedFile.type;
+                    } catch (fileErr) {
+                        // Ghi lỗi nhưng vẫn nộp bài (file sẽ thiếu)
+                        console.warn('Auto-submit file encode error:', fileErr);
+                        examData.uploadError = 'Không thể mã hóa file: ' + fileErr.message;
+                    }
+                }
+
+                updateSubmitOverlay('Đang gửi bài thi...', 'Bài thi' + (examData.fileName ? ' + file thực hành' : '') + ' đang được tải lên', 40);
                 let resp = await apiPostSubmit(examData);
                 if (resp.success) {
-                    // Upload file if exists
-                    if (!isPracticeMode && uploadedFile) {
-                        updateSubmitOverlay('Đang tải file...', uploadedFile.name, 60);
-                        try {
-                            let fileData = await fileToBase64(uploadedFile);
-                            await uploadFileWithVerification(fileData, uploadedFile.name, uploadedFile.type);
-                        } catch (e) { /* best effort */ }
-                    }
                     updateSubmitOverlay('Hoàn tất!', 'Bài thi đã được nộp tự động ✓', 100);
                     await new Promise(r => setTimeout(r, 1000));
                     hideSubmitOverlay();
                     stopSessionManagement();
                     clearExamBackup(currentStudent.maHS);
-                    // Clear Firebase answer backup too
-                    try { firebaseUpdate('students/' + currentStudent.maHS, { savedAnswers: null, savedAnswersTime: null }).catch(() => { }); } catch (e) { }
+                    // B4 FIX: server releases session
+                    try { await apiCall('releaseStudentSession', { sessionToken: currentStudent.sessionToken }, { forcePost: true }); } catch (e) { }
                     if (isPracticeMode && resp.isPractice) {
                         showPracticeResults(resp);
                     } else {
+                        // Cảnh báo nếu thi thật mà không có file
+                        if (!isPracticeMode && !uploadedFile) {
+                            showPopup('⚠️ Thiếu file thực hành', 'Bài thi đã được nộp tự động do hết giờ, nhưng bạn <strong>chưa tải file thực hành</strong>.<br><br>Vui lòng liên hệ giáo viên ngay!', 'warning');
+                        }
                         showScreen('successScreen');
+                        // FIX: auto-submit cũng cần hiển thị UI nộp lại nếu Drive save thất bại
+                        if (resp.fileVerified === false && !isPracticeMode && uploadedFile) {
+                            setTimeout(() => showFileResubmitUI(resp), 1200);
+                        }
                     }
                 } else {
                     throw new Error(resp.message || 'Server lỗi');
@@ -9599,6 +9962,60 @@
             if (slider) slider.style.left = isOn ? '27px' : '3px';
         }
 
+        // ===== LƯU ĐỢT THI (EXAM PERIOD) =====
+        async function saveExamPeriod() {
+            let input = document.getElementById('examPeriodInput');
+            let period = (input ? input.value.trim() : '');
+            let msgEl = document.getElementById('examPeriodMsg');
+            let btn = document.getElementById('btnSaveExamPeriod');
+            
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...'; }
+            
+            try {
+                await firebaseUpdate('settings', { examPeriod: period || null });
+                
+                // Update badge
+                let badge = document.getElementById('examPeriodBadge');
+                let noBadge = document.getElementById('examPeriodNoBadge');
+                let badgeText = document.getElementById('examPeriodBadgeText');
+                let folderPreview = document.getElementById('examPeriodFolderPreview');
+                let folderPath = document.getElementById('examPeriodFolderPath');
+                
+                if (period) {
+                    if (badge) badge.style.display = 'inline-flex';
+                    if (badgeText) badgeText.textContent = period;
+                    if (noBadge) noBadge.style.display = 'none';
+                    if (folderPreview) folderPreview.style.display = 'block';
+                    if (folderPath) folderPath.textContent = 'KET_QUA_THI / ' + period + ' / [Lớp] / [HS]';
+                    if (msgEl) {
+                        msgEl.innerHTML = '✅ Đã lưu đợt thi: <strong>' + period + '</strong>. Bài thi sẽ được lưu vào thư mục riêng.';
+                        msgEl.style.display = 'block';
+                        msgEl.style.background = 'rgba(16,185,129,0.15)';
+                        msgEl.style.color = 'var(--success)';
+                    }
+                } else {
+                    if (badge) badge.style.display = 'none';
+                    if (noBadge) noBadge.style.display = 'inline-flex';
+                    if (folderPreview) folderPreview.style.display = 'none';
+                    if (msgEl) {
+                        msgEl.innerHTML = '⚠️ Đã xóa đợt thi. Bài thi sẽ lưu trực tiếp vào thư mục gốc KET_QUA_THI.';
+                        msgEl.style.display = 'block';
+                        msgEl.style.background = 'rgba(245,158,11,0.15)';
+                        msgEl.style.color = 'var(--warning)';
+                    }
+                }
+            } catch (e) {
+                if (msgEl) {
+                    msgEl.innerHTML = '❌ Lỗi lưu đợt thi: ' + e.message;
+                    msgEl.style.display = 'block';
+                    msgEl.style.background = 'rgba(239,68,68,0.15)';
+                    msgEl.style.color = 'var(--danger)';
+                }
+            }
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Lưu đợt thi'; }
+            setTimeout(() => { if (msgEl) msgEl.style.display = 'none'; }, 5000);
+        }
+
         // Typing indicator functions
         function onStudentTyping() {
             if (!_chatMaHS) return;
@@ -9897,7 +10314,8 @@
             style="background:linear-gradient(135deg,#6366f1,#4f46e5);padding:16px 20px;display:flex;align-items:center;gap:10px">
             <div
                 style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center">
-                <i class="fas fa-headset" style="color:#fff;font-size:16px"></i></div>
+                <i class="fas fa-headset" style="color:#fff;font-size:16px"></i>
+            </div>
             <div style="flex:1">
                 <div style="color:#fff;font-weight:700;font-size:14px">Hỗ trợ trực tuyến</div>
                 <div style="color:rgba(255,255,255,0.7);font-size:11px">Nhắn tin cho giáo viên</div>
@@ -9982,7 +10400,8 @@
                 <div id="teacherTypingIndicator"
                     style="display:none;align-items:center;gap:6px;padding:4px 14px;font-size:11px;color:var(--text2)">
                     <i class="fas fa-user-graduate" style="font-size:9px"></i> Học sinh đang gõ<span
-                        class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div>
+                        class="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+                </div>
                 <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px">
                     <input type="text" id="teacherChatInput" placeholder="Trả lời học sinh..."
                         oninput="onTeacherTyping()" onkeydown="if(event.key==='Enter')sendTeacherMessage()"
