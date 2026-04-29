@@ -5243,8 +5243,9 @@
                         uploadFailed: s.uploadFailed || false,
                         uploadMissing: s.uploadMissing || false,
                         filePending: s.filePending || false,
-                        // hasFile logic: true nếu Drive đã xác nhận, hoặc dữ liệu cũ có driveFolder
-                        hasFile: s.hasFile === true || (s.hasFile === undefined && !!s.driveFolder),
+                        // hasFile: driveFileId tồn tại = chắc chắn 100%, fallback: hasFile flag, fallback 2: có driveFolder (dữ liệu cũ)
+                        hasFile: !!(s.driveFileId) || s.hasFile === true || (s.hasFile === undefined && !!s.driveFolder),
+                        driveFileId: s.driveFileId || null,  // ← ID file thực hành để verify
                         uploadError: s.uploadError || '',
                         driveFolder: s.driveFolder || '',
                         moThi: s.moThi || false,
@@ -6695,9 +6696,13 @@
 
         async function doVerifyStudentFile(maHS) {
             try {
-                let res = await apiCall('verifyStudentFile', { maHS: maHS }, { forcePost: true });
+                // Dùng verifyByFileId: O(1) chính xác 100% nếu có driveFileId
+                let res = await apiCall('verifyByFileId', { maHS: maHS }, { forcePost: true });
                 if (res.success) {
-                    showPopup(res.hasFile ? '✅ Có file thực hành' : '⚠️ Không tìm thấy file', res.message, res.hasFile ? 'success' : 'warning');
+                    let icon = res.hasFile ? '✅' : '⚠️';
+                    let detail = res.driveFileId ? `<br><small style="color:var(--text2)">File ID: <code>${res.driveFileId}</code></small>` : '';
+                    showPopup(res.hasFile ? '✅ Có file thực hành' : '⚠️ Không tìm thấy file',
+                        res.message + detail, res.hasFile ? 'success' : 'warning');
                     if (res.hasFile) setTimeout(() => buildDashboardFromFirebase(), 800);
                 } else { showPopup('❌ Lỗi', res.message, 'error'); }
             } catch (e) { showPopup('❌ Lỗi', e.message, 'error'); }
@@ -6804,7 +6809,14 @@
                             ? `<a href="${s.driveFolder}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);color:var(--warning);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;cursor:pointer;animation:pulse 2s infinite" title="THIẾU file thực hành — Nhấn để mở thư mục kiểm tra"><i class="fas fa-exclamation-triangle"></i> Thiếu file <i class="fas fa-external-link-alt" style="font-size:9px;opacity:.7"></i></a>`
                             : `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(245,158,11,0.15);color:var(--warning);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;animation:pulse 2s infinite" title="HS đã nộp bài nhưng THIẾU file thực hành!"><i class="fas fa-exclamation-triangle"></i> Thiếu file</span>`;
                     } else {
-                        fileBadge = '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600"><i class="fas fa-check-circle"></i> OK</span>';
+                        // Có file — hiển thị OK badge với ID nếu có driveFileId
+                        let fileIdTip = s.driveFileId
+                            ? `title="✅ File ID: ${s.driveFileId} — Xác nhận 100% file tồn tại trên Drive"`
+                            : `title="File đã xác nhận qua driveFolder"`;
+                        let fileIdChip = s.driveFileId
+                            ? `<span style="font-size:9px;background:rgba(16,185,129,0.2);color:var(--success);padding:1px 4px;border-radius:3px;margin-left:3px;font-family:monospace" title="File ID: ${s.driveFileId}">ID✓</span>`
+                            : '';
+                        fileBadge = `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.15);color:var(--success);padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600" ${fileIdTip}><i class="fas fa-check-circle"></i> OK${fileIdChip}</span>`;
                     }
                 } else if (s.statusCode === 1) {
                     fileBadge = '<span style="font-size:12px;color:var(--text2)" title="HS đang làm bài, chưa nộp">⏳ Chờ</span>';
