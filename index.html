@@ -6676,7 +6676,35 @@
             );
         }
 
+        // ============== VERIFY FILE THỰC TẾ TRÊN DRIVE ==============
+        async function doVerifyDriveFiles(btn) {
+            let origHtml = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang quét...'; }
+            try {
+                let res = await apiCall('verifyDriveFiles', {}, { forcePost: true });
+                if (res.success) {
+                    showPopup(res.fixedCount > 0 ? '✅ Hoàn tất' : 'ℹ️ Kiểm tra xong',
+                        `Đã quét <strong>${res.checkedCount || 0}</strong> HS đã nộp bài.<br>` +
+                        (res.fixedCount > 0 ? `<strong style="color:var(--success)">${res.fixedCount} HS</strong> được cập nhật đúng trạng thái file!` : `Tất cả trạng thái file đã chính xác.`),
+                        res.fixedCount > 0 ? 'success' : 'info');
+                    if (res.fixedCount > 0) setTimeout(() => buildDashboardFromFirebase(), 1200);
+                } else { showPopup('❌ Lỗi', res.message, 'error'); }
+            } catch (e) { showPopup('❌ Lỗi', e.message, 'error'); }
+            if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+        }
+
+        async function doVerifyStudentFile(maHS) {
+            try {
+                let res = await apiCall('verifyStudentFile', { maHS: maHS }, { forcePost: true });
+                if (res.success) {
+                    showPopup(res.hasFile ? '✅ Có file thực hành' : '⚠️ Không tìm thấy file', res.message, res.hasFile ? 'success' : 'warning');
+                    if (res.hasFile) setTimeout(() => buildDashboardFromFirebase(), 800);
+                } else { showPopup('❌ Lỗi', res.message, 'error'); }
+            } catch (e) { showPopup('❌ Lỗi', e.message, 'error'); }
+        }
+
         function setMonitorFilter(f) { _monitorFilter = f; renderMonitorTable(); }
+
 
         function renderMonitorTable() {
             let container = document.getElementById('monitorTableContainer');
@@ -6735,6 +6763,7 @@
                 ${missingFileCount > 0 ? `<span style="color:var(--border)">|</span><span onclick="setMonitorFilter('missingfile')" style="${btnStyle('missingfile', '#ef4444')}"><i class="fas fa-file-excel"></i> Thiếu file <strong>${missingFileCount}</strong></span>` : ''}
                 ${stuckCount > 0 ? `<span style="color:var(--border)">|</span><span onclick="setMonitorFilter('stuck')" style="${btnStyle('stuck', '#ef4444')};animation:pulse 2s infinite"><i class="fas fa-exclamation-triangle"></i> Kẹt trạng thái <strong>${stuckCount}</strong></span>` : ''}
                 <button onclick="doSyncStudentStatus()" style="margin-left:auto;background:rgba(99,102,241,0.1);color:var(--primary);border:1px solid rgba(99,102,241,0.3);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px" title="Đồng bộ trạng thái từ Google Sheet vào Firebase — fix HS bị kẹt"><i class="fas fa-sync-alt"></i> Sync</button>
+                <button onclick="doVerifyDriveFiles(this)" style="background:rgba(16,185,129,0.1);color:var(--success);border:1px solid rgba(16,185,129,0.3);padding:5px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px" title="Quét Google Drive thực tế để xác nhận file — fix hasFile sai do Firebase update thất bại"><i class="fas fa-search"></i> Verify Drive</button>
             </div>`;
             html += '<table><thead><tr><th style="width:36px">#</th><th>Mã HS</th><th>Họ tên</th><th>Lớp</th><th>Kết nối</th><th>Trạng thái</th><th>Vi phạm</th><th>File TH</th><th>Đăng nhập</th><th>Nộp bài</th><th style="width:90px">Thao tác</th></tr></thead><tbody>';
             students.forEach((s, idx) => {
@@ -6796,10 +6825,13 @@
                     submitBadge = '<span style="font-size:12px;color:var(--text2)">--</span>';
                 }
                 html += `<td style="text-align:center">${submitBadge}</td>`;
-                // Cột thao tác: nút đánh dấu nộp thủ công cho HS bị kẹt
+                // Cột thao tác
                 let actionCell = '';
                 if (s.isStuck) {
                     actionCell = `<button onclick="doManualMarkSubmitted('${s.maHS}','${s.hoTen}')" style="background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3);padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap" title="Đánh dấu học sinh này là đã nộp bài"><i class="fas fa-check"></i> Đánh dấu nộp</button>`;
+                } else if (s.statusCode === 2 && (!s.hasFile || s.uploadFailed)) {
+                    // HS đã nộp bài nhưng thiếu file hoặc lỗi upload → cho phép verify Drive thực tế
+                    actionCell = `<button onclick="doVerifyStudentFile('${s.maHS}')" style="background:rgba(16,185,129,0.12);color:var(--success);border:1px solid rgba(16,185,129,0.3);padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap" title="Quét Google Drive để xác nhận file thực hành có tồn tại không"><i class="fas fa-search"></i> Kiểm tra Drive</button>`;
                 } else if (s.statusCode === 1 && s.thoiGianDN) {
                     actionCell = `<button onclick="doManualMarkSubmitted('${s.maHS}','${s.hoTen}')" style="background:transparent;color:var(--text2);border:1px solid var(--border);padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer" title="Đánh dấu thủ công"><i class="fas fa-hand-pointer"></i></button>`;
                 }
