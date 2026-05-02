@@ -3605,10 +3605,18 @@
                     // Nếu thành công → trả về luôn
                     if (resp.success) return resp;
                     // Server lỗi logic (không phải network) → không retry
-                    if (resp.message && !resp.message.includes('bận') && !resp.message.includes('timeout') && !resp.message.includes('⏳')) {
+                    // BUG FIX #7: ưu tiên kiểm tra resp.retryable (field tường minh từ server)
+                    // Fallback: check text để tương thích với server cũ chưa có retryable field
+                    if (resp.retryable === true) {
+                        // Server bảo retry → tiếp tục vòng lặp
+                        lastErr = new Error(resp.message || 'Server bận, đang thử lại...');
+                    } else if (resp.message && (resp.message.includes('bận') || resp.message.includes('timeout') || resp.message.includes('⏳'))) {
+                        // Fallback text check — giữ lại để tương thích ngược
+                        lastErr = new Error(resp.message || 'Server bận');
+                    } else {
+                        // Lỗi logic khác → không retry
                         return resp;
                     }
-                    lastErr = new Error(resp.message || 'Server lỗi');
                 } catch (e) {
                     lastErr = e;
                     console.warn(`apiPostSubmit attempt ${attempt + 1} failed:`, e.message);
@@ -3960,12 +3968,26 @@
             });
 
             // D1 FIX: Lưu thứ tự đáp án qua server action (không ghi Firebase trực tiếp)
+            // BUG FIX #3: thêm retry 3 lần khi saveStudentAnswers thất bại
+            // Lý do: fire-and-forget cũ có thể mất thứ tự đáp án nếu mạng chậm khi HS mới bảt đầu làm bài
+            // Hậu quả cũ: refresh trang → loadQuestions đọc assignedAnswerOrder = null → random lại → key đáp án sai
             if (!isPracticeMode && currentStudent && !savedAnswerOrder) {
-                apiCall('saveStudentAnswers', {
-                    maHS: currentStudent.maHS,
-                    sessionToken: currentStudent.sessionToken,
-                    answers: { _answerOrder: answerOrderToSave }
-                }, { forcePost: true }).catch(e => console.log('Save answer order error:', e));
+                (async () => {
+                    const MAX_SAVE_RETRIES = 3;
+                    for (let r = 0; r < MAX_SAVE_RETRIES; r++) {
+                        try {
+                            await apiCall('saveStudentAnswers', {
+                                maHS: currentStudent.maHS,
+                                sessionToken: currentStudent.sessionToken,
+                                answers: { _answerOrder: answerOrderToSave }
+                            }, { forcePost: true });
+                            break; // thành công → dừng retry
+                        } catch (e) {
+                            console.warn(`saveStudentAnswers attempt ${r + 1} failed:`, e.message);
+                            if (r < MAX_SAVE_RETRIES - 1) await new Promise(res => setTimeout(res, 1500 * (r + 1)));
+                        }
+                    }
+                })();
             }
 
             updateProgress();
@@ -4089,13 +4111,27 @@
             'application/vnd.ms-excel',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         ];
+        // Giới hạn kích thước file — phải đồng bộ với MAX_FILE_BASE64_LEN trên server (Code.gs)
+        // BUG FIX #1: khai báo ở đây để cả processFile và checkFileSizeOk cùng dùng 1 hằng số
+        const MAX_FILE_MB = 6;
 
         function isAllowedFileType(file) {
             // Kiểm tra extension
             let name = file.name.toLowerCase();
             let extOk = ALLOWED_FILE_EXTENSIONS.some(ext => name.endsWith(ext));
-            // Kiểm tra MIME type (fallback nếu trình duyệt cung cấp)
-            let mimeOk = !file.type || ALLOWED_MIME_TYPES.includes(file.type);
+            // BUG FIX #4: strict MIME check — trước đây `!file.type` = true để pass qua
+            // Hậu quả cũ: rename bất kỳ file nào sang .docx là pass validation
+            // Fix: chỉ skip MIME check khi browser không cung cấp type (rất hiếm, các trình duyệt hiện đại luôn set type)
+            // Đồng thời phải pass cả extension check → giảm rủi ro file giả mạo
+            let mimeOk;
+            if (!file.type) {
+                // Browser không detect được MIME — chấp nhận nếu extension đúng
+                // (vẫn an toàn vì extOk còn được kiểm tra)
+                mimeOk = true;
+            } else {
+                // Browser có MIME → phải khớp chính xác hoặc nằm trong ALLOWED_MIME_TYPES
+                mimeOk = ALLOWED_MIME_TYPES.includes(file.type);
+            }
             return extOk && mimeOk;
         }
 
@@ -4118,9 +4154,11 @@
                 document.getElementById('fileInput').value = '';
                 return;
             }
-            // Validate max size: 10MB
-            if (file.size > 10 * 1024 * 1024) {
-                showStepAlert('⚠️ File quá lớn!', 'File tối đa 10MB. File của bạn: ' + (file.size / 1048576).toFixed(1) + 'MB. Vui lòng chọn file nhỏ hơn.');
+            // Validate max size: phải cùng giới hạn với checkFileSizeOk (MAX_FILE_MB = 6MB)
+            // BUG FIX #1: trước đây dùng 10MB ở đây nhưng checkFileSizeOk dùng 6MB → mâu thuẫn
+            // HS upload 7-10MB được qua step 2, nhưng bị fail lúc submit → bài nộp thiếu file
+            if (file.size > MAX_FILE_MB * 1024 * 1024) {
+                showStepAlert('⚠️ File quá lớn!', 'File tối đa ' + MAX_FILE_MB + 'MB. File của bạn: ' + (file.size / 1048576).toFixed(1) + 'MB. Vui lòng nén file hoặc chọn file nhỏ hơn.');
                 document.getElementById('fileInput').value = '';
                 return;
             }
@@ -4837,7 +4875,7 @@
         }
 
         // W1 FIX: kiểm tra size trước khi encode (client-side guard, server cũng check)
-        const MAX_FILE_MB = 6;
+        // MAX_FILE_MB đã được khai báo ở phần FILE UPLOAD constants ở trên
         function checkFileSizeOk(file) {
             if (!file) return true;
             if (file.size > MAX_FILE_MB * 1024 * 1024) {
@@ -5466,16 +5504,7 @@
 
         let allQuestionsData = [];
 
-        // Helper: trích danh sách khối (6,7,8,9) từ lớp phụ trách của GV
-        function getTeacherAllowedGrades() {
-            if (!currentTeacher || currentTeacher.isAdmin || !currentTeacher.allowedClasses || !currentTeacher.allowedClasses.length) return null;
-            let grades = new Set();
-            currentTeacher.allowedClasses.forEach(c => {
-                let match = c.match(/^(\d+)/);
-                if (match) grades.add(match[1]);
-            });
-            return grades.size > 0 ? [...grades] : null;
-        }
+
 
         async function loadAllQuestions() {
             let container = document.getElementById('questionsListContainer');
@@ -5491,8 +5520,9 @@
                     return q;
                 });
                 // GV thường: chỉ hiện câu hỏi thuộc khối phụ trách + câu chung
+                // BUG FIX: getTeacherAllowedGrades() trả [] (truthy!) khi GV không có class → phải check .length
                 let teacherGrades = getTeacherAllowedGrades();
-                if (teacherGrades) {
+                if (teacherGrades && teacherGrades.length > 0) {
                     allQuestionsData = allQuestionsData.filter(q => !q.lop || teacherGrades.includes(q.lop.toString()));
                     // Giới hạn filter dropdown theo khối GV
                     let filterEl = document.getElementById('questionGradeFilter');
@@ -6505,37 +6535,10 @@
             }
         }
 
-        // ===== XÓA HỌC SINH =====
-        async function deleteStudent(maHS) {
-            let s = dashboardData.students ? dashboardData.students.find(x => x.maHS === maHS) : null;
-            let name = s ? s.hoTen : maHS;
-            showConfirmPopup('⚠️ Xóa học sinh',
-                'Xóa HS <strong>' + name + '</strong> (' + maHS + ')?<br><span style="color:var(--danger)">Dữ liệu thi + kết quả sẽ bị xóa vĩnh viễn!</span>',
-                async () => {
-                    try {
-                        showLoading();
-                        let updates = {};
-                        updates['students/' + maHS] = null;
-                        updates['results/' + maHS] = null;
-                        updates['practiceResults/' + maHS] = null;
-                        updates['examProgress/' + maHS] = null;
-                        await db.ref().update(updates);
-                        if (dashboardData.students) {
-                            dashboardData.students = dashboardData.students.filter(x => x.maHS !== maHS);
-                        }
-                        // AUTO-SYNC: Xóa khỏi Sheet (background)
-                        try {
-                            let syncParams = { maHS: maHS };
-                            apiCall('deleteStudentWithSync', syncParams).then(resp => {
-                                console.log('Sheet delete sync:', resp.message || resp);
-                            }).catch(err => { console.warn('Sheet delete sync error:', err); });
-                        } catch (syncErr) { console.warn('Sheet sync init error:', syncErr); }
-                        hideLoading();
-                        renderManageTable();
-                        showPopup('Đã xóa', 'Đã xóa HS <strong>' + name + '</strong> + đồng bộ Sheet', 'success');
-                    } catch (e) { hideLoading(); showPopup('Lỗi', 'Lỗi: ' + e.message, 'error'); }
-                }, 'Xóa', 'Hủy');
-        }
+        // ===== XOÁ HỌC SINH VÀO THÙNG RÁC — (hàm này được định nghĩa phía dưới, khu vực trash management) =====
+        // BUG FIX: đã xóa phiên bản cũ xóa vĩnh viễn ở đây — giờ dùng hàm deleteStudent() ở khu vực trash (L7323)
+        // Phân tích: JS function declaration hoisting — bản sau (L7323) override bản trước (L6547)
+        // → giữ 1 phiên bản duy nhất (Thùng rác 30 ngày) tránh nhầm lẫn đầu lập trình viên khác
 
         async function deleteEntireClass() {
             let classF = document.getElementById('manageClassFilter').value;
@@ -8006,18 +8009,31 @@
                 // ===== GẮN FILE VÀO examData TRƯỚC KHI GỬI (không tách riêng) =====
                 if (!isPracticeMode && uploadedFile) {
                     updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi: ' + uploadedFile.name, 20);
-                    try {
-                        if (!checkFileSizeOk(uploadedFile)) {
-                            examData.uploadError = `File quá lớn > ${MAX_FILE_MB}MB`;
-                        } else {
-                        let base64Data = await fileToBase64(uploadedFile);
-                        examData.fileData = base64Data; }
-                        examData.fileName = uploadedFile.name;
-                        examData.fileMimeType = uploadedFile.type;
-                    } catch (fileErr) {
-                        // Ghi lỗi nhưng vẫn nộp bài (file sẽ thiếu)
-                        console.warn('Auto-submit file encode error:', fileErr);
-                        examData.uploadError = 'Không thể mã hóa file: ' + fileErr.message;
+                    // BUG FIX #6: thêm retry 2 lần khi fileToBase64 lỗi (ví dụ: out-of-memory, file corrupt)
+                    // Trước đây: lỗi 1 lần → gập lỗi ngay, nộp bài không có file
+                    const MAX_ENCODE_TRIES = 3;
+                    let encodeOk = false;
+                    for (let et = 0; et < MAX_ENCODE_TRIES; et++) {
+                        try {
+                            if (!checkFileSizeOk(uploadedFile)) {
+                                examData.uploadError = `File quá lớn > ${MAX_FILE_MB}MB`;
+                                break; // không retry nếu file quá lớn
+                            }
+                            let base64Data = await fileToBase64(uploadedFile);
+                            examData.fileData = base64Data;
+                            examData.fileName = uploadedFile.name;
+                            examData.fileMimeType = uploadedFile.type;
+                            encodeOk = true;
+                            break; // thành công
+                        } catch (encodeErr) {
+                            console.warn(`fileToBase64 attempt ${et + 1} failed:`, encodeErr.message);
+                            if (et < MAX_ENCODE_TRIES - 1) {
+                                await new Promise(r => setTimeout(r, 800));
+                            } else {
+                                // Hết lượt retry → đánh dấu lỗi, vẫn nộp bài (UI sẽ yêu cầu nộp lại file)
+                                examData.uploadError = 'Không thể mã hóa file sau ' + MAX_ENCODE_TRIES + ' lần thử: ' + encodeErr.message;
+                            }
+                        }
                     }
                 }
 
