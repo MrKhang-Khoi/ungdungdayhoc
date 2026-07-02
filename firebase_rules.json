@@ -2,33 +2,35 @@
   "rules": {
     "settings": {
       ".read": true,
-      ".write": false
+      ".write": true
     },
     "students": {
-      "$maHS": {
-        ".read": true,
-        ".write": true
-      }
+      ".read": true,
+      ".write": true
+    },
+    "results": {
+      ".read": true,
+      ".write": true
+    },
+    "practiceResults": {
+      ".read": true,
+      ".write": true
     },
     "supportChat": {
-      "$maHS": {
-        ".read": true,
-        ".write": true
-      }
+      ".read": true,
+      ".write": true
     },
     "antiCheatLog": {
-      "$maHS": {
-        ".read": true,
-        ".write": true
-      }
+      ".read": true,
+      ".write": true
     },
-    "resultsByStudent": {
-      ".read": false,
-      ".write": false
+    "teacherLoginHistory": {
+      ".read": true,
+      ".write": true
     },
-    "logs": {
-      ".read": false,
-      ".write": false
+    "trash": {
+      ".read": true,
+      ".write": true
     }
   }
 }
