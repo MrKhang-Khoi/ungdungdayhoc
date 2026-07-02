@@ -39,6 +39,18 @@
     "questions": {
       ".read": true,
       ".write": true
+    },
+    "studyMaterials": {
+      ".read": true,
+      ".write": true
+    },
+    "practiceExams": {
+      ".read": true,
+      ".write": true
+    },
+    "teachers": {
+      ".read": true,
+      ".write": true
     }
   }
 }
