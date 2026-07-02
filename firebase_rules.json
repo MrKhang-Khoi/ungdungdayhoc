@@ -31,6 +31,14 @@
     "trash": {
       ".read": true,
       ".write": true
+    },
+    "notifications": {
+      ".read": true,
+      ".write": true
+    },
+    "questions": {
+      ".read": true,
+      ".write": true
     }
   }
 }
