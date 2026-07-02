@@ -4135,7 +4135,7 @@
             return extOk && mimeOk;
         }
 
-        function processFile(file) {
+        async function processFile(file) {
             // Validate file type: chỉ Word hoặc Excel
             if (!isAllowedFileType(file)) {
                 let ext = file.name.includes('.') ? '.' + file.name.split('.').pop() : 'không rõ';
@@ -4155,34 +4155,107 @@
                 return;
             }
             // Validate max size: phải cùng giới hạn với checkFileSizeOk (MAX_FILE_MB = 6MB)
-            // BUG FIX #1: trước đây dùng 10MB ở đây nhưng checkFileSizeOk dùng 6MB → mâu thuẫn
-            // HS upload 7-10MB được qua step 2, nhưng bị fail lúc submit → bài nộp thiếu file
             if (file.size > MAX_FILE_MB * 1024 * 1024) {
                 showStepAlert('⚠️ File quá lớn!', 'File tối đa ' + MAX_FILE_MB + 'MB. File của bạn: ' + (file.size / 1048576).toFixed(1) + 'MB. Vui lòng nén file hoặc chọn file nhỏ hơn.');
                 document.getElementById('fileInput').value = '';
                 return;
             }
-            // Show loading state
+
+            // Gán file tạm và hiển thị đang tải lên Drive
+            uploadedFile = file;
+            currentDriveFileId = null; // Reset
             let display = document.getElementById('fileInfoDisplay');
-            uploadZone.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:var(--primary)"></i><h3>Đang xử lý file...</h3><p>Vui lòng chờ...</p>';
+            uploadZone.innerHTML = '<i class="fas fa-spinner fa-spin" style="color:var(--primary);font-size:32px"></i><h3>Đang tải file lên Drive...</h3><p>Vui lòng chờ, bài làm đang được upload chạy ngầm...</p>';
             uploadZone.style.pointerEvents = 'none';
 
-            setTimeout(() => {
-                uploadedFile = file;
-                let size = file.size < 1024 ? file.size + 'B' : file.size < 1048576 ? (file.size / 1024).toFixed(1) + 'KB' : (file.size / 1048576).toFixed(1) + 'MB';
-                let icon = file.name.match(/\.docx?$/i) ? 'fa-file-word' : 'fa-file-excel';
+            try {
+                let base64Data = await fileToBase64(file);
+                
+                // Gọi API lưu file ngầm
+                let url = new URL(API_URL);
+                url.searchParams.set('action', 'saveFile');
+                let fileBody = {
+                    maHS: currentStudent.maHS,
+                    hoTen: currentStudent.hoTen,
+                    lop: currentStudent.lop,
+                    fileData: base64Data,
+                    fileName: file.name,
+                    fileMimeType: file.type
+                };
 
-                display.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-top:12px">
-                    <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${icon}" style="color:var(--primary);font-size:20px"></i></div>
-                    <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</div><div style="font-size:11px;color:var(--text2);margin-top:2px">${size}</div></div>
-                    <button onclick="confirmRemoveFile()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--danger);padding:6px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="fas fa-trash-alt"></i> Xóa file</button>
-                </div>`;
-                display.style.display = 'block';
+                let resp = await fetch(url.toString(), {
+                    method: 'POST',
+                    redirect: 'follow',
+                    body: JSON.stringify(fileBody)
+                });
+                
+                let result;
+                if (resp.ok) {
+                    result = await resp.json();
+                } else {
+                    // Try fallback no-cors + verify
+                    result = await uploadFileFallback(fileBody);
+                }
 
-                // Show success state on upload zone
-                uploadZone.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);font-size:48px"></i><h3 style="color:var(--success);margin-top:8px">✅ Tải file thành công!</h3><p>Nhấn để thay đổi file khác</p>';
+                if (result && result.success && result.driveFileId) {
+                    currentDriveFileId = result.driveFileId;
+                    
+                    // Render UI file đã tải lên thành công
+                    let size = file.size < 1024 ? file.size + 'B' : file.size < 1048576 ? (file.size / 1024).toFixed(1) + 'KB' : (file.size / 1048576).toFixed(1) + 'MB';
+                    let icon = file.name.match(/\.docx?$/i) ? 'fa-file-word' : 'fa-file-excel';
+
+                    display.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;margin-top:12px">
+                        <div style="width:44px;height:44px;border-radius:12px;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${icon}" style="color:var(--success);font-size:20px"></i></div>
+                        <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</div><div style="font-size:11px;color:var(--success);margin-top:2px"><i class="fas fa-check-circle"></i> Đã lưu Drive (${size})</div></div>
+                        <button onclick="confirmRemoveFile()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--danger);padding:6px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px;white-space:nowrap"><i class="fas fa-trash-alt"></i> Xóa file</button>
+                    </div>`;
+                    display.style.display = 'block';
+
+                    uploadZone.innerHTML = '<i class="fas fa-check-circle" style="color:var(--success);font-size:48px"></i><h3 style="color:var(--success);margin-top:8px">✅ Tải file lên Drive thành công!</h3><p>Nhấn để thay đổi file khác</p>';
+                } else {
+                    throw new Error(result ? result.message : 'Không nhận được File ID phản hồi từ server');
+                }
+            } catch (err) {
+                console.error("Lỗi upload ngầm:", err);
+                uploadZone.innerHTML = '<i class="fas fa-times-circle" style="color:var(--danger);font-size:48px"></i><h3 style="color:var(--danger);margin-top:8px">❌ Tải lên Drive thất bại!</h3><p style="color:var(--danger);font-size:12px;margin:4px 0">' + err.message + '</p><p>Nhấn để thử tải lại file</p>';
+                currentDriveFileId = null;
+                uploadedFile = null;
+                display.style.display = 'none';
+            } finally {
                 uploadZone.style.pointerEvents = 'auto';
-            }, 600);
+                renderSubmitSummary(); // cập nhật submit button
+            }
+        }
+
+        async function uploadFileFallback(fileBody) {
+            let fileUrl = new URL(API_URL);
+            fileUrl.searchParams.set('action', 'saveFile');
+            
+            try {
+                await fetch(fileUrl.toString(), {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(fileBody)
+                });
+            } catch (e) {
+                return { success: false, message: 'no-cors POST failed: ' + e.message };
+            }
+
+            // Verify with retries
+            for (let attempt = 1; attempt <= 4; attempt++) {
+                await new Promise(r => setTimeout(r, 4000)); // Đợi 4 giây giữa mỗi lần để Drive kịp lập chỉ mục
+                try {
+                    let verify = await apiCall('verifyFile', { maHS: fileBody.maHS });
+                    if (verify.success && verify.hasFile) {
+                        let student = await firebaseRead('students/' + fileBody.maHS);
+                        if (student && student.driveFileId) {
+                            return { success: true, driveFileId: student.driveFileId };
+                        }
+                    }
+                } catch (e) { /* retry */ }
+            }
+            return { success: false, message: 'Không thể xác nhận file qua no-cors sau 4 lần kiểm tra' };
         }
 
         function confirmRemoveFile() {
@@ -4205,9 +4278,11 @@
 
         function removeFile() {
             uploadedFile = null;
+            currentDriveFileId = null; // Reset biến
             document.getElementById('fileInfoDisplay').style.display = 'none';
             document.getElementById('fileInput').value = '';
             uploadZone.innerHTML = '<i class="fas fa-cloud-upload-alt"></i><h3>Kéo thả file vào đây</h3><p>Chấp nhận: <strong>.doc, .docx, .xls, .xlsx</strong> — Tối đa 10MB</p>';
+            renderSubmitSummary(); // Cập nhật submit button
         }
 
         // ============== NỘP BÀI ==============
@@ -4295,31 +4370,34 @@
                     lop: currentStudent.lop,
                     answers: answers,
                     isPractice: isPracticeMode,
-                    fileData: '', fileName: '', fileMimeType: ''
+                    fileData: '', fileName: '', fileMimeType: '',
+                    driveFileId: ''
                 };
 
-                // 3. Gộp file thực hành vào examData (nếu thi thật + có file)
+                // 3. Gộp file thực hành vào examData (nếu thi thật)
                 if (!isPracticeMode) {
-                    // Safety check: thi thật PHẢI có file
-                    if (!uploadedFile) {
+                    if (currentDriveFileId) {
+                        examData.driveFileId = currentDriveFileId;
+                    } else if (uploadedFile) {
+                        // Fallback: Upload đồng bộ nếu upload ngầm bị lỗi hoặc hết giờ
+                        updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi file: ' + uploadedFile.name, 20);
+                        if (!checkFileSizeOk(uploadedFile)) {
+                            throw new Error(`File quá lớn (> ${MAX_FILE_MB}MB). Hãy nén file rồi thử lại.`);
+                        }
+                        let base64Data = await fileToBase64(uploadedFile);
+                        if (!base64Data || base64Data.length === 0) {
+                            throw new Error('File thực hành rỗng hoặc không đọc được. Vui lòng tải lại file.');
+                        }
+                        examData.fileData = base64Data;
+                        examData.fileName = uploadedFile.name;
+                        examData.fileMimeType = uploadedFile.type;
+                    } else {
                         throw new Error('Thiếu file thực hành! Vui lòng quay lại bước 2 để tải file lên.');
                     }
-                    updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi file: ' + uploadedFile.name, 20);
-                    // W1 FIX: kiểm tra size client-side trước khi encode
-                    if (!checkFileSizeOk(uploadedFile)) {
-                        throw new Error(`File quá lớn (> ${MAX_FILE_MB}MB). Hãy nén file rồi thử lại.`);
-                    }
-                    let base64Data = await fileToBase64(uploadedFile);
-                    if (!base64Data || base64Data.length === 0) {
-                        throw new Error('File thực hành rỗng hoặc không đọc được. Vui lòng tải lại file.');
-                    }
-                    examData.fileData = base64Data;
-                    examData.fileName = uploadedFile.name;
-                    examData.fileMimeType = uploadedFile.type;
                 }
 
-                // 4. Gửi tất cả qua POST (bài thi + file cùng lúc)
-                updateSubmitOverlay('Đang gửi bài thi...', 'Bài thi' + (uploadedFile ? ' + file thực hành' : '') + ' đang được tải lên server', 35);
+                // 4. Gửi tất cả qua POST
+                updateSubmitOverlay('Đang gửi bài thi...', 'Bài thi đang được tải lên server', 35);
                 let resp = await apiPostSubmit(examData);
 
                 if (resp.success) {
@@ -8003,41 +8081,44 @@
                     answers: answers,
                     isPractice: isPracticeMode,
                     autoSubmitted: true,
-                    fileData: '', fileName: '', fileMimeType: ''
+                    fileData: '', fileName: '', fileMimeType: '',
+                    driveFileId: ''
                 };
 
-                // ===== GẮN FILE VÀO examData TRƯỚC KHI GỬI (không tách riêng) =====
-                if (!isPracticeMode && uploadedFile) {
-                    updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi: ' + uploadedFile.name, 20);
-                    // BUG FIX #6: thêm retry 2 lần khi fileToBase64 lỗi (ví dụ: out-of-memory, file corrupt)
-                    // Trước đây: lỗi 1 lần → gập lỗi ngay, nộp bài không có file
-                    const MAX_ENCODE_TRIES = 3;
-                    let encodeOk = false;
-                    for (let et = 0; et < MAX_ENCODE_TRIES; et++) {
-                        try {
-                            if (!checkFileSizeOk(uploadedFile)) {
-                                examData.uploadError = `File quá lớn > ${MAX_FILE_MB}MB`;
-                                break; // không retry nếu file quá lớn
-                            }
-                            let base64Data = await fileToBase64(uploadedFile);
-                            examData.fileData = base64Data;
-                            examData.fileName = uploadedFile.name;
-                            examData.fileMimeType = uploadedFile.type;
-                            encodeOk = true;
-                            break; // thành công
-                        } catch (encodeErr) {
-                            console.warn(`fileToBase64 attempt ${et + 1} failed:`, encodeErr.message);
-                            if (et < MAX_ENCODE_TRIES - 1) {
-                                await new Promise(r => setTimeout(r, 800));
-                            } else {
-                                // Hết lượt retry → đánh dấu lỗi, vẫn nộp bài (UI sẽ yêu cầu nộp lại file)
-                                examData.uploadError = 'Không thể mã hóa file sau ' + MAX_ENCODE_TRIES + ' lần thử: ' + encodeErr.message;
+                // ===== GẮN FILE VÀO examData TRƯỚC KHI GỬI =====
+                if (!isPracticeMode) {
+                    if (currentDriveFileId) {
+                        examData.driveFileId = currentDriveFileId;
+                    } else if (uploadedFile) {
+                        updateSubmitOverlay('Đang xử lý file thực hành...', 'Đang chuyển đổi: ' + uploadedFile.name, 20);
+                        const MAX_ENCODE_TRIES = 3;
+                        let encodeOk = false;
+                        for (let et = 0; et < MAX_ENCODE_TRIES; et++) {
+                            try {
+                                if (!checkFileSizeOk(uploadedFile)) {
+                                    examData.uploadError = `File quá lớn > ${MAX_FILE_MB}MB`;
+                                    break; // không retry nếu file quá lớn
+                                }
+                                let base64Data = await fileToBase64(uploadedFile);
+                                examData.fileData = base64Data;
+                                examData.fileName = uploadedFile.name;
+                                examData.fileMimeType = uploadedFile.type;
+                                encodeOk = true;
+                                break; // thành công
+                            } catch (encodeErr) {
+                                console.warn(`fileToBase64 attempt ${et + 1} failed:`, encodeErr.message);
+                                if (et < MAX_ENCODE_TRIES - 1) {
+                                    await new Promise(r => setTimeout(r, 800));
+                                } else {
+                                    // Hết lượt retry → đánh dấu lỗi, vẫn nộp bài (UI sẽ yêu cầu nộp lại file)
+                                    examData.uploadError = 'Không thể mã hóa file sau ' + MAX_ENCODE_TRIES + ' lần thử: ' + encodeErr.message;
+                                }
                             }
                         }
                     }
                 }
 
-                updateSubmitOverlay('Đang gửi bài thi...', 'Bài thi' + (examData.fileName ? ' + file thực hành' : '') + ' đang được tải lên', 40);
+                updateSubmitOverlay('Đang gửi bài thi...', 'Bài thi đang được tải lên', 40);
                 let resp = await apiPostSubmit(examData);
                 if (resp.success) {
                     updateSubmitOverlay('Hoàn tất!', 'Bài thi đã được nộp tự động ✓', 100);

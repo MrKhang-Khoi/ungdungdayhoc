@@ -1,0 +1,34 @@
+{
+  "rules": {
+    "settings": {
+      ".read": true,
+      ".write": false
+    },
+    "students": {
+      "$maHS": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "supportChat": {
+      "$maHS": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "antiCheatLog": {
+      "$maHS": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "resultsByStudent": {
+      ".read": false,
+      ".write": false
+    },
+    "logs": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

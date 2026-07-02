@@ -4,7 +4,7 @@
 // ╚══════════════════════════════════════════════════════════════╝
 
 // ============== CẤU HÌNH ==============
-const SHEET_ID = 'THAY_BANG_SHEET_ID_CUA_BAN'; // <-- Thay bằng ID Google Sheet của bạn
+const SHEET_ID = '1K7TSP19uvAL3rBe9AuX36dUzlsMOhTG_XjrfSUKiaBw'; // <-- Thay bằng ID Google Sheet của bạn
 const ADMIN_PASSWORD = 'admin@2025';
 const ROOT_FOLDER_NAME = 'KET_QUA_THI';
 
@@ -1012,29 +1012,28 @@ function submitExam(data) {
 
   // ===== VALIDATE: Thi thật PHẢI có file thực hành =====
   if (!isPractice) {
-    // Kiểm tra file bắt buộc (trừ auto-submit hết giờ)
-    if (!data.fileData || !data.fileName) {
+    var driveFileId = data.driveFileId ? data.driveFileId.toString().trim() : '';
+    
+    // Nếu chưa có file (trừ auto-submit hết giờ)
+    if (!driveFileId) {
       if (!isAutoSubmitted) {
-        // KHÔNG gọi lock.releaseLock() thủ công — finally sẽ xử lý
-        result = { success: false, message: '⚠️ Thiếu file thực hành! Bạn phải tải file bài thực hành lên trước khi nộp bài.' };
+        result = { success: false, message: '⚠️ Thiếu file thực hành! Bạn phải chọn và tải bài thực hành lên ở Bước 2 trước khi nộp bài.' };
         return result;
       }
-      // Auto-submit cho phép thiếu file nhưng ghi cờ cảnh báo
-    }
-    // Validate file extension (server-side) nếu có file
-    if (data.fileName) {
-      var allowedExts = ['.doc', '.docx', '.xls', '.xlsx'];
-      var fileName = data.fileName.toString().toLowerCase();
-      var extValid = false;
-      for (var ae = 0; ae < allowedExts.length; ae++) {
-        if (fileName.indexOf(allowedExts[ae], fileName.length - allowedExts[ae].length) !== -1) {
-          extValid = true;
-          break;
+    } else {
+      // Xác minh sự tồn tại thực tế của file trên Drive bằng ID
+      try {
+        var verifyFile = DriveApp.getFileById(driveFileId);
+        if (verifyFile.isTrashed()) {
+          throw new Error('File bị xóa');
         }
-      }
-      if (!extValid) {
-        result = { success: false, message: '⚠️ Sai định dạng file! Chỉ chấp nhận file Word (.doc, .docx) hoặc Excel (.xls, .xlsx).' };
-        return result;
+      } catch (driveErr) {
+        if (!isAutoSubmitted) {
+          result = { success: false, message: '⚠️ Lỗi: Không tìm thấy file thực hành của bạn trên Drive hệ thống! Vui lòng quay lại Bước 2 và tải lại file.' };
+          return result;
+        }
+        // Nếu là auto-submit thì ghi nhận lỗi nhưng vẫn cho qua
+        driveFileId = '';
       }
     }
   }
@@ -1408,44 +1407,91 @@ function submitExam(data) {
   // 6. Lưu file lên Google Drive — NGOÀI lock
   if (needDriveSave && driveData) {
     try {
-      var driveResult = saveFilesToDrive(driveData.data, driveData.details, driveData.score);
-      // driveResult = { folderUrl, fileId } — fileId là ID file thực hành trên Drive
-      var driveFolderUrl = driveResult ? driveResult.folderUrl : null;
-      var driveFileId   = driveResult ? (driveResult.fileId || null) : null;
-      if (driveFolderUrl) {
-        // có fileId = chắc chắn đã upload file thực hành — chính xác 100%
-        var hasFileUploaded = !!driveFileId;
-        // Retry Firebase update để tránh mất trạng thái hasFile khi network chậm
-        var driveUpdateOk = false;
-        for (var dru = 0; dru < 3; dru++) {
-          try {
-            firebaseUpdate('students/' + driveData.maHS, {
-              driveFolder: driveFolderUrl,
-              driveFileId: driveFileId,       // ← Mới: lưu ID file để verify chính xác
-              hasFile: hasFileUploaded,
-              filePending: false,
-              uploadFailed: false,
-              uploadMissing: !hasFileUploaded && isAutoSubmitted,
-              canResubmit: false
-            });
-            driveUpdateOk = true;
-            break;
-          } catch (fe2) {
-            Logger.log('Save driveFolder attempt ' + (dru+1) + ' error: ' + fe2);
-            if (dru < 2) Utilities.sleep(400);
-          }
+      var finalDriveFolderUrl = '';
+      var finalDriveFileId = data.driveFileId ? data.driveFileId.toString().trim() : '';
+      
+      // Nếu đã upload file thực hành trước đó (có finalDriveFileId) -> chỉ cần ghi file kết quả trắc nghiệm KetQuaTracNghiem.txt
+      if (finalDriveFileId) {
+        try {
+          var file = DriveApp.getFileById(finalDriveFileId);
+          var parentFolder = file.getParents().next();
+          finalDriveFolderUrl = parentFolder.getUrl();
+          
+          // Tạo file báo cáo kết quả trắc nghiệm trong cùng thư mục
+          var now = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy HH:mm:ss');
+          var resultText = buildResultText(driveData.data, driveData.details, driveData.score, now);
+          var resultBlob = Utilities.newBlob(resultText, 'text/plain; charset=utf-8', 'KetQuaTracNghiem.txt');
+          parentFolder.createFile(resultBlob);
+          
+          // Cập nhật Firebase thành công
+          firebaseUpdate('students/' + driveData.maHS, {
+            driveFolder: finalDriveFolderUrl,
+            driveFileId: finalDriveFileId,
+            hasFile: true,
+            filePending: false,
+            uploadFailed: false,
+            uploadMissing: false,
+            canResubmit: false
+          });
+          
+          result.fileVerified = true;
+          result.driveFolder = finalDriveFolderUrl;
+          result.driveFileId = finalDriveFileId;
+        } catch (errWriteText) {
+          Logger.log('Loi ghi file trắc nghiệm ngầm: ' + errWriteText);
+          // Vẫn coi là thành công vì file thực hành của HS đã an toàn
+          result.fileVerified = true;
+          result.driveFileId = finalDriveFileId;
         }
-        if (!driveUpdateOk) Logger.log('WARNING: driveFolder/hasFile NOT saved to Firebase for maHS=' + driveData.maHS);
-        // Cập nhật resultsByStudent với driveFileId để check trùng sau cũng trả về đúng ID
-        if (driveFileId) {
-          try {
-            firebaseUpdate('resultsByStudent/' + periodKey + '_' + driveData.maHS, { driveFileId: driveFileId });
-          } catch (e2) { Logger.log('Update resultsByStudent driveFileId error: ' + e2); }
+      } 
+      // Trường hợp fallback: học sinh gửi file Base64 trong payload nộp bài (chưa upload ngầm được)
+      else if (driveData.data.fileData && driveData.data.fileName) {
+        var driveResult = saveFilesToDrive(driveData.data, driveData.details, driveData.score);
+        var driveFolderUrl = driveResult ? driveResult.folderUrl : null;
+        var driveFileId   = driveResult ? (driveResult.fileId || null) : null;
+        if (driveFolderUrl) {
+          firebaseUpdate('students/' + driveData.maHS, {
+            driveFolder: driveFolderUrl,
+            driveFileId: driveFileId,
+            hasFile: !!driveFileId,
+            filePending: false,
+            uploadFailed: false,
+            uploadMissing: !driveFileId && isAutoSubmitted,
+            canResubmit: false
+          });
+          result.fileVerified = true;
+          result.driveFolder = driveFolderUrl;
+          result.driveFileId = driveFileId;
         }
-        // B2 FIX: cập nhật result để client biết file đã lưu OK
-        result.fileVerified = true;
-        result.driveFolder = driveFolderUrl;
-        result.driveFileId = driveFileId; // ← Trả về client
+      }
+      // Trường hợp hết giờ mà không có cả file thực hành
+      else if (isAutoSubmitted) {
+        // Tạo thư mục kết quả chỉ chứa file text trắc nghiệm
+        var rootFolder = getExamRootFolder();
+        var safeLop = (driveData.data.lop || 'Unknown').toString().replace(/[/\\:.]/g, '_');
+        var classFolder = getOrCreateFolder(rootFolder, safeLop);
+        var studentFolderName = removeVietnameseTones(driveData.data.hoTen || '').replace(/\s+/g, '') + '_' + driveData.maHS;
+        var studentFolder = getOrCreateFolder(classFolder, studentFolderName);
+        
+        try {
+          studentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        } catch (eShare) {}
+        
+        var now = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy HH:mm:ss');
+        var resultText = buildResultText(driveData.data, driveData.details, driveData.score, now);
+        var resultBlob = Utilities.newBlob(resultText, 'text/plain; charset=utf-8', 'KetQuaTracNghiem.txt');
+        studentFolder.createFile(resultBlob);
+        
+        firebaseUpdate('students/' + driveData.maHS, {
+          driveFolder: studentFolder.getUrl(),
+          hasFile: false,
+          filePending: false,
+          uploadFailed: false,
+          uploadMissing: true
+        });
+        
+        result.fileVerified = false;
+        result.driveFolder = studentFolder.getUrl();
       }
     } catch (err) {
       Logger.log('Loi luu Drive: ' + err.toString());
@@ -1458,7 +1504,7 @@ function submitExam(data) {
           uploadError: 'Drive save failed: ' + err.toString().substring(0, 200)
         });
       } catch (fe3) { /* silent */ }
-      // B2 FIX: result.fileVerified vẫn false → client hiển thị cảnh báo retry
+      result.fileVerified = false;
     }
   }
 
@@ -2017,7 +2063,6 @@ function sendNotificationAction(params) {
 }
 
 function saveFileOnly(data) {
-
   try {
     if (!data.fileData || !data.fileName) {
       return { success: false, message: 'Không có file để lưu!' };
@@ -2039,21 +2084,43 @@ function saveFileOnly(data) {
     var classFolder = getOrCreateFolder(rootFolder, data.lop);
     var studentFolderName = removeVietnameseTones(data.hoTen).replace(/\s+/g, '') + '_' + data.maHS;
     var studentFolder = getOrCreateFolder(classFolder, studentFolderName);
+    
+    var driveFileId = null;
     if (data.fileData && data.fileName) {
       var fileBlob = Utilities.newBlob(
         Utilities.base64Decode(data.fileData),
         data.fileMimeType || 'application/octet-stream',
         data.fileName
       );
-      studentFolder.createFile(fileBlob);
+      var uploadedFile = studentFolder.createFile(fileBlob);
+      driveFileId = uploadedFile.getId();
     }
-    // Share folder and save URL to Firebase
-    studentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    var folderUrl = studentFolder.getUrl();
+    
+    // Share folder with try-catch to avoid Group Policy issues
     try {
-      firebaseUpdate('students/' + data.maHS, { driveFolder: folderUrl });
-    } catch (fe) { Logger.log('Save driveFolder (saveFileOnly) error: ' + fe); }
-    return { success: true, message: 'Đã lưu file!', driveFolder: folderUrl };
+      studentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    } catch(shareErr) {
+      Logger.log('Cannot setSharing on folder (saveFileOnly): ' + shareErr);
+    }
+    
+    var folderUrl = studentFolder.getUrl();
+    
+    // Auto-update student Firebase status immediately
+    try {
+      firebaseUpdate('students/' + data.maHS, {
+        driveFolder: folderUrl,
+        driveFileId: driveFileId,
+        hasFile: !!driveFileId,
+        filePending: false,
+        uploadFailed: false,
+        uploadMissing: false,
+        canResubmit: false
+      });
+    } catch (fe) {
+      Logger.log('Save driveFolder (saveFileOnly) error: ' + fe);
+    }
+    
+    return { success: true, message: 'Đã lưu file!', driveFolder: folderUrl, driveFileId: driveFileId };
   } catch(err) {
     return { success: false, message: 'Lỗi lưu file: ' + err.toString() };
   }
@@ -2129,38 +2196,8 @@ function uploadStudyFile(data) {
 // B3 FIX: Giới hạn 8MB base64 (≈ 6MB file thực)
 var MAX_FILE_BASE64_LEN = 8 * 1024 * 1024;
 
-function saveFilesToDrive(data, details, score) {
-  // B1 FIX: data.hoTen/data.lop đã được validate từ Sheet trước khi gọi hàm này
-  var rootFolder = getExamRootFolder();
-
-  // Tên lớp và tên thư mục HS được lấy từ server-validated data
-  var safeLop = (data.lop || 'Unknown').toString().replace(/[/\\:.]/g, '_');
-  var classFolder = getOrCreateFolder(rootFolder, safeLop);
-
-  var studentFolderName = removeVietnameseTones(data.hoTen || '').replace(/\s+/g, '') + '_' + data.maHS;
-  var studentFolder = getOrCreateFolder(classFolder, studentFolderName);
-
-  // B3 FIX: Kiểm tra size trước khi decode
-  var driveFileId = null;  // ← ID file thực hành (dùng để verify sau này)
-  if (data.fileData && data.fileName) {
-    if (data.fileData.length > MAX_FILE_BASE64_LEN) {
-      Logger.log('File qua lon: ' + data.fileData.length + ' chars base64 (HS: ' + data.maHS + ')');
-      throw new Error('File thực hành vượt quá 6MB. Hãy nén file trước khi nộp.');
-    }
-    var fileBlob = Utilities.newBlob(
-      Utilities.base64Decode(data.fileData),
-      data.fileMimeType || 'application/octet-stream',
-      data.fileName
-    );
-    var uploadedFile = studentFolder.createFile(fileBlob);
-    driveFileId = uploadedFile.getId(); // ← Lưu ID để verify chính xác 100%
-    Logger.log('Drive file uploaded: ' + data.fileName + ' ID=' + driveFileId + ' HS=' + data.maHS);
-  }
-
-  // Tạo file kết quả text - ĐẦY ĐỦ CHI TIẾT
-  var now = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy HH:mm:ss');
-  
-  // Lấy thêm các đáp án từ Cau_Hoi — LỌC THEO KHỐI LỚP HS
+// Helper build kết quả trắc nghiệm dạng văn bản
+function buildResultText(data, details, score, now) {
   var ss = SpreadsheetApp.openById(SHEET_ID);
   var qSheet = ss.getSheetByName('Cau_Hoi');
   var qData = qSheet.getDataRange().getValues();
@@ -2173,7 +2210,6 @@ function saveFilesToDrive(data, details, score) {
   for (var q = 1; q < qData.length; q++) {
     var maCH = qData[q][0].toString().trim();
     var qKhoi = qData[q][7] ? qData[q][7].toString().trim() : '';
-    // Lọc: chỉ lấy câu hỏi cùng khối hoặc câu chung
     if (studentGrade && qKhoi && qKhoi !== studentGrade) continue;
     questionBank[maCH] = {
       maCH: maCH,
@@ -2235,12 +2271,50 @@ function saveFilesToDrive(data, details, score) {
   }
 
   resultText += '══════════════════════════════════════════════════\n';
+  return resultText;
+}
 
+function saveFilesToDrive(data, details, score) {
+  // B1 FIX: data.hoTen/data.lop đã được validate từ Sheet trước khi gọi hàm này
+  var rootFolder = getExamRootFolder();
+
+  // Tên lớp và tên thư mục HS được lấy từ server-validated data
+  var safeLop = (data.lop || 'Unknown').toString().replace(/[/\\:.]/g, '_');
+  var classFolder = getOrCreateFolder(rootFolder, safeLop);
+
+  var studentFolderName = removeVietnameseTones(data.hoTen || '').replace(/\s+/g, '') + '_' + data.maHS;
+  var studentFolder = getOrCreateFolder(classFolder, studentFolderName);
+
+  // B3 FIX: Kiểm tra size trước khi decode
+  var driveFileId = null;  // ← ID file thực hành (dùng để verify sau này)
+  if (data.fileData && data.fileName) {
+    if (data.fileData.length > MAX_FILE_BASE64_LEN) {
+      Logger.log('File qua lon: ' + data.fileData.length + ' chars base64 (HS: ' + data.maHS + ')');
+      throw new Error('File thực hành vượt quá 6MB. Hãy nén file trước khi nộp.');
+    }
+    var fileBlob = Utilities.newBlob(
+      Utilities.base64Decode(data.fileData),
+      data.fileMimeType || 'application/octet-stream',
+      data.fileName
+    );
+    var uploadedFile = studentFolder.createFile(fileBlob);
+    driveFileId = uploadedFile.getId(); // ← Lưu ID để verify chính xác 100%
+    Logger.log('Drive file uploaded: ' + data.fileName + ' ID=' + driveFileId + ' HS=' + data.maHS);
+  }
+
+  // Tạo file kết quả text - ĐẦY ĐỦ CHI TIẾT
+  var now = Utilities.formatDate(new Date(), 'Asia/Ho_Chi_Minh', 'dd/MM/yyyy HH:mm:ss');
+  var resultText = buildResultText(data, details, score, now);
   var resultBlob = Utilities.newBlob(resultText, 'text/plain; charset=utf-8', 'KetQuaTracNghiem.txt');
   studentFolder.createFile(resultBlob);
 
-  // Share folder and return object {folderUrl, fileId}
-  studentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  // Share folder with try-catch
+  try {
+    studentFolder.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+  } catch (eShare) {
+    Logger.log('Cannot setSharing on folder (saveFilesToDrive): ' + eShare);
+  }
+  
   return { folderUrl: studentFolder.getUrl(), fileId: driveFileId };
 }
 
